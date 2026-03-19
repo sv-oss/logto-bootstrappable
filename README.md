@@ -45,6 +45,15 @@ have been made, and how to configure them for yourself.
 New container releases will be set up and created when a new PR
 is merged to `master`.
 
+The latest container can be pulled from `ghcr.io/sv-oss/logto-bootstrappable:edge`.
+
+Previous containers will be tagged by their `master` commit SHA, like:
+
+`ghcr.io/sv-oss/logto-bootstrappable:sha-5683c4e`
+
+> [!Note]
+> SV Specific notes end here
+
 Below is the original Readme:
 
 <p align="center">
