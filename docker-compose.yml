@@ -14,6 +14,9 @@ services:
       - 3002:3002
     environment:
       - TRUST_PROXY_HEADER=1
+      # Database connection — use either a full DSN or individual AWS CDK DatabaseSecret fields:
+      #   DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME (and optionally DB_PORT, default 5432)
+      #   DB_SSL_MODE (optional, e.g. require or verify-full — needed for TLS-only databases like RDS)
       - DB_URL=postgres://postgres:p0stgr3s@postgres:5432/logto
       # Mandatory for GitPod to map host env to the container, thus GitPod can dynamically configure the public URL of Logto;
       # Or, you can leverage it for local testing.

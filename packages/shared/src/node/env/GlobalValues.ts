@@ -50,6 +50,60 @@ export const parseTimeoutEnv = (value?: string): Optional<number | 'DISABLE_TIME
   return Number.isFinite(parsed) ? parsed : undefined;
 };
 
+/**
+ * Valid SSL mode values supported by `@silverhand/slonik`.
+ */
+export type SslMode = 'disable' | 'no-verify' | 'require';
+
+const validSslModes = new Set<string>(['disable', 'no-verify', 'require']);
+
+/**
+ * Builds the Postgres connection URL from environment variables.
+ *
+ * Resolution order:
+ * 1. `DB_URL` — a full Postgres DSN (existing behaviour, takes priority).
+ * 2. Individual AWS CDK `DatabaseSecret` fields injected as separate env vars:
+ *    `DB_HOST`, `DB_USERNAME`, `DB_PASSWORD`, `DB_NAME`, and optionally:
+ *    - `DB_PORT` (default `5432`)
+ *    - `DB_SSL_MODE` — PostgreSQL `sslmode` value, e.g. `require` or `verify-full`.
+ *      When set, appends `?sslmode=<value>` to the constructed URL.
+ *      Required for databases that enforce TLS connections (e.g. AWS RDS).
+ *
+ * If neither option is present the function calls `assertEnv('DB_URL')` which
+ * throws the standard "env variable not found" error so that the existing
+ * `throwErrorWithDsnMessage` handler can surface a helpful message.
+ */
+export const buildDatabaseUrl = (): string => {
+  const directUrl = process.env.DB_URL;
+  if (directUrl) {
+    return directUrl;
+  }
+
+  const host = process.env.DB_HOST;
+  const username = process.env.DB_USERNAME;
+  const password = process.env.DB_PASSWORD;
+  const dbname = process.env.DB_NAME;
+
+  if (host && username && password && dbname) {
+    const port = process.env.DB_PORT ?? '5432';
+    const base = `postgresql://${encodeURIComponent(username)}:${encodeURIComponent(password)}@${host}:${port}/${dbname}`;
+
+    const sslMode = process.env.DB_SSL_MODE;
+    if (sslMode) {
+      if (!validSslModes.has(sslMode)) {
+        throw new Error(
+          `Invalid DB_SSL_MODE value "${sslMode}". Must be one of: ${[...validSslModes].join(', ')}.`
+        );
+      }
+      return `${base}?sslmode=${sslMode}`;
+    }
+
+    return base;
+  }
+
+  return assertEnv('DB_URL');
+};
+
 export default class GlobalValues {
   public readonly isProduction = getEnv('NODE_ENV') === 'production';
   public readonly isIntegrationTest = yes(getEnv('INTEGRATION_TEST'));
@@ -147,8 +201,7 @@ export default class GlobalValues {
    */
   public readonly isMultipleCustomDomainsEnabled = yes(getEnv('MULTIPLE_CUSTOM_DOMAINS_ENABLED'));
 
-  // eslint-disable-next-line unicorn/consistent-function-scoping
-  public readonly databaseUrl = tryThat(() => assertEnv('DB_URL'), throwErrorWithDsnMessage);
+  public readonly databaseUrl = tryThat(buildDatabaseUrl, throwErrorWithDsnMessage);
   public readonly developmentTenantId = getEnv('DEVELOPMENT_TENANT_ID');
   /** @deprecated Use the built-in user default role configuration (`Roles.isDefault`) instead. */
   public readonly userDefaultRoleNames = getEnvAsStringArray('USER_DEFAULT_ROLE_NAMES');
