@@ -57,6 +57,8 @@ export type SmtpConfig = {
   secure: boolean;
   /** Whether to ignore TLS errors (e.g. self-signed certificates), read from `LOGTO_SMTP_IGNORE_SSL`. */
   ignoreTLS?: boolean;
+  /** Whether to enable Nodemailer debug output (logs full SMTP traffic), read from `LOGTO_SMTP_DEBUG`. */
+  debug?: boolean;
 };
 
 /** Connection details for the SMTP SMS connector registered during bootstrap. */
@@ -81,6 +83,8 @@ export type SmtpSmsConfig = {
   secure: boolean;
   /** Whether to ignore TLS errors (e.g. self-signed certificates), read from `LOGTO_SMTP_SMS_IGNORE_SSL`. */
   ignoreTLS?: boolean;
+  /** Whether to enable Nodemailer debug output (logs full SMTP traffic), read from `LOGTO_SMTP_SMS_DEBUG`. */
+  debug?: boolean;
 };
 
 export type SignInExperienceConfig = {
@@ -175,6 +179,7 @@ export const getSmtpConfig = (): SmtpConfig | undefined => {
     replyTo: getEnv('LOGTO_SMTP_REPLY_TO') || undefined,
     secure: yes(getEnv('LOGTO_SMTP_SECURE')),
     ignoreTLS: yes(getEnv('LOGTO_SMTP_IGNORE_SSL')) || undefined,
+    debug: yes(getEnv('LOGTO_SMTP_DEBUG')) || undefined,
   };
 };
 
@@ -206,6 +211,7 @@ export const getSmtpSmsConfig = (): SmtpSmsConfig | undefined => {
     subject: getEnv('LOGTO_SMTP_SMS_SUBJECT') || undefined,
     secure: yes(getEnv('LOGTO_SMTP_SMS_SECURE')),
     ignoreTLS: yes(getEnv('LOGTO_SMTP_SMS_IGNORE_SSL')) || undefined,
+    debug: yes(getEnv('LOGTO_SMTP_SMS_DEBUG')) || undefined,
   };
 };
 

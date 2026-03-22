@@ -116,6 +116,7 @@ Configure the SMTP email connector in the default tenant. Default email template
 | `LOGTO_SMTP_REPLY_TO` | No | Reply-to email address |
 | `LOGTO_SMTP_SECURE` | No | Use TLS (`true` or `false`, default: `false`) |
 | `LOGTO_SMTP_IGNORE_SSL` | No | Ignore TLS/SSL certificate errors, e.g. for self-signed certs (`true` or `false`, default: `false`) |
+| `LOGTO_SMTP_DEBUG` | No | Enable verbose SMTP debug logging via Nodemailer (logs full SMTP client/server traffic to stdout, `true` or `false`, default: `false`) |
 
 > **Note:** All five required variables must be set to trigger SMTP connector creation.
 
@@ -140,6 +141,7 @@ Configure the SMTP SMS connector (custom Service Vic connector) in the default t
 | `LOGTO_SMTP_SMS_SUBJECT` | No | Optional email subject line (most SMS gateways ignore this) |
 | `LOGTO_SMTP_SMS_SECURE` | No | Use TLS (`true` or `false`, default: `false`) |
 | `LOGTO_SMTP_SMS_IGNORE_SSL` | No | Ignore TLS/SSL certificate errors, e.g. for self-signed certs (`true` or `false`, default: `false`) |
+| `LOGTO_SMTP_SMS_DEBUG` | No | Enable verbose SMTP debug logging via Nodemailer (logs full SMTP client/server traffic to stdout, `true` or `false`, default: `false`) |
 
 > **Note:** All six required variables must be set to trigger SMTP SMS connector creation.
 
