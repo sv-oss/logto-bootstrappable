@@ -77,6 +77,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+      pull-requests: write
 
     steps:
       - name: Download digests
@@ -111,3 +112,53 @@ jobs:
           docker buildx imagetools create \
             $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
             $(printf 'ghcr.io/sv-oss/logto-bootstrappable@sha256:%s ' *)
+
+      - name: Annotate workflow with image tags
+        env:
+          TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+          {
+            echo "## 🐳 Docker Image Tags"
+            echo ""
+            echo "| Tag | Pull Command |"
+            echo "|-----|-------------|"
+            while IFS= read -r tag; do
+              [ -n "$tag" ] && echo "| \`${tag}\` | \`docker pull ${tag}\` |"
+            done <<< "$TAGS"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Build PR comment body
+        id: pr-comment
+        env:
+          TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+          body_file=$(mktemp)
+          {
+            echo "<!-- docker-preview -->"
+            echo "## 🐳 Docker Image Preview"
+            echo ""
+            echo "Multi-arch image (\`linux/amd64\` + \`linux/arm64\`) built for this PR:"
+            echo ""
+            echo "| Tag | Pull Command |"
+            echo "|-----|-------------|"
+            while IFS= read -r tag; do
+              [ -n "$tag" ] && echo "| \`${tag}\` | \`docker pull ${tag}\` |"
+            done <<< "$TAGS"
+          } > "$body_file"
+          echo "body_file=${body_file}" >> "$GITHUB_OUTPUT"
+
+      - name: Find existing PR comment
+        uses: peter-evans/find-comment@v3
+        id: find-comment
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: github-actions[bot]
+          body-includes: '<!-- docker-preview -->'
+
+      - name: Create or update PR comment
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          comment-id: ${{ steps.find-comment.outputs.comment-id }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body-path: ${{ steps.pr-comment.outputs.body_file }}
+          edit-mode: replace

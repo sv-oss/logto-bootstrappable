@@ -155,3 +155,17 @@ jobs:
             $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
             $(printf 'ghcr.io/sv-oss/logto-bootstrappable@sha256:%s ' *)
 
+      - name: Annotate workflow with image tags
+        env:
+          TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+          {
+            echo "## 🐳 Docker Image Tags"
+            echo ""
+            echo "| Tag | Pull Command |"
+            echo "|-----|-------------|"
+            while IFS= read -r tag; do
+              [ -n "$tag" ] && echo "| \`${tag}\` | \`docker pull ${tag}\` |"
+            done <<< "$TAGS"
+          } >> "$GITHUB_STEP_SUMMARY"
+
