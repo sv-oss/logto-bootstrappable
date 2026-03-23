@@ -83,6 +83,10 @@ Text output remains the default (no change to existing behaviour when `LOG_FORMA
 
 > Bootstrap configuration additions are documented in [BOOTSTRAP.md](./BOOTSTRAP.md).
 
+#### `packages/cli/src/commands/database/seed/oidc-config.ts`
+
+Added support for the `LOGTO_OIDC_SIGNING_KEY_TYPE` environment variable. When no OIDC private key is supplied via `OIDC_PRIVATE_KEYS` or `OIDC_PRIVATE_KEY_PATHS`, the seed process reads this variable to decide which algorithm to use when auto-generating the signing key. Accepted values: `EC` (default, secp384r1 / ES384) and `RSA` (4096-bit / RS256). Unrecognised values fall back to EC.
+
 ---
 
 ### `packages/phrases-experience` in all 18 supported locales (English is the authoritative source; other locales carry English placeholders until translated):
@@ -115,6 +119,57 @@ Text output remains the default (no change to existing behaviour when `LOG_FORMA
 | `totp_remove` | "Remove" button label. |
 | `totp_removed` | Toast message shown after successful TOTP removal. |
 | `totp_remove_confirm_description` | Confirmation modal body text. |
+
+---
+
+### `commitlint.config.ts`
+
+Commitlint is configured to follow the **Service Victoria (SV) Standard** (`@service-victoria/projen-templates` `Commitlint` component):
+
+- `scope-case`: `pascal-case` — scopes must be PascalCase (e.g. `Core`, `Console`, `Schemas`).
+- `header-max-length`: 100 characters (hardcoded; not CI-conditional).
+- `subject-case`: `sentence-case` or `lower-case`.
+- `type-enum`: upstream conventional types plus fork-specific `api` and `release`.
+- `scope-enum`: allowed scopes (PascalCase) — `Connector`, `Console`, `Core`, `DemoApp`, `Test`, `Phrases`, `Schemas`, `Shared`, `Experience`, `ExperienceLegacy`, `Deps`, `DepsDev`, `Cli`, `Toolkit`, `Cloud`, `AppInsights`, `Elements`, `Translate`, `Tunnel`, `AccountElements`, `Account`, `Api`.
+
+---
+
+### `.github/workflows/build.yml`
+
+PR builds run on both `linux/amd64` and `linux/arm64` natively (same runner matrix as the release workflow) with `cancel-in-progress: true` so stale builds are dropped when new commits are pushed. Images are pushed to GHCR with two tags:
+
+| Tag | Example |
+|-----|---------|
+| `pr-<number>` | `pr-42` — always points to the latest commit in the PR |
+| `sha-<short_sha>` | `sha-a1b2c3d` — specific commit |
+
+No `release` environment gate or release-please dependency — just build and push.
+
+### `.github/workflows/release.yml`
+
+#### Multi-platform Docker builds (native matrix)
+
+The release workflow builds `linux/amd64` and `linux/arm64` images in parallel on their respective GitHub-hosted runners (`ubuntu-latest` and `ubuntu-24.04-arm`) instead of using QEMU emulation. Each platform build pushes by digest; a `merge` job assembles the final multi-arch manifest list.
+
+#### GitHub Releases with Conventional Commits changelog (`release-please`)
+
+A `release-please` job (using `googleapis/release-please-action@v4`) runs on every push to `master`. It:
+- Maintains a Release PR that accumulates conventional commit entries and bumps the version.
+- When the Release PR is merged, publishes a GitHub Release with an auto-generated changelog.
+
+Docker image tags are driven by the `release-please` job outputs:
+
+| Scenario | Tags applied |
+|----------|-------------|
+| Every push to `master` | `sha-<hash>`, `edge` |
+| Edge build with a pending Release PR | + `v<next>-rc.<run_number>` (e.g. `v1.1.0-rc.42`) |
+| Release PR merged (release published) | + `v<version>`, `latest` |
+
+The next version for RC tags is extracted from the release-please Release PR title (`chore: release X.Y.Z`).
+
+Supporting config files:
+- `.release-please-config.json` — `release-type: simple`; `changelog-sections` maps all commit types (including fork-specific `api` and `release` types) to labelled sections.
+- `.release-please-manifest.json` — version manifest, starting at `0.0.0`.
 
 ---
 

@@ -1,5 +1,5 @@
 import type { SchemaLike } from '@logto/schemas';
-import { parseTimeoutEnv } from '@logto/shared';
+import { parseTimeoutEnv, buildDatabaseUrl } from '@logto/shared';
 import { assert, conditional } from '@silverhand/essentials';
 import {
   createPool,
@@ -18,12 +18,20 @@ const databaseStatementTimeout = parseTimeoutEnv(process.env.DATABASE_STATEMENT_
 
 export const defaultDatabaseUrl = 'postgresql://localhost:5432/logto';
 
-export const getDatabaseUrlFromConfig = async () =>
-  (await getCliConfigWithPrompt({
-    key: ConfigKey.DatabaseUrl,
-    readableKey: 'Logto database URL',
-    defaultValue: defaultDatabaseUrl,
-  })) ?? '';
+export const getDatabaseUrlFromConfig = async () => {
+  try {
+    const dsn = buildDatabaseUrl();
+    return dsn;
+  } catch {
+    return (
+      (await getCliConfigWithPrompt({
+        key: ConfigKey.DatabaseUrl,
+        readableKey: 'Logto database URL',
+        defaultValue: defaultDatabaseUrl,
+      })) ?? ''
+    );
+  }
+};
 
 export const createPoolFromConfig = async () => {
   const databaseUrl = await getDatabaseUrlFromConfig();

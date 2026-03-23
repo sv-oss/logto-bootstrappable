@@ -1,9 +1,13 @@
 import { readFile } from 'node:fs/promises';
 
 import type { LogtoOidcConfigType } from '@logto/schemas';
-import { LogtoOidcConfigKey, logtoConfigGuards } from '@logto/schemas';
+import {
+  LogtoOidcConfigKey,
+  SupportedSigningKeyAlgorithm,
+  logtoConfigGuards,
+} from '@logto/schemas';
 import { generateStandardId } from '@logto/shared';
-import { getEnvAsStringArray } from '@silverhand/essentials';
+import { getEnv, getEnvAsStringArray } from '@silverhand/essentials';
 import type { DatabaseTransactionConnection } from '@silverhand/slonik';
 import chalk from 'chalk';
 import { z } from 'zod';
@@ -122,8 +126,18 @@ export const oidcConfigReaders: {
       };
     }
 
+    const keyTypeRaw = getEnv('LOGTO_OIDC_SIGNING_KEY_TYPE').toUpperCase();
+    const keyType =
+      keyTypeRaw === SupportedSigningKeyAlgorithm.RSA
+        ? SupportedSigningKeyAlgorithm.RSA
+        : SupportedSigningKeyAlgorithm.EC;
+
+    if (keyType === SupportedSigningKeyAlgorithm.RSA) {
+      consoleLog.info('Generating RSA signing key (LOGTO_OIDC_SIGNING_KEY_TYPE=RSA)');
+    }
+
     return {
-      value: [await generateOidcPrivateKey()],
+      value: [await generateOidcPrivateKey(keyType)],
       fromEnv: false,
     };
   },

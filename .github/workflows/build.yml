@@ -1,45 +1,16 @@
-name: Release
+name: Build
 
 on:
-  push:
+  pull_request:
     branches:
       - master
-  workflow_dispatch:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  release-please:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
-    outputs:
-      release_created: ${{ steps.release.outputs.release_created }}
-      version: ${{ steps.release.outputs.version }}
-      next_version: ${{ steps.next-version.outputs.version }}
-
-    steps:
-      - uses: googleapis/release-please-action@v4
-        id: release
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          config-file: .release-please-config.json
-          manifest-file: .release-please-manifest.json
-
-      - name: Extract next version from release PR
-        id: next-version
-        if: ${{ !steps.release.outputs.release_created }}
-        env:
-          PRS_JSON: ${{ steps.release.outputs.prs }}
-        run: |
-          version=$(echo "$PRS_JSON" | jq -r 'if length > 0 then .[0].title else "" end' | (grep -oP '\d+\.\d+\.\d+' || true) | head -1)
-          echo "version=${version}" >> "$GITHUB_OUTPUT"
-
   build:
-    needs: release-please
-    environment: release
     strategy:
       fail-fast: false
       matrix:
@@ -54,12 +25,9 @@ jobs:
     permissions:
       contents: read
       packages: write
-      id-token: write
 
     steps:
       - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
 
       - name: Docker meta
         id: meta
@@ -67,13 +35,8 @@ jobs:
         with:
           images: ghcr.io/sv-oss/logto-bootstrappable
           tags: |
+            type=ref,event=pr
             type=sha
-            type=edge
-            # On release: stable version tag + latest
-            type=raw,value=v${{ needs.release-please.outputs.version }},enable=${{ needs.release-please.outputs.release_created == 'true' }}
-            type=raw,value=latest,enable=${{ needs.release-please.outputs.release_created == 'true' }}
-            # On edge: RC tag using the pending release version when known
-            type=raw,value=v${{ needs.release-please.outputs.next_version }}-rc.${{ github.run_number }},enable=${{ needs.release-please.outputs.release_created != 'true' && needs.release-please.outputs.next_version != '' }}
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v4
@@ -109,12 +72,12 @@ jobs:
           retention-days: 1
 
   merge:
-    needs: [release-please, build]
+    needs: build
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
-      id-token: write
+      pull-requests: write
 
     steps:
       - name: Download digests
@@ -137,13 +100,8 @@ jobs:
         with:
           images: ghcr.io/sv-oss/logto-bootstrappable
           tags: |
+            type=ref,event=pr
             type=sha
-            type=edge
-            # On release: stable version tag + latest
-            type=raw,value=v${{ needs.release-please.outputs.version }},enable=${{ needs.release-please.outputs.release_created == 'true' }}
-            type=raw,value=latest,enable=${{ needs.release-please.outputs.release_created == 'true' }}
-            # On edge: RC tag using the pending release version when known
-            type=raw,value=v${{ needs.release-please.outputs.next_version }}-rc.${{ github.run_number }},enable=${{ needs.release-please.outputs.release_created != 'true' && needs.release-please.outputs.next_version != '' }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -169,3 +127,38 @@ jobs:
             done <<< "$TAGS"
           } >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Build PR comment body
+        id: pr-comment
+        env:
+          TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+          body_file=$(mktemp)
+          {
+            echo "<!-- docker-preview -->"
+            echo "## 🐳 Docker Image Preview"
+            echo ""
+            echo "Multi-arch image (\`linux/amd64\` + \`linux/arm64\`) built for this PR:"
+            echo ""
+            echo "| Tag | Pull Command |"
+            echo "|-----|-------------|"
+            while IFS= read -r tag; do
+              [ -n "$tag" ] && echo "| \`${tag}\` | \`docker pull ${tag}\` |"
+            done <<< "$TAGS"
+          } > "$body_file"
+          echo "body_file=${body_file}" >> "$GITHUB_OUTPUT"
+
+      - name: Find existing PR comment
+        uses: peter-evans/find-comment@v3
+        id: find-comment
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: github-actions[bot]
+          body-includes: '<!-- docker-preview -->'
+
+      - name: Create or update PR comment
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          comment-id: ${{ steps.find-comment.outputs.comment-id }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body-path: ${{ steps.pr-comment.outputs.body_file }}
+          edit-mode: replace
