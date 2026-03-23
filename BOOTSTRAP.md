@@ -271,6 +271,19 @@ LOGTO_DEFAULT_PHONE_COUNTRY_CODE=AU
 
 > **Note:** This variable is read at **runtime** by the Logto server and injected into the account center HTML on each request as `window.__logtoConfig__`. Set it in the server/container environment — no rebuild is required. This only applies to the account center; the sign-in/sign-up experience still derives the default from the browser language.
 
+### OIDC Signing Key Algorithm
+
+Control the algorithm used to generate the OIDC ID Token signing key during the initial database seed. Only takes effect when no key is supplied via `OIDC_PRIVATE_KEYS` or `OIDC_PRIVATE_KEY_PATHS`.
+
+| Variable | Required | Description |
+|---|---|---|
+| `LOGTO_OIDC_SIGNING_KEY_TYPE` | No | Signing key algorithm: `EC` (default) or `RSA` (case-insensitive) |
+
+- **`EC`** — Generates a secp384r1 elliptic-curve key; ID Tokens are signed with ES384. This is the default.
+- **`RSA`** — Generates a 4096-bit RSA key; ID Tokens are signed with RS256. Use this when your client libraries or downstream systems require RSA-signed tokens.
+
+> **Note:** This variable is only read on the first `db seed`. If an OIDC private key already exists in the database the variable is ignored. To rotate to RSA after initial setup, use `pnpm cli db config rotate oidc.privateKeys --type rsa`.
+
 ## Automatic Configuration
 
 The following changes are applied automatically whenever the bootstrap runs (i.e. when at least one environment variable is set), regardless of which specific variables are present.

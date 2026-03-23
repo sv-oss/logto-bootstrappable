@@ -83,6 +83,10 @@ Text output remains the default (no change to existing behaviour when `LOG_FORMA
 
 > Bootstrap configuration additions are documented in [BOOTSTRAP.md](./BOOTSTRAP.md).
 
+#### `packages/cli/src/commands/database/seed/oidc-config.ts`
+
+Added support for the `LOGTO_OIDC_SIGNING_KEY_TYPE` environment variable. When no OIDC private key is supplied via `OIDC_PRIVATE_KEYS` or `OIDC_PRIVATE_KEY_PATHS`, the seed process reads this variable to decide which algorithm to use when auto-generating the signing key. Accepted values: `EC` (default, secp384r1 / ES384) and `RSA` (4096-bit / RS256). Unrecognised values fall back to EC.
+
 ---
 
 ### `packages/phrases-experience` in all 18 supported locales (English is the authoritative source; other locales carry English placeholders until translated):

@@ -64,6 +64,9 @@ services:
       - LOGTO_SIGN_IN_IDENTIFIER=email
       - LOGTO_MFA_FACTORS=totp,webauthn,phoneVerificationCode
 
+      # Use RSA keys by default
+      - LOGTO_OIDC_SIGNING_KEY_TYPE=RSA
+
   postgres:
     image: postgres:17-alpine
     user: postgres
