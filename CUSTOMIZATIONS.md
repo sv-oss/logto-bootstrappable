@@ -53,9 +53,39 @@ The primary addition is a **self-service management dashboard** built into the A
 
 ---
 
-### `packages/phrases-experience`
+### `packages/shared`
 
-New i18n keys added to `src/locales/*/account-center.ts` in all 18 supported locales (English is the authoritative source; other locales carry English placeholders until translated):
+#### JSON structured logging (`ConsoleLog`)
+
+The `ConsoleLog` class (used by every package for all stdout/stderr output) now supports JSON structured logging in addition to the default coloured text format.
+
+Set the environment variable `LOG_FORMAT=json` to switch all log output to newline-delimited JSON. Each log line is a JSON object with the following fields:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `level` | `"plain"` \| `"info"` \| `"warn"` \| `"error"` \| `"fatal"` | Severity of the log entry |
+| `time` | ISO 8601 string | Timestamp at the time of the call |
+| `message` | string | All arguments joined as a space-separated string (ANSI codes stripped, objects JSON-encoded) |
+| `prefix` | string | Instance prefix (e.g. request ID), only present when set |
+| `error` | `{ name, message, stack }` | Only present when an `Error` object is passed as an argument |
+
+Example output:
+```json
+{"level":"info","time":"2024-01-01T00:00:00.000Z","prefix":"index","message":"Core app is running at https://logto.example.com"}
+{"level":"error","time":"2024-01-01T00:00:00.001Z","message":"Error: something broke","error":{"name":"Error","message":"something broke","stack":"Error: something broke\n    at ..."}}
+```
+
+Text output remains the default (no change to existing behaviour when `LOG_FORMAT` is unset).
+
+---
+
+### `packages/cli`
+
+> Bootstrap configuration additions are documented in [BOOTSTRAP.md](./BOOTSTRAP.md).
+
+---
+
+### `packages/phrases-experience` in all 18 supported locales (English is the authoritative source; other locales carry English placeholders until translated):
 
 **`home` section**
 
