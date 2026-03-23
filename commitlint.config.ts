@@ -9,6 +9,7 @@ const config: UserConfig = {
     'scope-enum': [2, 'always', ['Connector', 'Console', 'Core', 'DemoApp', 'Test', 'Phrases', 'Schemas', 'Shared', 'Experience', 'ExperienceLegacy', 'Deps', 'DepsDev', 'Cli', 'Toolkit', 'Cloud', 'AppInsights', 'Elements', 'Translate', 'Tunnel', 'AccountElements', 'Account', 'Api']],
     'header-max-length': [2, 'always', 100],
     'subject-case': [2, 'always', ['sentence-case', 'lower-case']],
+    'body-full-stop': [0, 'never', '.'],
   },
 };
 
