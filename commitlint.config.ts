@@ -10,6 +10,7 @@ const config: UserConfig = {
     'header-max-length': [2, 'always', 100],
     'subject-case': [2, 'always', ['sentence-case', 'lower-case']],
     'body-full-stop': [0, 'never', '.'],
+    'subject-full-stop': [0, 'never', '.'],
   },
 };
 

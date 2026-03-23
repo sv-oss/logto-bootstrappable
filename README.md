@@ -42,14 +42,22 @@ have been made, and how to configure them for yourself.
 
 ## Container Releases
 
-New container releases will be set up and created when a new PR
-is merged to `master`.
+Multi-arch images (`linux/amd64` + `linux/arm64`) are built automatically and pushed to
+`ghcr.io/sv-oss/logto-bootstrappable`.
 
-The latest container can be pulled from `ghcr.io/sv-oss/logto-bootstrappable:edge`.
+### Tags
 
-Previous containers will be tagged by their `master` commit SHA, like:
+| Tag | When | Example |
+|-----|------|---------|
+| `latest` | When a release is created via [Release Please](https://github.com/googleapis/release-please) | `ghcr.io/sv-oss/logto-bootstrappable:latest` |
+| `v<version>` | Same release event | `ghcr.io/sv-oss/logto-bootstrappable:v1.2.3` |
+| `edge` | Every push to `master` | `ghcr.io/sv-oss/logto-bootstrappable:edge` |
+| `sha-<hash>` | Every push to `master` | `ghcr.io/sv-oss/logto-bootstrappable:sha-5683c4e` |
+| `v<next>-rc.<run>` | Every push to `master` while a release PR is open | `ghcr.io/sv-oss/logto-bootstrappable:v1.3.0-rc.42` |
+| `pr-<number>` | PR builds (not merged) | `ghcr.io/sv-oss/logto-bootstrappable:pr-7` |
 
-`ghcr.io/sv-oss/logto-bootstrappable:sha-5683c4e`
+Versioned releases are managed by Release Please. Open a PR to `master` to trigger a preview
+build; merge to `master` to publish `edge` (and a versioned release if Release Please cuts one).
 
 > [!Note]
 > SV Specific notes end here
