@@ -14,6 +14,9 @@ services:
       - 3002:3002
     environment:
       - TRUST_PROXY_HEADER=1
+      # Database connection — use either a full DSN or individual AWS CDK DatabaseSecret fields:
+      #   DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME (and optionally DB_PORT, default 5432)
+      #   DB_SSL_MODE (optional, e.g. require or verify-full — needed for TLS-only databases like RDS)
       - DB_URL=postgres://postgres:p0stgr3s@postgres:5432/logto
       # Mandatory for GitPod to map host env to the container, thus GitPod can dynamically configure the public URL of Logto;
       # Or, you can leverage it for local testing.
@@ -42,6 +45,7 @@ services:
       - LOGTO_SMTP_USERNAME=noreply@example.com
       - LOGTO_SMTP_PASSWORD=smtp-password
       - LOGTO_SMTP_FROM_EMAIL=noreply@example.com
+      - LOGTO_SMTP_IGNORE_SSL=true
 
       # Bootstrap: SMTP SMS Connector (Service Vic custom connector)
       - LOGTO_SMTP_SMS_HOST=mailpit
@@ -50,6 +54,7 @@ services:
       - LOGTO_SMTP_SMS_PASSWORD=smtp-password
       - LOGTO_SMTP_SMS_FROM_EMAIL=noreply-sms@example.com
       - LOGTO_SMTP_SMS_TO_EMAIL_TEMPLATE=sms+{{phoneNumberOnly}}@txt.telstra.com.au
+      - LOGTO_SMTP_SMS_IGNORE_SSL=true
 
       # Make AU (+61) the default Phone Code
       - LOGTO_DEFAULT_PHONE_COUNTRY_CODE=AU

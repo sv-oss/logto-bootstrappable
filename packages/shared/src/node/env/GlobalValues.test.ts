@@ -1,6 +1,114 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
-import { parseTimeoutEnv } from './GlobalValues.js';
+import { buildDatabaseUrl, parseTimeoutEnv } from './GlobalValues.js';
+
+const dbEnvKeys = ['DB_URL', 'DB_HOST', 'DB_USERNAME', 'DB_PASSWORD', 'DB_NAME', 'DB_PORT', 'DB_SSL_MODE'] as const;
+
+const clearDbEnv = () => {
+  for (const key of dbEnvKeys) {
+    // eslint-disable-next-line @silverhand/fp/no-delete, @typescript-eslint/no-dynamic-delete
+    delete process.env[key];
+  }
+};
+
+describe('buildDatabaseUrl', () => {
+  afterEach(clearDbEnv);
+
+  it('returns DB_URL directly when set', () => {
+    process.env.DB_URL = 'postgres://user:pass@host:5432/db';
+    expect(buildDatabaseUrl()).toBe('postgres://user:pass@host:5432/db');
+  });
+
+  it('prefers DB_URL over individual fields', () => {
+    process.env.DB_URL = 'postgres://direct@host/db';
+    process.env.DB_HOST = 'other-host';
+    process.env.DB_USERNAME = 'u';
+    process.env.DB_PASSWORD = 'p';
+    process.env.DB_NAME = 'n';
+    expect(buildDatabaseUrl()).toBe('postgres://direct@host/db');
+  });
+
+  it('constructs URL from individual fields with default port', () => {
+    process.env.DB_HOST = 'rds.example.com';
+    process.env.DB_USERNAME = 'admin';
+    process.env.DB_PASSWORD = 'secret';
+    process.env.DB_NAME = 'logto';
+    expect(buildDatabaseUrl()).toBe('postgresql://admin:secret@rds.example.com:5432/logto');
+  });
+
+  it('constructs URL from individual fields with explicit port', () => {
+    process.env.DB_HOST = 'rds.example.com';
+    process.env.DB_USERNAME = 'admin';
+    process.env.DB_PASSWORD = 'secret';
+    process.env.DB_NAME = 'logto';
+    process.env.DB_PORT = '5433';
+    expect(buildDatabaseUrl()).toBe('postgresql://admin:secret@rds.example.com:5433/logto');
+  });
+
+  it('URL-encodes special characters in username and password', () => {
+    process.env.DB_HOST = 'host';
+    process.env.DB_USERNAME = 'user@name';
+    process.env.DB_PASSWORD = 'p@ss:w0rd/!';
+    process.env.DB_NAME = 'db';
+    const url = buildDatabaseUrl();
+    expect(url).toBe(
+      `postgresql://${encodeURIComponent('user@name')}:${encodeURIComponent('p@ss:w0rd/!')}@host:5432/db`
+    );
+  });
+
+  it('throws when neither DB_URL nor all required fields are set', () => {
+    expect(() => buildDatabaseUrl()).toThrow();
+  });
+
+  it('throws when individual fields are incomplete (missing DB_HOST)', () => {
+    process.env.DB_USERNAME = 'admin';
+    process.env.DB_PASSWORD = 'secret';
+    process.env.DB_NAME = 'logto';
+    expect(() => buildDatabaseUrl()).toThrow();
+  });
+
+  it('throws when individual fields are incomplete (missing DB_PASSWORD)', () => {
+    process.env.DB_HOST = 'rds.example.com';
+    process.env.DB_USERNAME = 'admin';
+    process.env.DB_NAME = 'logto';
+    expect(() => buildDatabaseUrl()).toThrow();
+  });
+
+  it('appends sslmode query param when DB_SSL_MODE is set', () => {
+    process.env.DB_HOST = 'rds.example.com';
+    process.env.DB_USERNAME = 'admin';
+    process.env.DB_PASSWORD = 'secret';
+    process.env.DB_NAME = 'logto';
+    process.env.DB_SSL_MODE = 'require';
+    expect(buildDatabaseUrl()).toBe('postgresql://admin:secret@rds.example.com:5432/logto?sslmode=require');
+  });
+
+  it('supports no-verify sslmode', () => {
+    process.env.DB_HOST = 'rds.example.com';
+    process.env.DB_USERNAME = 'admin';
+    process.env.DB_PASSWORD = 'secret';
+    process.env.DB_NAME = 'logto';
+    process.env.DB_SSL_MODE = 'no-verify';
+    expect(buildDatabaseUrl()).toBe('postgresql://admin:secret@rds.example.com:5432/logto?sslmode=no-verify');
+  });
+
+  it('omits sslmode when DB_SSL_MODE is not set', () => {
+    process.env.DB_HOST = 'rds.example.com';
+    process.env.DB_USERNAME = 'admin';
+    process.env.DB_PASSWORD = 'secret';
+    process.env.DB_NAME = 'logto';
+    expect(buildDatabaseUrl()).not.toContain('sslmode');
+  });
+
+  it('throws on an invalid DB_SSL_MODE value', () => {
+    process.env.DB_HOST = 'rds.example.com';
+    process.env.DB_USERNAME = 'admin';
+    process.env.DB_PASSWORD = 'secret';
+    process.env.DB_NAME = 'logto';
+    process.env.DB_SSL_MODE = 'bogus';
+    expect(() => buildDatabaseUrl()).toThrow(/Invalid DB_SSL_MODE/);
+  });
+});
 
 describe('parseTimeoutEnv', () => {
   it('returns undefined for missing, blank, or invalid values', () => {
