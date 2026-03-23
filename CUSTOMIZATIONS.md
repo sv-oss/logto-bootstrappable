@@ -118,6 +118,34 @@ Text output remains the default (no change to existing behaviour when `LOG_FORMA
 
 ---
 
+### `.github/workflows/release.yml`
+
+#### Multi-platform Docker builds (native matrix)
+
+The release workflow builds `linux/amd64` and `linux/arm64` images in parallel on their respective GitHub-hosted runners (`ubuntu-latest` and `ubuntu-24.04-arm`) instead of using QEMU emulation. Each platform build pushes by digest; a `merge` job assembles the final multi-arch manifest list.
+
+#### GitHub Releases with Conventional Commits changelog (`release-please`)
+
+A `release-please` job (using `googleapis/release-please-action@v4`) runs on every push to `master`. It:
+- Maintains a Release PR that accumulates conventional commit entries and bumps the version.
+- When the Release PR is merged, publishes a GitHub Release with an auto-generated changelog.
+
+Docker image tags are driven by the `release-please` job outputs:
+
+| Scenario | Tags applied |
+|----------|-------------|
+| Every push to `master` | `sha-<hash>`, `edge` |
+| Edge build with a pending Release PR | + `v<next>-rc.<run_number>` (e.g. `v1.1.0-rc.42`) |
+| Release PR merged (release published) | + `v<version>`, `latest` |
+
+The next version for RC tags is extracted from the release-please Release PR title (`chore: release X.Y.Z`).
+
+Supporting config files:
+- `.release-please-config.json` — `release-type: simple`; `changelog-sections` maps all commit types (including fork-specific `api` and `release` types) to labelled sections.
+- `.release-please-manifest.json` — version manifest, starting at `0.0.0`.
+
+---
+
 ## Upstream Compatibility Notes
 
 - No database schema changes were made (all features use existing Logto API endpoints and `AccountCenterFieldControl` fields).
