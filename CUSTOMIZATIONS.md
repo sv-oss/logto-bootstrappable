@@ -118,6 +118,17 @@ Text output remains the default (no change to existing behaviour when `LOG_FORMA
 
 ---
 
+### `.github/workflows/build.yml`
+
+PR builds run on both `linux/amd64` and `linux/arm64` natively (same runner matrix as the release workflow) with `cancel-in-progress: true` so stale builds are dropped when new commits are pushed. Images are pushed to GHCR with two tags:
+
+| Tag | Example |
+|-----|---------|
+| `pr-<number>` | `pr-42` — always points to the latest commit in the PR |
+| `sha-<short_sha>` | `sha-a1b2c3d` — specific commit |
+
+No `release` environment gate or release-please dependency — just build and push.
+
 ### `.github/workflows/release.yml`
 
 #### Multi-platform Docker builds (native matrix)
