@@ -1,16 +1,14 @@
 import conventional from '@commitlint/config-conventional';
 import { UserConfig } from '@commitlint/types';
 
-const isCi = process.env.CI === 'true';
-
 const config: UserConfig = {
   extends: ['@commitlint/config-conventional'],
   rules: {
     'type-enum': [2, 'always', [...conventional.rules['type-enum'][2], 'api', 'release']],
-    'scope-enum': [2, 'always', ['connector', 'console', 'core', 'demo-app', 'test', 'phrases', 'schemas', 'shared', 'experience', 'experience-legacy', 'deps', 'deps-dev', 'cli', 'toolkit', 'cloud', 'app-insights', 'elements', 'translate', 'tunnel', 'account-elements', 'account', 'api']],
-    // Slightly increase the tolerance to allow the appending PR number
-    ...(isCi && { 'header-max-length': [2, 'always', 110] }),
-    'body-max-line-length': [2, 'always', 110],
+    'scope-case': [2, 'always', 'pascal-case'],
+    'scope-enum': [2, 'always', ['Connector', 'Console', 'Core', 'DemoApp', 'Test', 'Phrases', 'Schemas', 'Shared', 'Experience', 'ExperienceLegacy', 'Deps', 'DepsDev', 'Cli', 'Toolkit', 'Cloud', 'AppInsights', 'Elements', 'Translate', 'Tunnel', 'AccountElements', 'Account', 'Api']],
+    'header-max-length': [2, 'always', 100],
+    'subject-case': [2, 'always', ['sentence-case', 'lower-case']],
   },
 };
 

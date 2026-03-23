@@ -118,6 +118,18 @@ Text output remains the default (no change to existing behaviour when `LOG_FORMA
 
 ---
 
+### `commitlint.config.ts`
+
+Commitlint is configured to follow the **Service Victoria (SV) Standard** (`@service-victoria/projen-templates` `Commitlint` component):
+
+- `scope-case`: `pascal-case` — scopes must be PascalCase (e.g. `Core`, `Console`, `Schemas`).
+- `header-max-length`: 100 characters (hardcoded; not CI-conditional).
+- `subject-case`: `sentence-case` or `lower-case`.
+- `type-enum`: upstream conventional types plus fork-specific `api` and `release`.
+- `scope-enum`: allowed scopes (PascalCase) — `Connector`, `Console`, `Core`, `DemoApp`, `Test`, `Phrases`, `Schemas`, `Shared`, `Experience`, `ExperienceLegacy`, `Deps`, `DepsDev`, `Cli`, `Toolkit`, `Cloud`, `AppInsights`, `Elements`, `Translate`, `Tunnel`, `AccountElements`, `Account`, `Api`.
+
+---
+
 ### `.github/workflows/build.yml`
 
 PR builds run on both `linux/amd64` and `linux/arm64` natively (same runner matrix as the release workflow) with `cancel-in-progress: true` so stale builds are dropped when new commits are pushed. Images are pushed to GHCR with two tags:
