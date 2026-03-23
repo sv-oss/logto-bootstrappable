@@ -102,6 +102,8 @@ The created application:
 - Supports Authorization Code Grant with `client_secret`
 - Client secret is stored both in the legacy `applications.secret` column and the `application_secrets` table
 
+**Post-logout redirect behaviour:** When `LOGTO_APP_POST_LOGOUT_REDIRECT_URIS` is set, Logto will automatically redirect users to the first listed URI after a successful sign-out, even if the client application did not supply a `post_logout_redirect_uri` in the end-session request. If the client does supply a valid `post_logout_redirect_uri` (one that matches a registered URI), that takes precedence.
+
 ### SMTP Email Connector
 
 Configure the SMTP email connector in the default tenant. Default email templates for Register, SignIn, ForgotPassword, and Generic verification flows are included automatically.

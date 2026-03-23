@@ -10,6 +10,22 @@ The primary addition is a **self-service management dashboard** built into the A
 
 ## Changes by Package
 
+### `packages/core`
+
+#### Automatic post-logout redirect (`postLogoutSuccessSource`)
+
+Modified `packages/core/src/oidc/init.ts` so that after a successful OIDC sign-out, if the client application did not supply a `post_logout_redirect_uri` in the end-session request, Logto automatically redirects to the **first** URI registered in the application's `postLogoutRedirectUris` list (i.e. the value set via `LOGTO_APP_POST_LOGOUT_REDIRECT_URIS` during bootstrap). If the app has no registered post-logout URIs the existing "You are signed out" HTML page is shown as before.
+
+If the client does supply a valid `post_logout_redirect_uri` that matches a registered URI, oidc-provider handles that redirect directly and this code is never reached.
+
+**Files changed:**
+
+| File | Change |
+|------|--------|
+| `packages/core/src/oidc/init.ts` | `postLogoutSuccessSource` made async; queries the initiating application's `oidcClientMetadata.postLogoutRedirectUris` and redirects to the first entry when present. |
+
+---
+
 ### `packages/account`
 
 #### New pages

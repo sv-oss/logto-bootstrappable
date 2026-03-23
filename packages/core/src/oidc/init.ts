@@ -130,7 +130,23 @@ export default function initOidc(
           // eslint-disable-next-line no-template-curly-in-string
           ctx.body = logoutSource.replace('${form}', form);
         },
-        postLogoutSuccessSource(ctx) {
+        async postLogoutSuccessSource(ctx) {
+          // If the application has registered post-logout redirect URIs and the client did not
+          // supply one in the end_session request (otherwise this hook would not be reached),
+          // automatically redirect to the first registered URI so that setting
+          // LOGTO_APP_POST_LOGOUT_REDIRECT_URIS during bootstrap has observable effect.
+          const clientId = ctx.oidc.entities.Client?.clientId;
+
+          if (clientId) {
+            const app = await trySafe(queries.applications.findApplicationById(clientId));
+            const [firstPostLogoutUri] = app?.oidcClientMetadata.postLogoutRedirectUris ?? [];
+
+            if (firstPostLogoutUri) {
+              ctx.redirect(firstPostLogoutUri);
+              return;
+            }
+          }
+
           // eslint-disable-next-line no-restricted-syntax -- detect if i18n is available in the context @see {koaI18next middleware}
           const i18n = 'i18n' in ctx ? (ctx.i18n as i18n) : i18next;
 
