@@ -52,6 +52,7 @@ export const bootstrapMfa = async (
  *
  * @param connection - Active database transaction connection.
  * @param signInIdentifier - What to use as the primary identifier for signing a user up (email or username)
+ * @param signInMode - Whether or not to allow users to register themselves, or sign in.
  */
 export const bootstrapSignInExperience = async (
   connection: DatabaseTransactionConnection,

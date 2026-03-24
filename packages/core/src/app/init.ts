@@ -3,7 +3,7 @@ import http2 from 'node:http2';
 import path from 'node:path';
 
 import { appInsights } from '@logto/app-insights/node';
-import { ConsoleLog } from '@logto/shared';
+import { ConsoleLog, type HttpLogEntry } from '@logto/shared';
 import { toTitle, trySafe } from '@silverhand/essentials';
 import chalk from 'chalk';
 import type Koa from 'koa';
@@ -33,13 +33,49 @@ export default async function initApp(app: Koa): Promise<void> {
     ctx.requestId = requestId;
     ctx.console = consoleLog;
 
+    const startTime = Date.now();
+    // Returns the header value, or `undefined` when the header is absent (empty string).
+    const getHeader = (name: string) => ctx.get(name) || undefined;
+
+    const buildHttpEntry = (isResponse: boolean): HttpLogEntry => {
+      const { ip, method } = ctx;
+      const forwardedFor = getHeader('x-forwarded-for');
+      const rawContentLength = getHeader('content-length');
+
+      const base: HttpLogEntry = {
+        method,
+        url: ctx.originalUrl,
+        ip: ip || undefined,
+        forwardedFor: forwardedFor && forwardedFor !== ip ? forwardedFor : undefined,
+        forwardedProto: getHeader('x-forwarded-proto'),
+        userAgent: getHeader('user-agent'),
+        host: getHeader('host'),
+        amznTraceId: getHeader('x-amzn-trace-id'),
+        requestLength: rawContentLength ? Number.parseInt(rawContentLength, 10) : undefined,
+      };
+
+      if (!isResponse) {
+        return base;
+      }
+
+      return {
+        ...base,
+        statusCode: ctx.status,
+        durationMs: Date.now() - startTime,
+        responseLength: ctx.response.length,
+      };
+    };
+
     await koaLogger({
-      transporter: (string, [, _, requestPath]) => {
+      transporter: (string, args) => {
+        // Args shape: [formatString, method, url, ...] — url is at index 2
+        const requestPath = args[2];
         // Ignoring static file requests in development since vite will load a crazy amount of files
-        if (!EnvSet.values.isProduction && path.basename(requestPath).includes('.')) {
+        if (!EnvSet.values.isProduction && path.basename(String(requestPath)).includes('.')) {
           return;
         }
-        consoleLog.plain(string);
+
+        consoleLog.http(string, buildHttpEntry(args[3] !== undefined));
       },
     })(ctx, next);
 
