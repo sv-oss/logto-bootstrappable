@@ -1,13 +1,15 @@
 import {
+  AccountCenterControlValue,
+  AccountCenters,
   CustomProfileFields,
   LogtoConfigs,
   SignInExperiences,
   type SignInIdentifier,
+  SignInMode,
   defaultTenantId,
 } from '@logto/schemas';
 import { createDefaultCustomProfileFields } from '@logto/schemas/lib/seeds/custom-profile-fields.js';
-import type { DatabaseTransactionConnection } from '@silverhand/slonik';
-import { sql } from '@silverhand/slonik';
+import { type DatabaseTransactionConnection, sql } from '@silverhand/slonik';
 
 import { insertInto } from '../../../database.js';
 import { consoleLog } from '../../../utils.js';
@@ -53,7 +55,8 @@ export const bootstrapMfa = async (
  */
 export const bootstrapSignInExperience = async (
   connection: DatabaseTransactionConnection,
-  signInIdentifier: SignInIdentifier
+  signInIdentifier: SignInIdentifier,
+  signInMode: SignInMode = SignInMode.SignInAndRegister
 ) => {
   const signIn = {
     methods: [
@@ -76,12 +79,14 @@ export const bootstrapSignInExperience = async (
     update ${sql.identifier([SignInExperiences.table])}
     set
       ${sql.identifier(['sign_in'])} = ${JSON.stringify(signIn)}::jsonb,
-      ${sql.identifier(['sign_up'])} = ${JSON.stringify(signUp)}::jsonb
+      ${sql.identifier(['sign_up'])} = ${JSON.stringify(signUp)}::jsonb,
+      ${sql.identifier(['sign_in_mode'])} = ${signInMode}
     where ${sql.identifier(['tenant_id'])} = ${defaultTenantId}
     and ${sql.identifier(['id'])} = ${sql.literalValue('default')}
   `);
 
   consoleLog.succeed('Updated sign-in experience: email-primary sign-in enabled');
+  consoleLog.succeed(`Set default tenant sign-in mode to "${signInMode}"`);
 
   await connection.query(
     insertInto(createDefaultCustomProfileFields(defaultTenantId), CustomProfileFields.table)
@@ -100,4 +105,31 @@ export const bootstrapSignInExperience = async (
   `);
 
   consoleLog.succeed('Enabled sign-in experience');
+};
+
+export const bootstrapAccountCenter = async (
+  connection: DatabaseTransactionConnection,
+  includePhone: boolean
+) => {
+  const fields = {
+    password: AccountCenterControlValue.Edit,
+    email: AccountCenterControlValue.Edit,
+    name: AccountCenterControlValue.Edit,
+    profile: AccountCenterControlValue.Edit,
+    mfa: AccountCenterControlValue.Edit,
+    phone: includePhone ? AccountCenterControlValue.Edit : AccountCenterControlValue.Off,
+  };
+
+  await connection.query(sql`
+    update ${sql.identifier([AccountCenters.table])}
+    set
+      ${sql.identifier(['enabled'])} = true,
+      ${sql.identifier(['fields'])} = ${JSON.stringify(fields)}::jsonb
+    where ${sql.identifier(['tenant_id'])} = ${defaultTenantId}
+    and ${sql.identifier(['id'])} = ${sql.literalValue('default')}
+  `);
+
+  consoleLog.succeed(
+    'Enabled Account Centre with password, email, profile, and MFA editing for the default tenant'
+  );
 };

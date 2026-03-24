@@ -1,8 +1,13 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 
+import { Users, UsersPasswordEncryptionMethod, defaultTenantId } from '@logto/schemas';
+import { generateStandardShortId } from '@logto/shared';
 import { getEnv } from '@silverhand/essentials';
+import { type DatabaseTransactionConnection } from '@silverhand/slonik';
 
+import { insertInto } from '../../../database.js';
+import { encryptPassword } from '../../../utils/password.js';
 import { consoleLog } from '../../../utils.js';
 
 /** Represents a single user entry to be seeded into the default tenant. */
@@ -157,4 +162,44 @@ export const loadSeedUsers = async (): Promise<SeedUser[]> => {
   }
 
   throw new Error(`Unsupported seed users file format: ${extension}. Use .json or .csv`);
+};
+
+/**
+ * Inserts pre-seeded user accounts into the default tenant in sequence.
+ *
+ * Passwords are hashed with Argon2i individually before each insert. Users are processed
+ * sequentially (not in parallel) to avoid overwhelming the database with concurrent hashing and
+ * write operations.
+ *
+ * @param connection - Active database transaction connection.
+ * @param users - List of user entries loaded from the seed file.
+ */
+export const bootstrapSeedUsers = async (
+  connection: DatabaseTransactionConnection,
+  users: readonly SeedUser[]
+) => {
+  for (const user of users) {
+    const userId = generateStandardShortId();
+    // eslint-disable-next-line no-await-in-loop
+    const passwordEncrypted = await encryptPassword(user.password);
+
+    // eslint-disable-next-line no-await-in-loop
+    await connection.query(
+      insertInto(
+        {
+          tenantId: defaultTenantId,
+          id: userId,
+          username: user.username ?? null,
+          primaryEmail: user.email,
+          passwordEncrypted,
+          passwordEncryptionMethod: UsersPasswordEncryptionMethod.Argon2i,
+          name: user.name ?? null,
+          profile: buildUserProfile(user),
+        },
+        Users.table
+      )
+    );
+  }
+
+  consoleLog.succeed(`Seeded ${users.length} user account(s) in the default tenant`);
 };

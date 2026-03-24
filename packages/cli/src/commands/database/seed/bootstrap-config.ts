@@ -1,4 +1,4 @@
-import { MfaFactor, SignInIdentifier } from '@logto/schemas';
+import { MfaFactor, SignInIdentifier, SignInMode } from '@logto/schemas';
 import { getEnv, yes } from '@silverhand/essentials';
 
 import { consoleLog } from '../../../utils.js';
@@ -92,6 +92,12 @@ export type SignInExperienceConfig = {
   primaryIdentifier: SignInIdentifier;
   /** If true, will automatically set up the Sign In Experience with dark mode enabled, and automatically collecting the user's name */
   bootstrapSignInExperience: boolean;
+  /**
+   * Overrides the sign-in mode for the default tenant, read from `LOGTO_SIGN_IN_MODE`.
+   * Accepted values (case-insensitive): `SignIn`, `Register`, `SignInAndRegister`.
+   * When unset the Logto default (`SignInAndRegister`) is preserved.
+   */
+  signInMode?: SignInMode;
 };
 
 /**
@@ -215,9 +221,17 @@ export const getSmtpSmsConfig = (): SmtpSmsConfig | undefined => {
   };
 };
 
+/** Maps lower-cased user-supplied tokens to their canonical {@link SignInMode} enum values. */
+const signInModeAliases: Record<string, SignInMode> = {
+  signin: SignInMode.SignIn,
+  register: SignInMode.Register,
+  signinandregister: SignInMode.SignInAndRegister,
+};
+
 /**
  * Reads the sign-in identifier preference from `LOGTO_SIGN_IN_IDENTIFIER`, as well as
  * if it should bootstrap the sign in experience from `LOGTO_BOOTSTRAP_SIGNIN_EXPERIENCE`.
+ * Optionally overrides the sign-in mode from `LOGTO_SIGN_IN_MODE`.
  *
  * @default If env vars are not set, Username will be the default sign in identifier, and the experience will not be bootstrapped
  */
@@ -226,10 +240,17 @@ export const getSignInExperienceConfig = (): SignInExperienceConfig => {
   const bootstrapSignInExperience =
     getEnv('LOGTO_BOOTSTRAP_SIGNIN_EXPERIENCE').toLowerCase() === 'true';
 
+  const signInModeRaw = getEnv('LOGTO_SIGN_IN_MODE')
+    .toLowerCase()
+    .replaceAll('_', '')
+    .replaceAll('-', '');
+  const signInMode = signInModeAliases[signInModeRaw];
+
   return {
     primaryIdentifier:
       primarySignInId === 'email' ? SignInIdentifier.Email : SignInIdentifier.Username,
     bootstrapSignInExperience,
+    ...(signInMode !== undefined && { signInMode }),
   };
 };
 
