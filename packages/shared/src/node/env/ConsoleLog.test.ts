@@ -107,7 +107,7 @@ describe('ConsoleLog (JSON mode)', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const entry = parseLog(logSpy);
     expect(entry).toMatchObject({ level: 'plain', message: 'hello world' });
-    expect(typeof entry.time).toBe('string');
+    expect(typeof entry.time).toBe('number');
   });
 
   it('emits a JSON object with level "info" for info()', () => {
@@ -300,7 +300,7 @@ describe('ConsoleLog http()', () => {
         'x-amzn-trace-id': 'Root=1-abc',
         request_length: 512,
       });
-      expect(typeof entry.time).toBe('string');
+      expect(typeof entry.time).toBe('number');
     });
 
     it('includes numeric status_code, duration_ms, response_length on response entries', () => {
@@ -435,7 +435,7 @@ describe('ConsoleLog audit()', () => {
         applicationId: 'app_xyz',
         ip: '10.0.0.1',
       });
-      expect(typeof entry.time).toBe('string');
+      expect(typeof entry.time).toBe('number');
     });
 
     it('includes the prefix field when set', () => {

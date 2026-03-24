@@ -275,7 +275,7 @@ export default class ConsoleLog {
 
     const entry: Record<string, unknown> = {
       level,
-      time: new Date().toISOString(),
+      time: Date.now(),
       message: args.map((arg) => this.serializeArg(arg)).join(' '),
       ...(this.prefix && { prefix: stripAnsi(this.prefix) }),
       ...this.context,
@@ -291,7 +291,7 @@ export default class ConsoleLog {
   private formatAuditJson(key: string, payload: Record<string, unknown>): string {
     const record: Record<string, unknown> = {
       level: 'audit',
-      time: new Date().toISOString(),
+      time: Date.now(),
       ...(this.prefix && { prefix: stripAnsi(this.prefix) }),
       key,
       ...payload,
@@ -316,7 +316,7 @@ export default class ConsoleLog {
   private formatHttpJson(entry: HttpLogEntry): string {
     const record: Record<string, unknown> = {
       level: 'http',
-      time: new Date().toISOString(),
+      time: Date.now(),
       ...(this.prefix && { prefix: stripAnsi(this.prefix) }),
       method: entry.method,
       url: entry.url,
