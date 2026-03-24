@@ -9,6 +9,7 @@ import { UAParser } from 'ua-parser-js';
 import { EnvSet } from '#src/env-set/index.js';
 import RequestError from '#src/errors/RequestError/index.js';
 import type Queries from '#src/tenants/Queries.js';
+import { getConsoleLogFromContext } from '#src/utils/console.js';
 import { getInjectedHeaderValues } from '#src/utils/injected-header-mapping.js';
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -192,10 +193,13 @@ export default function koaAuditLog<StateT, ContextT extends IRouterParamContext
 
       await Promise.all(
         entries.map(async ({ payload }) => {
+          const mergedPayload = { ...basePayload, ...payload };
+          getConsoleLogFromContext(ctx).audit(payload.key, mergedPayload);
+
           return insertLog({
             id: generateStandardId(),
             key: payload.key,
-            payload: { ...basePayload, ...payload },
+            payload: mergedPayload,
           });
         })
       );

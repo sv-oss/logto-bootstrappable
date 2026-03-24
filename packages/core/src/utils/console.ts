@@ -10,6 +10,8 @@ export class SilentConsoleLog extends ConsoleLog {
   succeed = noop;
   warn = noop;
   error = noop;
+  http = noop;
+  audit = noop;
   fatal = () => {
     // eslint-disable-next-line unicorn/no-process-exit
     process.exit(1);

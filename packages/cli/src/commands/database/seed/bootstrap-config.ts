@@ -250,7 +250,7 @@ export const getSignInExperienceConfig = (): SignInExperienceConfig => {
     primaryIdentifier:
       primarySignInId === 'email' ? SignInIdentifier.Email : SignInIdentifier.Username,
     bootstrapSignInExperience,
-    ...(signInMode !== undefined && { signInMode }),
+    signInMode,
   };
 };
 

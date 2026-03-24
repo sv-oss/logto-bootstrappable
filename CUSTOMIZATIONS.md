@@ -68,6 +68,13 @@ Set the environment variable `LOG_FORMAT=json` to switch all log output to newli
 | `message` | string | All arguments joined as a space-separated string (ANSI codes stripped, objects JSON-encoded) |
 | `prefix` | string | Instance prefix (e.g. request ID), only present when set |
 | `error` | `{ name, message, stack }` | Only present when an `Error` object is passed as an argument |
+| *(context keys)* | string | Any extra fields injected via `withContext()` appear as top-level keys after `message` |
+
+**`withContext(context)`** — returns a new `ConsoleLog` that carries arbitrary string key-value pairs. In JSON mode the keys become top-level fields; in text mode they are appended as `key=value` pairs.
+
+**`http(koaString, entry)`** — dedicated method for HTTP request/response lines produced by koa-logger. Accepts a typed `HttpLogEntry` and emits `level: "http"` in JSON mode with full header names as top-level keys, or appends short `key=value` extras in text mode. Controlled separately by the `LOG_HTTP` environment variable (see below).
+
+**`audit(key, payload)`** — dedicated method for audit log events collected by `koa-audit-log`. Emits `level: "audit"` in JSON mode with all payload fields as top-level keys, or a compact `[audit] key result=… userId=…` line in text mode. Controlled by the `LOG_AUDIT` environment variable (see below).
 
 Example output:
 ```json
@@ -76,6 +83,95 @@ Example output:
 ```
 
 Text output remains the default (no change to existing behaviour when `LOG_FORMAT` is unset).
+
+---
+
+### `packages/core`
+
+#### HTTP request logging — enriched per-request context (`src/app/init.ts`)
+
+The koa-logger transporter calls `consoleLog.http(koaString, entry)` for every HTTP request and response. Fields are emitted differently in text vs JSON mode — text mode skips values already present in the koa-logger string (method, status, duration, response length), and uses short aliases for readability.
+
+**`LOG_HTTP` environment variable** controls which HTTP log lines are emitted:
+
+| Value | Behaviour |
+|-------|-----------|
+| *(unset)* | Log all request and response lines |
+| `off` / `silent` / `false` | Suppress all HTTP log output |
+| `error` | Log only responses with status ≥ 400; request lines are suppressed |
+
+**Text mode fields** (appended as `key=value` pairs after the koa-logger line):
+
+| Field | Source | Lines |
+|-------|--------|-------|
+| `ip=` | `ctx.ip` | both |
+| `fwd=` | `X-Forwarded-For` | both — only when chain differs from resolved IP |
+| `proto=` | `X-Forwarded-Proto` | both — when present |
+| `ua=` | `User-Agent` | both — when present |
+| `host=` | `Host` | both — when present |
+| `trace=` | `X-Amzn-Trace-Id` | both — when present |
+| `req_len=` | `Content-Length` | `<--` line only — when present |
+
+**JSON mode fields** (top-level keys, full header names, proper types):
+
+| Field | Type | Source | Lines |
+|-------|------|--------|-------|
+| `ip` | string | `ctx.ip` | both |
+| `x-forwarded-for` | string | `X-Forwarded-For` header | both — only when chain differs from IP |
+| `x-forwarded-proto` | string | `X-Forwarded-Proto` header | both — when present |
+| `user-agent` | string | `User-Agent` header | both — when present |
+| `host` | string | `Host` header | both — when present |
+| `x-amzn-trace-id` | string | `X-Amzn-Trace-Id` header | both — when present |
+| `method` | string | `ctx.method` | both |
+| `request_length` | number | `Content-Length` request header | both — when present |
+| `status_code` | number | `ctx.status` | `-->` line only |
+| `duration_ms` | number | `Date.now() - startTime` | `-->` line only |
+| `response_length` | number | `ctx.response.length` | `-->` line only |
+
+Example text mode:
+```
+  <-- GET /api/path ip=203.0.113.42 proto=https ua=Mozilla/5.0 (...) host=logto.example.com
+  --> GET /api/path 200 12ms 1b ip=203.0.113.42 proto=https ua=Mozilla/5.0 (...) host=logto.example.com
+```
+
+Example JSON mode (`-->` response line):
+```json
+{"level":"http","time":"...","method":"GET","url":"/api/path","ip":"203.0.113.42","x-forwarded-proto":"https","user-agent":"Mozilla/5.0 (...)","host":"logto.example.com","status_code":200,"duration_ms":12,"response_length":1}
+```
+
+#### Audit log console output (`src/middleware/koa-audit-log.ts`)
+
+After inserting each audit log entry to the database, the middleware now also emits the event to the console via `consoleLog.audit(key, payload)`. This makes audit events available to any log aggregator watching stdout (e.g. a CloudWatch log group can filter on `"level":"audit"` to capture only security-relevant events).
+
+**`LOG_AUDIT` environment variable** controls whether audit events are emitted:
+
+| Value | Behaviour |
+|-------|-----------|
+| *(unset)* | Emit all audit events (default) |
+| `off` / `silent` / `false` | Suppress all audit log output |
+
+**JSON mode fields** (each audit line contains `level: "audit"` plus the full payload as top-level keys):
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `level` | `"audit"` | Fixed value — use this to filter audit lines |
+| `time` | ISO 8601 string | Timestamp of the log call |
+| `prefix` | string | Request ID prefix (when set) |
+| `key` | string | Log event key, e.g. `Interaction.SignIn.Submit` |
+| `result` | `"Success"` \| `"Error"` | Outcome of the event |
+| `userId` | string | Authenticated user ID (when known) |
+| `applicationId` | string | OIDC application ID (when known) |
+| `ip` | string | Client IP address |
+| `userAgent` | string | Raw User-Agent header |
+| `error` | object | Error details when `result` is `"Error"` |
+| *(other payload fields)* | mixed | Any additional context added by the route handler |
+
+**Text mode:** emits `[audit] <key> result=… userId=… app=…` (only non-empty fields are shown).
+
+Example JSON mode (successful sign-in):
+```json
+{"level":"audit","time":"...","prefix":"abc123","key":"Interaction.SignIn.Submit","result":"Success","userId":"usr_xyz","applicationId":"app_abc","ip":"203.0.113.42"}
+```
 
 ---
 
