@@ -52,6 +52,24 @@ export default class ConsoleLog {
   }
 
   /**
+   * Controls whether audit log entries are emitted to the console.
+   *
+   * - Unset or any other value → emit all audit log entries.
+   * - `off` / `silent` / `false` → suppress all audit log entries.
+   *
+   * Implemented as a getter so that tests can override `process.env.LOG_AUDIT` at runtime.
+   */
+  static get auditLogLevel(): 'all' | 'off' {
+    const value = process.env.LOG_AUDIT?.toLowerCase();
+
+    if (value === 'off' || value === 'silent' || value === 'false') {
+      return 'off';
+    }
+
+    return 'all';
+  }
+
+  /**
    * Controls which HTTP request/response log entries are emitted.
    *
    * - Unset or any other value → log all requests and responses.
@@ -201,6 +219,30 @@ export default class ConsoleLog {
     console.log(...this.getArgs(extras ? [`${koaString} ${extras}`] : [koaString]));
   }
 
+  /**
+   * Logs an audit event recorded by `koa-audit-log`.
+   *
+   * In **JSON mode** all fields from `payload` are emitted as top-level keys under
+   * `level: "audit"`, making it easy to route these lines to a dedicated log group (e.g. CloudWatch).
+   *
+   * In **text mode** a compact `[audit] key result=… userId=…` line is emitted.
+   *
+   * Visibility is controlled by `ConsoleLog.auditLogLevel` (`LOG_AUDIT` env var).
+   */
+  audit(key: string, payload: Record<string, unknown>): void {
+    if (ConsoleLog.auditLogLevel === 'off') {
+      return;
+    }
+
+    if (ConsoleLog.jsonOutput) {
+      console.log(this.formatAuditJson(key, payload));
+      return;
+    }
+
+    const extras = this.formatAuditTextExtras(payload);
+    console.log(...this.getArgs(extras ? [`[audit] ${key} ${extras}`] : [`[audit] ${key}`]));
+  }
+
   protected getArgs(args: Parameters<typeof console.log>): Parameters<typeof console.log> {
     const contextSuffix = this.formatTextContext();
     const paddedPrefix = this.prefix?.padEnd(this.padding);
@@ -243,6 +285,31 @@ export default class ConsoleLog {
     };
 
     return JSON.stringify(entry);
+  }
+
+  /** Serialises an audit log entry to a single-line JSON string with `level: "audit"`. */
+  private formatAuditJson(key: string, payload: Record<string, unknown>): string {
+    const record: Record<string, unknown> = {
+      level: 'audit',
+      time: new Date().toISOString(),
+      ...(this.prefix && { prefix: stripAnsi(this.prefix) }),
+      key,
+      ...payload,
+    };
+
+    return JSON.stringify(record);
+  }
+
+  /** Builds a chalk-grayed summary of the most useful audit fields for text-mode output. */
+  private formatAuditTextExtras(payload: Record<string, unknown>): string | undefined {
+    const { result, userId, applicationId } = payload;
+    const parts = [
+      result && `result=${String(result)}`,
+      userId && `userId=${String(userId)}`,
+      applicationId && `app=${String(applicationId)}`,
+    ].filter(Boolean);
+
+    return parts.length > 0 ? chalk.gray(parts.join(' ')) : undefined;
   }
 
   /** Serialises an HTTP log entry to a single-line JSON string with `level: "http"`. */
