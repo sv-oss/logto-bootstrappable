@@ -218,6 +218,7 @@ Configure the default tenant's sign-in and sign-up flow.
 |---|---|---|
 | `LOGTO_BOOTSTRAP_SIGNIN_EXPERIENCE` | No | Set to `true` to apply sign-in experience configuration |
 | `LOGTO_SIGN_IN_IDENTIFIER` | No | Primary identifier: `email` or `username` (default: `username`). Only applies when `LOGTO_BOOTSTRAP_SIGNIN_EXPERIENCE=true` |
+| `LOGTO_SIGN_IN_MODE` | No | Controls self-registration. Accepted values: `SignIn` (no self-registration), `Register` (registration only), `SignInAndRegister` (default — both allowed). Case-insensitive. Only applies when `LOGTO_BOOTSTRAP_SIGNIN_EXPERIENCE=true` |
 
 When `LOGTO_BOOTSTRAP_SIGNIN_EXPERIENCE=true`, the default tenant sign-in experience is configured for:
 
