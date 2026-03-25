@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.2.0](https://github.com/sv-oss/logto-bootstrappable/compare/v0.1.0...v0.2.0) (2026-03-25)
+
+
+### Features
+
+* **cli:** Self-Registration is now configurable in bootstrapping ([#11](https://github.com/sv-oss/logto-bootstrappable/issues/11)) ([75714f2](https://github.com/sv-oss/logto-bootstrappable/commit/75714f2c6fa5d3e661a427f836d5e31556ec434d))
+* **Core:** Logging improvements ([#14](https://github.com/sv-oss/logto-bootstrappable/issues/14)) ([1626ea0](https://github.com/sv-oss/logto-bootstrappable/commit/1626ea08f113ab1ad956490931a7c41c590dbd98))
+* Logging improvements ([#13](https://github.com/sv-oss/logto-bootstrappable/issues/13)) ([8669117](https://github.com/sv-oss/logto-bootstrappable/commit/8669117db8f24a69b4b3b34cc762369b4a9408d9))
+
 ## 0.1.0 (2026-03-23)
 
 Note: This release includes the original fork from [logto-io/logto](https://github.com/logto-io/logto),
