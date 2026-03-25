@@ -41,3 +41,9 @@ export const generateStandardShortId = buildIdGenerator(12, false);
  * @see {@link alphabet}
  */
 export const generateStandardSecret = buildIdGenerator(32);
+
+/**
+ * Generate a customer ID with 10 numeric characters (always ≥ 8 digits, ~10 billion possible values).
+ * Used as the human-facing `customer_id` claim in ID tokens.
+ */
+export const generateCustomerId = customAlphabet('0123456789', 10);
