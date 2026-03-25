@@ -110,33 +110,47 @@ The koa-logger transporter calls `consoleLog.http(koaString, entry)` for every H
 | `ua=` | `User-Agent` | both — when present |
 | `host=` | `Host` | both — when present |
 | `trace=` | `X-Amzn-Trace-Id` | both — when present |
+| `accepts=` | `Accept` | both — when present |
+| `origin=` | `Origin` | both — when present |
 | `req_len=` | `Content-Length` | `<--` line only — when present |
+| `ct=` | response `Content-Type` | `-->` line only — when present |
 
 **JSON mode fields** (top-level keys, full header names, proper types):
 
 | Field | Type | Source | Lines |
 |-------|------|--------|-------|
+| `message` | string | `"Serving Request for <path>"` | both |
+| `method` | string | `ctx.method` | both |
+| `url` | string | `ctx.originalUrl` (includes query string) | both |
+| `path` | string | `ctx.path` (pathname only, no query string) | both — when present |
 | `ip` | string | `ctx.ip` | both |
 | `x-forwarded-for` | string | `X-Forwarded-For` header | both — only when chain differs from IP |
 | `x-forwarded-proto` | string | `X-Forwarded-Proto` header | both — when present |
 | `user-agent` | string | `User-Agent` header | both — when present |
 | `host` | string | `Host` header | both — when present |
 | `x-amzn-trace-id` | string | `X-Amzn-Trace-Id` header | both — when present |
-| `method` | string | `ctx.method` | both |
+| `accepts` | string | `Accept` header | both — when present |
+| `origin` | string | `Origin` header | both — when present |
+| `request_headers` | object | filtered request headers (see below) | both — when non-empty |
 | `request_length` | number | `Content-Length` request header | both — when present |
 | `status_code` | number | `ctx.status` | `-->` line only |
 | `duration_ms` | number | `Date.now() - startTime` | `-->` line only |
 | `response_length` | number | `ctx.response.length` | `-->` line only |
+| `response_content_type` | string | response `Content-Type` header | `-->` line only — when present |
+
+**`request_headers` filtering** — The following headers are excluded from `request_headers` because they are either sensitive or already captured as dedicated top-level fields: `authorization`, `cookie`, `set-cookie`, `x-api-key`, `proxy-authorization`, `x-auth-token`, `x-access-token`, `user-agent`, `host`, `x-forwarded-for`, `x-forwarded-proto`, `x-amzn-trace-id`, `content-length`, `origin`, `accept`.
+
+The `message` field is formatted as `Serving Request for <path>` (using `ctx.path`, the pathname without query string) on both request and response lines, making these logs render cleanly in Datadog without a custom parsing pipeline.
 
 Example text mode:
 ```
-  <-- GET /api/path ip=203.0.113.42 proto=https ua=Mozilla/5.0 (...) host=logto.example.com
-  --> GET /api/path 200 12ms 1b ip=203.0.113.42 proto=https ua=Mozilla/5.0 (...) host=logto.example.com
+  <-- GET /api/path ip=203.0.113.42 proto=https ua=Mozilla/5.0 (...) host=logto.example.com accepts=application/json origin=https://app.example.com
+  --> GET /api/path 200 12ms 1b ip=203.0.113.42 proto=https host=logto.example.com ct=application/json
 ```
 
 Example JSON mode (`-->` response line):
 ```json
-{"level":"http","time":"...","method":"GET","url":"/api/path","ip":"203.0.113.42","x-forwarded-proto":"https","user-agent":"Mozilla/5.0 (...)","host":"logto.example.com","status_code":200,"duration_ms":12,"response_length":1}
+{"level":"http","time":"...","message":"Serving Request for /api/path","method":"GET","url":"/api/path","path":"/api/path","ip":"203.0.113.42","x-forwarded-proto":"https","user-agent":"Mozilla/5.0 (...)","host":"logto.example.com","accepts":"application/json","origin":"https://app.example.com","request_headers":{"x-request-id":"abc"},"status_code":200,"duration_ms":12,"response_length":1,"response_content_type":"application/json; charset=utf-8"}
 ```
 
 #### Audit log console output (`src/middleware/koa-audit-log.ts`)

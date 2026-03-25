@@ -6,8 +6,10 @@ type LogLevel = 'plain' | 'info' | 'warn' | 'error' | 'fatal';
 export type HttpLogEntry = {
   /** HTTP method (e.g. `GET`, `POST`). */
   method: string;
-  /** Request URL. */
+  /** Request URL (may include query string). */
   url: string;
+  /** URL pathname without query string. */
+  path?: string;
   /** Resolved client IP address. */
   ip?: string;
   /** Raw `X-Forwarded-For` chain — only present when it differs from the resolved IP. */
@@ -20,6 +22,12 @@ export type HttpLogEntry = {
   host?: string;
   /** `X-Amzn-Trace-Id` header value (AWS ALB trace ID). */
   amznTraceId?: string;
+  /** Raw `Accept` header value. */
+  accepts?: string;
+  /** `Origin` header value. */
+  origin?: string;
+  /** Filtered request headers (sensitive and already-captured headers excluded). */
+  requestHeaders?: Record<string, string>;
   /** Request `Content-Length` in bytes. */
   requestLength?: number;
   /** HTTP response status code — present on response lines only. */
@@ -28,6 +36,8 @@ export type HttpLogEntry = {
   durationMs?: number;
   /** Response body length in bytes — present on response lines only. */
   responseLength?: number;
+  /** Response `Content-Type` header — present on response lines only. */
+  responseContentType?: string;
 };
 
 /** Strips ANSI escape codes from a string so JSON output is clean. */
@@ -314,9 +324,11 @@ export default class ConsoleLog {
 
   /** Serialises an HTTP log entry to a single-line JSON string with `level: "http"`. */
   private formatHttpJson(entry: HttpLogEntry): string {
+    const entryPath = entry.path ?? entry.url;
     const record: Record<string, unknown> = {
       level: 'http',
       time: Date.now(),
+      message: `Serving Request for ${entryPath}`,
       ...(this.prefix && { prefix: stripAnsi(this.prefix) }),
       method: entry.method,
       url: entry.url,
@@ -327,7 +339,8 @@ export default class ConsoleLog {
   }
 
   /** Maps optional `HttpLogEntry` fields to their JSON output key names. */
-  private buildHttpOptionalFields(entry: HttpLogEntry): Record<string, string | number> {
+  // eslint-disable-next-line complexity
+  private buildHttpOptionalFields(entry: HttpLogEntry): Record<string, unknown> {
     const {
       ip,
       forwardedFor,
@@ -335,22 +348,33 @@ export default class ConsoleLog {
       userAgent,
       host,
       amznTraceId,
+      path,
+      accepts,
+      origin,
+      requestHeaders,
       requestLength,
       statusCode,
       durationMs,
       responseLength,
+      responseContentType,
     } = entry;
     return {
+      ...(path && { path }),
       ...(ip && { ip }),
       ...(forwardedFor && { 'x-forwarded-for': forwardedFor }),
       ...(forwardedProto && { 'x-forwarded-proto': forwardedProto }),
       ...(userAgent && { 'user-agent': userAgent }),
-      ...(host && { host }),
+      ...(host && { 'x-host': host }),
       ...(amznTraceId && { 'x-amzn-trace-id': amznTraceId }),
+      ...(accepts && { accepts }),
+      ...(origin && { origin }),
+      ...(requestHeaders &&
+        Object.keys(requestHeaders).length > 0 && { request_headers: requestHeaders }),
       ...(requestLength !== undefined && { request_length: requestLength }),
       ...(statusCode !== undefined && { status_code: statusCode }),
       ...(durationMs !== undefined && { duration_ms: durationMs }),
       ...(responseLength !== undefined && { response_length: responseLength }),
+      ...(responseContentType && { response_content_type: responseContentType }),
     };
   }
 
@@ -358,6 +382,7 @@ export default class ConsoleLog {
    * Builds the chalk-grayed `key=value` suffix appended to the koa-logger text line.
    * Only fields not already shown in the koa string are included.
    */
+  // eslint-disable-next-line complexity
   private formatHttpTextExtras(entry: HttpLogEntry): string | undefined {
     const {
       ip,
@@ -366,8 +391,11 @@ export default class ConsoleLog {
       userAgent,
       host,
       amznTraceId,
+      accepts,
+      origin,
       requestLength,
       statusCode,
+      responseContentType,
     } = entry;
     // Req_len is only useful on request lines; the response line already shows response length.
     const isResponseLine = statusCode !== undefined;
@@ -379,7 +407,10 @@ export default class ConsoleLog {
       userAgent && `ua=${userAgent}`,
       host && `host=${host}`,
       amznTraceId && `trace=${amznTraceId}`,
+      accepts && `accepts=${accepts}`,
+      origin && `origin=${origin}`,
       !isResponseLine && requestLength !== undefined && `req_len=${requestLength}`,
+      isResponseLine && responseContentType && `ct=${responseContentType}`,
     ].filter(Boolean);
 
     return parts.length > 0 ? chalk.gray(parts.join(' ')) : undefined;

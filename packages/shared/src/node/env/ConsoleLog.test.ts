@@ -251,12 +251,16 @@ describe('ConsoleLog (text mode, withContext)', () => {
 describe('ConsoleLog http()', () => {
   const requestEntry: HttpLogEntry = {
     method: 'GET',
-    url: '/api/path',
+    url: '/api/path?q=1',
+    path: '/api/path',
     ip: '1.2.3.4',
     forwardedProto: 'https',
     userAgent: 'TestAgent/1.0',
     host: 'example.com',
     amznTraceId: 'Root=1-abc',
+    accepts: 'application/json',
+    origin: 'https://example.com',
+    requestHeaders: { 'x-custom-header': 'custom-value' },
     requestLength: 512,
   };
 
@@ -265,6 +269,7 @@ describe('ConsoleLog http()', () => {
     statusCode: 200,
     durationMs: 42,
     responseLength: 1024,
+    responseContentType: 'application/json; charset=utf-8',
   };
 
   describe('JSON mode', () => {
@@ -291,19 +296,24 @@ describe('ConsoleLog http()', () => {
       const entry = parseHttpLog(logSpy);
       expect(entry).toMatchObject({
         level: 'http',
+        message: 'Serving Request for /api/path',
         method: 'GET',
-        url: '/api/path',
+        url: '/api/path?q=1',
+        path: '/api/path',
         ip: '1.2.3.4',
         'x-forwarded-proto': 'https',
         'user-agent': 'TestAgent/1.0',
-        host: 'example.com',
+        'x-host': 'example.com',
         'x-amzn-trace-id': 'Root=1-abc',
+        accepts: 'application/json',
+        origin: 'https://example.com',
+        request_headers: { 'x-custom-header': 'custom-value' },
         request_length: 512,
       });
       expect(typeof entry.time).toBe('number');
     });
 
-    it('includes numeric status_code, duration_ms, response_length on response entries', () => {
+    it('includes numeric status_code, duration_ms, response_length, and response_content_type on response entries', () => {
       const logSpy = vi.spyOn(console, 'log').mockImplementation(noop);
       new ConsoleLog().http('  --> GET /api/path 200 42ms 1.0kb', responseEntry);
 
@@ -311,6 +321,15 @@ describe('ConsoleLog http()', () => {
       const entry = parseHttpLog(logSpy);
       expect(entry.duration_ms).toBe(42);
       expect(entry.response_length).toBe(1024);
+      expect(entry.response_content_type).toBe('application/json; charset=utf-8');
+    });
+
+    it('uses url as message path when path field is absent', () => {
+      const logSpy = vi.spyOn(console, 'log').mockImplementation(noop);
+      const entryWithoutPath: HttpLogEntry = { method: 'GET', url: '/no-path-field' };
+      new ConsoleLog().http('  <-- GET /no-path-field', entryWithoutPath);
+
+      expect(parseHttpLog(logSpy)).toMatchObject({ message: 'Serving Request for /no-path-field' });
     });
 
     it('includes the prefix field when set', () => {
@@ -360,7 +379,7 @@ describe('ConsoleLog http()', () => {
       delete process.env.LOG_HTTP;
     });
 
-    it('appends ip, proto, ua, host, trace extras to the koa string', () => {
+    it('appends ip, proto, ua, host, trace, accepts, origin extras to the koa string', () => {
       const logSpy = vi.spyOn(console, 'log').mockImplementation(noop);
       new ConsoleLog().http('  <-- GET /api/path', requestEntry);
 
@@ -371,19 +390,23 @@ describe('ConsoleLog http()', () => {
       expect(output).toContain('ua=TestAgent/1.0');
       expect(output).toContain('host=example.com');
       expect(output).toContain('trace=Root=1-abc');
+      expect(output).toContain('accepts=application/json');
+      expect(output).toContain('origin=https://example.com');
     });
 
-    it('appends req_len on request lines but not response lines', () => {
+    it('appends req_len on request lines but not response lines, and ct= on response lines', () => {
       const requestSpy = vi.spyOn(console, 'log').mockImplementation(noop);
       new ConsoleLog().http('  <-- GET /api/path', requestEntry);
       const requestOutput = (requestSpy.mock.calls[0] ?? []).map(String).join(' ');
       expect(requestOutput).toContain('req_len=512');
+      expect(requestOutput).not.toContain('ct=');
 
       requestSpy.mockClear();
 
       new ConsoleLog().http('  --> GET /api/path 200 42ms 1.0kb', responseEntry);
       const respOutput = (requestSpy.mock.calls[0] ?? []).map(String).join(' ');
       expect(respOutput).not.toContain('req_len=');
+      expect(respOutput).toContain('ct=application/json; charset=utf-8');
     });
 
     it('suppresses output when LOG_HTTP=off', () => {
