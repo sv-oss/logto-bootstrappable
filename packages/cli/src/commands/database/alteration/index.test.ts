@@ -62,7 +62,7 @@ describe('chooseAlterationsByVersion()', () => {
       'next1-1663923781-c.js',
     ].map((filename) => ({ filename, path: '/alterations/' + filename }))
   );
-  const stub = Sinon.stub(global, 'process').value({ stdin: { isTTY: false } });
+  const stub = Sinon.stub(global, 'process').value({ stdin: { isTTY: false }, env: process.env });
 
   afterAll(() => {
     stub.restore();

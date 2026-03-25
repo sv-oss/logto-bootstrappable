@@ -15,6 +15,30 @@ import { TenantNotFoundError, tenantPool } from '#src/tenants/index.js';
 import { buildAppInsightsTelemetry } from '#src/utils/request.js';
 import { getTenantId } from '#src/utils/tenant.js';
 
+/**
+ * Request headers that are either sensitive (must never be logged) or already captured as
+ * dedicated `HttpLogEntry` fields. All comparisons are done in lowercase.
+ */
+const EXCLUDED_REQUEST_HEADERS = new Set([
+  // Sensitive — must never be logged
+  'authorization',
+  'cookie',
+  'set-cookie',
+  'x-api-key',
+  'proxy-authorization',
+  'x-auth-token',
+  'x-access-token',
+  // Already captured as dedicated HttpLogEntry fields
+  'user-agent',
+  'host',
+  'x-forwarded-for',
+  'x-forwarded-proto',
+  'x-amzn-trace-id',
+  'content-length',
+  'origin',
+  'accept',
+]);
+
 const logListening = (type: 'core' | 'admin' = 'core') => {
   const urlSet = type === 'core' ? EnvSet.values.urlSet : EnvSet.values.adminUrlSet;
   const consoleLog = new ConsoleLog(chalk.magenta(type));
@@ -42,15 +66,30 @@ export default async function initApp(app: Koa): Promise<void> {
       const forwardedFor = getHeader('x-forwarded-for');
       const rawContentLength = getHeader('content-length');
 
+      const requestHeaders = Object.fromEntries(
+        Object.entries(ctx.request.headers).flatMap(([key, value]) => {
+          if (EXCLUDED_REQUEST_HEADERS.has(key.toLowerCase()) || value === undefined) {
+            return [];
+          }
+
+          const normalized = Array.isArray(value) ? value.join(', ') : value;
+          return normalized ? [[key, normalized]] : [];
+        })
+      );
+
       const base: HttpLogEntry = {
         method,
         url: ctx.originalUrl,
+        path: ctx.path,
         ip: ip || undefined,
-        forwardedFor: forwardedFor && forwardedFor !== ip ? forwardedFor : undefined,
+        forwardedFor,
         forwardedProto: getHeader('x-forwarded-proto'),
         userAgent: getHeader('user-agent'),
         host: getHeader('host'),
         amznTraceId: getHeader('x-amzn-trace-id'),
+        accepts: getHeader('accept'),
+        origin: getHeader('origin'),
+        requestHeaders: Object.keys(requestHeaders).length > 0 ? requestHeaders : undefined,
         requestLength: rawContentLength ? Number.parseInt(rawContentLength, 10) : undefined,
       };
 
@@ -58,11 +97,13 @@ export default async function initApp(app: Koa): Promise<void> {
         return base;
       }
 
+      const rawResponseContentType = ctx.response.get('content-type');
       return {
         ...base,
         statusCode: ctx.status,
         durationMs: Date.now() - startTime,
         responseLength: ctx.response.length,
+        responseContentType: rawResponseContentType || undefined,
       };
     };
 
