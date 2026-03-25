@@ -304,6 +304,8 @@ export default class ConsoleLog {
       time: Date.now(),
       ...(this.prefix && { prefix: stripAnsi(this.prefix) }),
       key,
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+      message: `[Audit] ${payload.key}`,
       ...payload,
     };
 
