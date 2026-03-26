@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/sv-oss/logto-bootstrappable/compare/v0.2.0...v0.3.0) (2026-03-26)
+
+
+### Features
+
+* **Core:** Add support for custom OIDC Claim ([#15](https://github.com/sv-oss/logto-bootstrappable/issues/15)) ([692ba1a](https://github.com/sv-oss/logto-bootstrappable/commit/692ba1a9f81e60870ed428c02dc1e5b0885ebea1))
+
 ## [0.2.0](https://github.com/sv-oss/logto-bootstrappable/compare/v0.1.0...v0.2.0) (2026-03-25)
 
 
