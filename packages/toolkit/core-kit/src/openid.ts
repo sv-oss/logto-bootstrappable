@@ -69,6 +69,7 @@ export const userClaimsList = [
   // Custom claims
   'username', // Planned to be migrated into OIDC standard `preferred_username`, not configurable for now.
   'created_at', // Follows the profile scope convention (always included). Not configurable for now, may change in the future.
+  'customer_id', // Added especially for SV custom fork
   ...extendedIdTokenClaims,
 ] as const;
 
@@ -174,6 +175,7 @@ export const idTokenClaims: Readonly<Record<UserScope, UserClaim[]>> = Object.fr
     // Custom claims
     'username',
     'created_at',
+    'customer_id', // SV Custom claim - technically stored here in `customData.customer_id`, but should always be returned.
   ],
   [UserScope.Email]: ['email', 'email_verified'],
   [UserScope.Phone]: ['phone_number', 'phone_number_verified'],

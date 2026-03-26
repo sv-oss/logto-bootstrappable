@@ -29,6 +29,7 @@ const claimToUserKey: Readonly<
       | 'organization_roles'
       | UserProfileClaimSnakeCase
       | 'sso_identities'
+      | 'customer_id'
     >,
     keyof User
   >
@@ -125,6 +126,12 @@ export const getUserClaimsData = async (
             ssoIdentities.map(({ issuer, identityId, detail }) => ({ issuer, identityId, detail })),
           ];
         }
+
+        // Special case for SV - always return the customer_id claim field.
+        case 'customer_id': {
+          return [claim, user.customData.customer_id];
+        }
+
         default: {
           if (isUserProfileClaim(claim)) {
             // Unlike other database fields (e.g. `name`), the claims stored in the `profile` field
