@@ -17,13 +17,13 @@
     "build": "tsup",
     "build:test": "rm -rf build/ && tsc -p tsconfig.test.json && pnpm copy:apidocs",
     "build:instrument": "rm -rf build/ && tsc -p tsconfig.integration.json && nyc instrument build/ --in-place && pnpm copy:apidocs",
-    "lint": "eslint --ext .ts --ext .json src",
+    "lint": "eslint --ignore-pattern build --ignore-pattern jest.config.js --ignore-pattern jest.setup.js --ext .ts --ext .json src",
     "lint:report": "pnpm lint --format json --output-file report.json",
     "dev": "tsup --config tsup.dev.config.ts",
     "start": "NODE_ENV=production node .",
     "test:only": "NODE_OPTIONS=\"--experimental-vm-modules --max_old_space_size=4096\" jest --logHeapUsage",
     "test": "pnpm build:test && pnpm test:only",
-    "test:ci": "pnpm test:only --coverage --silent",
+    "test:ci": "pnpm build:test && pnpm test:only --coverage --silent",
     "test:report": "codecov -F core"
   },
   "dependencies": {
@@ -155,7 +155,12 @@
       "import/no-unused-modules": [
         "error",
         {
-          "unusedExports": true
+          "unusedExports": true,
+          "ignoreExports": [
+            "build/**",
+            "jest.config.js",
+            "jest.setup.js"
+          ]
         }
       ]
     },

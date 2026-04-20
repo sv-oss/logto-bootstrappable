@@ -1,6 +1,6 @@
 import type { LanguageTag } from '@logto/language-kit';
 import { languages, findSupportedLanguageTag } from '@logto/language-kit';
-import type { NormalizeKeyPaths } from '@silverhand/essentials';
+import type { DeepPartial, NormalizeKeyPaths } from '@silverhand/essentials';
 import { z } from 'zod';
 
 import ar from './locales/ar/index.js';
@@ -59,7 +59,14 @@ export const builtInLanguageTagGuard = z.enum(builtInLanguages);
 
 export type BuiltInLanguageTag = z.infer<typeof builtInLanguageTagGuard>;
 
-export type Resource = Record<BuiltInLanguageTag, LocalePhrase>;
+export type DefaultLocale = 'en';
+
+export type Resource = Record<
+  Exclude<BuiltInLanguageTag, DefaultLocale>,
+  DeepPartial<LocalePhrase>
+> & {
+  [key in DefaultLocale]: LocalePhrase;
+};
 
 const resource: Resource = {
   ar,

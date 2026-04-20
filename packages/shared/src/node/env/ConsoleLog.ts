@@ -285,7 +285,7 @@ export default class ConsoleLog {
 
     const entry: Record<string, unknown> = {
       level,
-      time: Date.now(),
+      time: new Date().toISOString(),
       message: args.map((arg) => this.serializeArg(arg)).join(' '),
       ...(this.prefix && { prefix: stripAnsi(this.prefix) }),
       ...this.context,
@@ -301,11 +301,10 @@ export default class ConsoleLog {
   private formatAuditJson(key: string, payload: Record<string, unknown>): string {
     const record: Record<string, unknown> = {
       level: 'audit',
-      time: Date.now(),
+      time: new Date().toISOString(),
       ...(this.prefix && { prefix: stripAnsi(this.prefix) }),
       key,
-      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-      message: `[Audit] ${payload.key}`,
+      message: `[Audit] ${key}`,
       ...payload,
     };
 
@@ -329,7 +328,7 @@ export default class ConsoleLog {
     const entryPath = entry.path ?? entry.url;
     const record: Record<string, unknown> = {
       level: 'http',
-      time: Date.now(),
+      time: new Date().toISOString(),
       message: `Serving Request for ${entryPath}`,
       ...(this.prefix && { prefix: stripAnsi(this.prefix) }),
       method: entry.method,

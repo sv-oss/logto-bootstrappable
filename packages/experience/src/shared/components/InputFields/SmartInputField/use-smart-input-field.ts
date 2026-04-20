@@ -51,7 +51,7 @@ const useSmartInputField = ({ defaultValue, enabledTypes, defaultCountryCode }: 
   // Convert the ISO 3166-1 alpha-2 country code prop (e.g. "AU") to a calling code (e.g. "61")
   const defaultCallingCode = useMemo(() => {
     if (!defaultCountryCode) {
-      return undefined;
+      return;
     }
     const upperCode = defaultCountryCode.toUpperCase();
     return isValidCountryCode(upperCode) ? getCountryCallingCode(upperCode) : undefined;

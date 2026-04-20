@@ -9,6 +9,20 @@ The primary addition is a **self-service management dashboard** built into the A
 ### Upstream catch-up notes
 
 - **v1.38.0 integration:** The account center routing now keeps fork-specific routes (`/profile`, `/authenticator-app/manage`) while also retaining upstream v1.38.0 additions (social account routes/callback flow and authenticator app replace flow). The fork behavior remains: users with existing TOTP are redirected to manage/remove instead of seeing an error screen.
+- **v1.38.0 reconciliation (customization-reconcile):**
+  - `packages/account` profile save now refreshes user info through `PageContext.refreshUserInfo()` to stay compatible with upstream `PageContext` shape while preserving given/family name updates.
+  - `ConsoleLog` JSON output remains aligned with fork contracts: `time` is ISO 8601, HTTP JSON uses `x-host`, and audit JSON message keys are emitted consistently as `[Audit] <key>`.
+  - `auto-custom-data-claims` keeps the `customer_id` auto-generation behavior with lint-compatible typing adjustments only (no runtime behavior change).
+- **security-safe-remediation:**
+  - Applied non-breaking dependency hardening through direct patch/minor updates and root `pnpm.overrides` for vulnerable transitive ranges (`vite`, `nodemailer`, `follow-redirects`, `axios`, `dompurify`, `@xmldom/xmldom`, `basic-ftp`), then refreshed the lockfile.
+  - Left advisories with no stable safe upgrade path (`lodash` / `lodash-es` advisories requiring non-existent `4.18.0`) deferred for upstream ecosystem resolution.
+- **repo-validation follow-up (chore/upstream-v1.38.0-catchup):**
+  - `packages/phrases-experience/src/index.ts` now mirrors upstream `@logto/phrases` resource typing by requiring full `LocalePhrase` only for the default locale (`en`) and allowing `DeepPartial<LocalePhrase>` for non-default locales. This resolves stricter TypeScript assignability regressions introduced during the upstream/security catch-up while preserving runtime fallback behavior.
+  - `packages/core/package.json` now ignores generated `build/**` and local Jest JS config files during ESLint runs so `pnpm ci:lint` remains stable after `pnpm ci:build` in this fork’s validation flow.
+  - `packages/core/package.json` now runs `build:test` before `test:only` in `test:ci`, aligning CI behavior with the existing `test` script so Jest can discover tests under `build/` after upstream catch-up.
+  - `packages/core/src/oidc/scope.test.ts` now expects the fork’s `customer_id` profile claim in accepted OIDC claims, keeping tests aligned with the auto custom data claim behavior retained in this fork.
+  - `packages/connectors/connector-smtp-sms/package.json` now uses `vitest run src` for `test` so recursive CI test runs exit deterministically instead of entering watch mode.
+  - Validation snapshot: `pnpm ci:build`, `pnpm ci:lint`, `pnpm --filter @logto/core test:ci`, `pnpm --filter @logto/shared test -- src/node/env/ConsoleLog.test.ts src/node/env/ConsoleLog.audit.test.ts --reporter=verbose`, and `pnpm --filter ./packages/connectors/connector-smtp-sms test` pass on this branch; `pnpm audit --prod` now reports only deferred `lodash` advisories in `packages/cli > inquirer`.
 
 ---
 
@@ -132,7 +146,7 @@ The koa-logger transporter calls `consoleLog.http(koaString, entry)` for every H
 | `x-forwarded-for` | string | `X-Forwarded-For` header | both — only when chain differs from IP |
 | `x-forwarded-proto` | string | `X-Forwarded-Proto` header | both — when present |
 | `user-agent` | string | `User-Agent` header | both — when present |
-| `host` | string | `Host` header | both — when present |
+| `x-host` | string | `Host` header | both — when present |
 | `x-amzn-trace-id` | string | `X-Amzn-Trace-Id` header | both — when present |
 | `accepts` | string | `Accept` header | both — when present |
 | `origin` | string | `Origin` header | both — when present |
@@ -157,7 +171,7 @@ Example text mode:
 Example JSON mode (`-->` response line):
 
 ```json
-{"level":"http","time":"...","message":"Serving Request for /api/path","method":"GET","url":"/api/path","path":"/api/path","ip":"203.0.113.42","x-forwarded-proto":"https","user-agent":"Mozilla/5.0 (...)","host":"logto.example.com","accepts":"application/json","origin":"https://app.example.com","request_headers":{"x-request-id":"abc"},"status_code":200,"duration_ms":12,"response_length":1,"response_content_type":"application/json; charset=utf-8"}
+{"level":"http","time":"...","message":"Serving Request for /api/path","method":"GET","url":"/api/path","path":"/api/path","ip":"203.0.113.42","x-forwarded-proto":"https","user-agent":"Mozilla/5.0 (...)","x-host":"logto.example.com","accepts":"application/json","origin":"https://app.example.com","request_headers":{"x-request-id":"abc"},"status_code":200,"duration_ms":12,"response_length":1,"response_content_type":"application/json; charset=utf-8"}
 ```
 
 #### Audit log console output (`src/middleware/koa-audit-log.ts`)

@@ -17,7 +17,7 @@ import styles from './index.module.scss';
 const Profile = () => {
   const { t } = useTranslation();
   const { loading } = useContext(LoadingContext);
-  const { accountCenterSettings, userInfo, setUserInfo, setToast } = useContext(PageContext);
+  const { accountCenterSettings, userInfo, refreshUserInfo, setToast } = useContext(PageContext);
   const updateProfileRequest = useApi(updateProfile);
   const updateProfileFieldsRequest = useApi(updateProfileFields);
   const handleError = useErrorHandler();
@@ -59,9 +59,7 @@ const Profile = () => {
     const hasMainChanges = nameEditable || avatarEditable;
     const hasProfileChanges = profileEditable;
 
-    const [mainError, updatedProfile] = hasMainChanges
-      ? await updateProfileRequest(mainPayload)
-      : [undefined, undefined];
+    const [mainError] = hasMainChanges ? await updateProfileRequest(mainPayload) : [undefined];
 
     if (mainError) {
       await handleError(mainError, {
@@ -72,9 +70,9 @@ const Profile = () => {
       return;
     }
 
-    const [profileError, updatedProfileFields] = hasProfileChanges
+    const [profileError] = hasProfileChanges
       ? await updateProfileFieldsRequest(profilePayload)
-      : [undefined, undefined];
+      : [undefined];
 
     if (profileError) {
       await handleError(profileError, {
@@ -85,21 +83,7 @@ const Profile = () => {
       return;
     }
 
-    setUserInfo((current) => ({
-      ...current,
-      ...(updatedProfile && {
-        name: updatedProfile.name ?? current?.name,
-        avatar: updatedProfile.avatar ?? current?.avatar,
-      }),
-      ...(updatedProfileFields && {
-        profile: {
-          ...current?.profile,
-          givenName: updatedProfileFields.givenName,
-          familyName: updatedProfileFields.familyName,
-        },
-      }),
-    }));
-
+    await refreshUserInfo();
     setToast(t('account_center.profile.saved'));
   };
 

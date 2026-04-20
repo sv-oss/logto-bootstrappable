@@ -10,9 +10,14 @@ export const createPhraseLibrary = (queries: Queries) => {
   const { findCustomPhraseByLanguageTag, findAllCustomLanguageTags } = queries.customPhrases;
 
   const getPhrases = async (forLanguage: string): Promise<LocalePhrase> => {
+    const builtInPhrase = resource[isBuiltInLanguageTag(forLanguage) ? forLanguage : 'en'];
+
     return deepmerge<LocalePhrase>(
-      resource[isBuiltInLanguageTag(forLanguage) ? forLanguage : 'en'],
-      cleanDeep((await trySafe(findCustomPhraseByLanguageTag(forLanguage))) ?? {})
+      resource.en,
+      deepmerge(
+        cleanDeep(builtInPhrase),
+        cleanDeep((await trySafe(findCustomPhraseByLanguageTag(forLanguage))) ?? {})
+      )
     );
   };
 
