@@ -81,6 +81,7 @@ const sign_in_exp = {
   },
   custom_ui: {
     title: 'UI personnalisée',
+    cloud_tag: 'Cloud',
     css_code_editor_title: 'CSS personnalisé',
     css_code_editor_description1: "Voir l'exemple de CSS personnalisé.",
     css_code_editor_description2: '<a>{{link}}</a>',
@@ -90,6 +91,10 @@ const sign_in_exp = {
     bring_your_ui_title: 'Apportez votre UI',
     bring_your_ui_description:
       "Téléchargez un package compressé (.zip) pour remplacer l'UI préconstruite de Logto par votre propre code. <a>En savoir plus</a>",
+    bring_your_ui_oss_description: 'Personnalisez l’interface de connexion avec votre propre code.',
+    bring_your_ui_oss_card_description:
+      'Téléchargez directement votre interface de connexion personnalisée sur <a>Logto Cloud</a>. Aucun fork ni redéploiement nécessaires.',
+    bring_your_ui_oss_try_cloud: 'Essayer Cloud',
     preview_with_bring_your_ui_description:
       'Vos ressources UI personnalisées ont été téléchargées avec succès et sont maintenant servies. En conséquence, la fenêtre de prévisualisation intégrée a été désactivée.\nPour tester votre UI de connexion personnalisée, cliquez sur le bouton "Aperçu en direct" pour l\'ouvrir dans un nouvel onglet du navigateur.',
   },
@@ -182,14 +187,17 @@ const sign_in_exp = {
         "Pour intégrer ces flux préconstruits, définissez les autorisations de l'API de compte associées sur <strong>Modifier</strong> dans les paramètres ci-dessous.",
       flows_title: "Intégrer des flux de paramètres de sécurité prêts à l'emploi",
       flows_description:
-        'Combinez votre domaine avec le chemin pour former votre URL de paramètres de compte (par exemple, https://auth.foo.com/account/email). Ajoutez éventuellement `redirect=` pour renvoyer les utilisateurs à votre application après une mise à jour réussie, `show_success=true` pour garder la page de succès visible, ou `ui_locales=` pour remplacer la langue par défaut.',
+        'Combinez votre domaine avec le chemin pour former votre URL de paramètres de compte (par exemple, https://auth.foo.com/account/email). Ajoutez éventuellement `redirect=` pour renvoyer les utilisateurs à votre application après une mise à jour réussie, `show_success=true` pour garder la page de succès visible, `ui_locales=` pour remplacer la langue par défaut, ou `identifier=` pour pré-remplir le champ de saisie de l’identifiant.',
       tooltips: {
         email: 'Mettre à jour votre adresse e-mail principale',
         phone: 'Mettre à jour votre numéro de téléphone principal',
         username: "Mettre à jour votre nom d'utilisateur",
         password: 'Définir un nouveau mot de passe',
+        social: 'Lier un compte social pour la connexion',
+        social_remove: 'Supprimer un compte social lié',
         authenticator_app:
           "Configurer une nouvelle application d'authentification pour l'authentification multifacteur",
+        authenticator_app_replace: 'Replace your existing authenticator app with a new one',
         passkey_add: 'Enregistrer une nouvelle clé de passe',
         passkey_manage: 'Gérer vos clés de passe existantes ou en ajouter de nouvelles',
         backup_codes_generate: 'Générer un nouvel ensemble de 10 codes de sauvegarde',

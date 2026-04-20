@@ -1,18 +1,30 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { buildDatabaseUrl, parseTimeoutEnv } from './GlobalValues.js';
+import GlobalValues, { buildDatabaseUrl, parseTimeoutEnv } from './GlobalValues.js';
 
-const dbEnvKeys = ['DB_URL', 'DB_HOST', 'DB_USERNAME', 'DB_PASSWORD', 'DB_NAME', 'DB_PORT', 'DB_SSL_MODE'] as const;
+const databaseEnvKeys = [
+  'DB_URL',
+  'DB_HOST',
+  'DB_USERNAME',
+  'DB_PASSWORD',
+  'DB_NAME',
+  'DB_PORT',
+  'DB_SSL_MODE',
+] as const;
 
-const clearDbEnv = () => {
-  for (const key of dbEnvKeys) {
+const clearDatabaseEnv = () => {
+  for (const key of databaseEnvKeys) {
     // eslint-disable-next-line @silverhand/fp/no-delete, @typescript-eslint/no-dynamic-delete
     delete process.env[key];
   }
 };
 
+const setMinimalDatabaseEnv = () => {
+  process.env.DB_URL = 'postgres://user:pass@host:5432/db';
+};
+
 describe('buildDatabaseUrl', () => {
-  afterEach(clearDbEnv);
+  afterEach(clearDatabaseEnv);
 
   it('returns DB_URL directly when set', () => {
     process.env.DB_URL = 'postgres://user:pass@host:5432/db';
@@ -80,7 +92,9 @@ describe('buildDatabaseUrl', () => {
     process.env.DB_PASSWORD = 'secret';
     process.env.DB_NAME = 'logto';
     process.env.DB_SSL_MODE = 'require';
-    expect(buildDatabaseUrl()).toBe('postgresql://admin:secret@rds.example.com:5432/logto?sslmode=require');
+    expect(buildDatabaseUrl()).toBe(
+      'postgresql://admin:secret@rds.example.com:5432/logto?sslmode=require'
+    );
   });
 
   it('supports no-verify sslmode', () => {
@@ -89,7 +103,9 @@ describe('buildDatabaseUrl', () => {
     process.env.DB_PASSWORD = 'secret';
     process.env.DB_NAME = 'logto';
     process.env.DB_SSL_MODE = 'no-verify';
-    expect(buildDatabaseUrl()).toBe('postgresql://admin:secret@rds.example.com:5432/logto?sslmode=no-verify');
+    expect(buildDatabaseUrl()).toBe(
+      'postgresql://admin:secret@rds.example.com:5432/logto?sslmode=no-verify'
+    );
   });
 
   it('omits sslmode when DB_SSL_MODE is not set', () => {
@@ -133,5 +149,25 @@ describe('parseTimeoutEnv', () => {
   it('accepts negative and decimal values as numbers', () => {
     expect(parseTimeoutEnv('-1')).toBe(-1);
     expect(parseTimeoutEnv('1.5')).toBe(1.5);
+  });
+});
+
+describe('isHealthcheckRequestLoggingEnabled', () => {
+  afterEach(clearDatabaseEnv);
+
+  afterEach(() => {
+    // eslint-disable-next-line @silverhand/fp/no-delete
+    delete process.env.LOG_HTTP_HEALTHCHECK;
+  });
+
+  it('is disabled by default', () => {
+    setMinimalDatabaseEnv();
+    expect(new GlobalValues().isHealthcheckRequestLoggingEnabled).toBe(false);
+  });
+
+  it('is enabled when LOG_HTTP_HEALTHCHECK is truthy', () => {
+    setMinimalDatabaseEnv();
+    process.env.LOG_HTTP_HEALTHCHECK = 'true';
+    expect(new GlobalValues().isHealthcheckRequestLoggingEnabled).toBe(true);
   });
 });

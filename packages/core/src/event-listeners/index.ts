@@ -6,6 +6,7 @@ import type Queries from '#src/tenants/Queries.js';
 import { getConsoleLogFromContext } from '#src/utils/console.js';
 import { buildAppInsightsTelemetry } from '#src/utils/request.js';
 
+import { createAuthorizationSuccessListener } from './authorization-success.js';
 import { grantListener, grantRevocationListener } from './grant.js';
 import { interactionEndedListener, interactionStartedListener } from './interaction.js';
 import { recordActiveUsers } from './record-active-users.js';
@@ -29,6 +30,12 @@ export const addOidcEventListeners = (tenantId: string, provider: Provider, quer
   provider.addListener('grant.success', grantListener);
   provider.addListener('grant.error', grantListener);
   provider.addListener('grant.revoked', grantRevocationListener);
+
+  provider.addListener(
+    'authorization.success',
+    createAuthorizationSuccessListener(provider, queries)
+  );
+
   provider.addListener('access_token.issued', async (token) => {
     return recordActiveUsers(token, queries);
   });

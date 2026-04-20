@@ -7,7 +7,14 @@ import { mockedConfig } from './mock.js';
 import { smtpSmsConfigGuard } from './types.js';
 
 const getConfig = vi.fn().mockResolvedValue(mockedConfig);
-const sendMail = vi.fn();
+type SendMailInput = {
+  from?: string;
+  to?: string;
+  subject?: string;
+  text?: string;
+};
+
+const sendMail = vi.fn(async (_mailOptions: SendMailInput) => ({}));
 
 // @ts-expect-error for testing
 vi.spyOn(nodemailer, 'createTransport').mockReturnValue({ sendMail } as Transporter);
@@ -50,9 +57,8 @@ describe('SMTP SMS connector', () => {
       payload: { code: '654321' },
     });
 
-    expect(sendMail).toHaveBeenCalledWith(
-      expect.objectContaining({ to: '+12025551234@sms.example.com' })
-    );
+    const mailOptions = sendMail.mock.calls.at(-1)?.[0];
+    expect(mailOptions?.to).toBe('+12025551234@sms.example.com');
   });
 
   it('should omit subject when not configured', async () => {
@@ -68,9 +74,8 @@ describe('SMTP SMS connector', () => {
       payload: { code: '111222' },
     });
 
-    expect(sendMail).toHaveBeenCalledWith(
-      expect.not.objectContaining({ subject: expect.anything() })
-    );
+    const mailOptions = sendMail.mock.calls.at(-1)?.[0];
+    expect(mailOptions?.subject).toBeUndefined();
   });
 
   it('should fall back to Generic template when the specific type is not found', async () => {
@@ -82,10 +87,9 @@ describe('SMTP SMS connector', () => {
       payload: { code: '000000' },
     });
 
-    expect(sendMail).toHaveBeenCalledWith(
-      expect.objectContaining({
-        text: 'Your Logto verification code is 000000. Expires in 10 minutes.',
-      })
+    const mailOptions = sendMail.mock.calls.at(-1)?.[0];
+    expect(mailOptions?.text).toBe(
+      'Your Logto verification code is 000000. Expires in 10 minutes.'
     );
   });
 

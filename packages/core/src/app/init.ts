@@ -111,6 +111,10 @@ export default async function initApp(app: Koa): Promise<void> {
       transporter: (string, args) => {
         // Args shape: [formatString, method, url, ...] — url is at index 2
         const requestPath = args[2];
+        if (ctx.path === '/status' && !EnvSet.values.isHealthcheckRequestLoggingEnabled) {
+          return;
+        }
+
         // Ignoring static file requests in development since vite will load a crazy amount of files
         if (!EnvSet.values.isProduction && path.basename(String(requestPath)).includes('.')) {
           return;

@@ -80,6 +80,7 @@ const sign_in_exp = {
   },
   custom_ui: {
     title: 'UI personalizzata',
+    cloud_tag: 'Cloud',
     css_code_editor_title: 'CSS personalizzato',
     css_code_editor_description1: "Vedi l'esempio di CSS personalizzato.",
     css_code_editor_description2: '<a>{{link}}</a>',
@@ -89,6 +90,10 @@ const sign_in_exp = {
     bring_your_ui_title: 'Porta la tua UI',
     bring_your_ui_description:
       'Carica un pacchetto compresso (.zip) per sostituire la UI precaricata di Logto con il tuo codice. <a>Scopri di più</a>',
+    bring_your_ui_oss_description: "Personalizza l'interfaccia di accesso con il tuo codice.",
+    bring_your_ui_oss_card_description:
+      'Carica direttamente la tua interfaccia di accesso personalizzata su <a>Logto Cloud</a>. Non serve fare un fork o ridistribuire.',
+    bring_your_ui_oss_try_cloud: 'Prova Cloud',
     preview_with_bring_your_ui_description:
       'I tuoi asset della UI personalizzata sono stati caricati con successo e ora vengono serviti. Di conseguenza, la finestra di anteprima integrata è stata disabilitata.\nPer testare la tua UI di accesso personalizzata, fai clic sul pulsante "Live Preview" per aprirla in una nuova scheda del browser.',
   },
@@ -180,14 +185,17 @@ const sign_in_exp = {
         "Per integrare questi flussi predefiniti, imposta i permessi dell'API account correlati su <strong>Modifica</strong> nelle impostazioni sottostanti.",
       flows_title: 'Integra i flussi di impostazione di sicurezza predefiniti',
       flows_description:
-        "Combina il tuo dominio con il percorso per formare il tuo URL di impostazione dell'account (ad es., https://auth.foo.com/account/email). Opzionalmente aggiungi `redirect=` per riportare gli utenti alla tua app dopo un aggiornamento riuscito, `show_success=true` per mantenere visibile la pagina di successo, o `ui_locales=` per sovrascrivere la lingua predefinita.",
+        "Combina il tuo dominio con il percorso per formare il tuo URL di impostazione dell'account (ad es., https://auth.foo.com/account/email). Opzionalmente aggiungi `redirect=` per riportare gli utenti alla tua app dopo un aggiornamento riuscito, `show_success=true` per mantenere visibile la pagina di successo, `ui_locales=` per sovrascrivere la lingua predefinita, o `identifier=` per precompilare il campo di input dell'identificatore.",
       tooltips: {
         email: 'Aggiorna il tuo indirizzo email principale',
         phone: 'Aggiorna il tuo numero di telefono principale',
         username: 'Aggiorna il tuo nome utente',
         password: 'Imposta una nuova password',
+        social: 'Collega un account social per l’accesso',
+        social_remove: 'Rimuovi un account social collegato',
         authenticator_app:
           "Configura una nuova app di autenticazione per l'autenticazione multifattore",
+        authenticator_app_replace: 'Replace your existing authenticator app with a new one',
         passkey_add: 'Registra una nuova passkey',
         passkey_manage: 'Gestisci le passkey esistenti o aggiungi nuove passkey',
         backup_codes_generate: 'Genera un nuovo set di 10 codici di backup',

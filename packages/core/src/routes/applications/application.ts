@@ -325,6 +325,7 @@ export default function applicationRoutes<T extends ManagementApiRouter>(
       const { isAdmin, protectedAppMetadata, ...rest } = body;
 
       const pendingUpdateApplication = await queries.applications.findApplicationById(id);
+
       if (pendingUpdateApplication.type === ApplicationType.SAML) {
         throw new RequestError('application.saml.use_saml_app_api');
       }

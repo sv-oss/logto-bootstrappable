@@ -27,7 +27,9 @@ import { type SmtpSmsConfig, smtpSmsConfigGuard } from './types.js';
  */
 const buildToEmail = (toEmailTemplate: string, phoneNumber: string): string => {
   const phoneNumberOnly = phoneNumber.replaceAll(/\D/g, '');
-  return toEmailTemplate.replace('{{phone}}', phoneNumber).replace('{{phoneNumberOnly}}', phoneNumberOnly);
+  return toEmailTemplate
+    .replace('{{phone}}', phoneNumber)
+    .replace('{{phoneNumberOnly}}', phoneNumberOnly);
 };
 
 const sendMessage =

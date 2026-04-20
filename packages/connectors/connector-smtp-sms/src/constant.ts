@@ -14,9 +14,10 @@ export const defaultMetadata: ConnectorMetadata = {
   logo: './logo.svg',
   logoDark: './logo-dark.svg',
   description: {
-    en: 'Custom connector by Service Vic. Send SMS messages via an email-to-SMS SMTP gateway. Many mobile carriers provide an email address that forwards to a subscriber\'s phone as an SMS (e.g. number@txt.att.net).',
+    en: "Custom connector by Service Vic. Send SMS messages via an email-to-SMS SMTP gateway. Many mobile carriers provide an email address that forwards to a subscriber's phone as an SMS (e.g. number@txt.att.net).",
     'zh-CN': '由 Service Vic 定制开发。通过邮件转短信 SMTP 网关发送短信。',
-    'tr-TR': 'Service Vic tarafından özel geliştirilmiş. E-postadan SMS\'e SMTP ağ geçidi aracılığıyla SMS gönderin.',
+    'tr-TR':
+      "Service Vic tarafından özel geliştirilmiş. E-postadan SMS'e SMTP ağ geçidi aracılığıyla SMS gönderin.",
     ko: 'Service Vic의 커스텀 커넥터. 이메일-SMS SMTP 게이트웨이를 통해 SMS 메시지를 보냅니다.',
   },
   readme: './README.md',

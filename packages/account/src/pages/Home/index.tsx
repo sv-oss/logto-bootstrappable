@@ -1,14 +1,14 @@
+import Button from '@experience/shared/components/Button';
+import { useLogto } from '@logto/react';
 import {
   AccountCenterControlValue,
   MfaFactor,
   type AccountCenterFieldControl,
 } from '@logto/schemas';
-import { useLogto } from '@logto/react';
 import { useContext, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
-import Button from '@experience/shared/components/Button';
 import PageContext from '@ac/Providers/PageContextProvider/PageContext';
 import { getMfaVerifications } from '@ac/apis/mfa';
 import {

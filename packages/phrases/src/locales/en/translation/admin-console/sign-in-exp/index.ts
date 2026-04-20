@@ -80,6 +80,7 @@ const sign_in_exp = {
   },
   custom_ui: {
     title: 'Custom UI',
+    cloud_tag: 'Cloud',
     css_code_editor_title: 'Custom CSS',
     css_code_editor_description1: 'See the example of custom CSS.',
     css_code_editor_description2: '<a>{{link}}</a>',
@@ -89,6 +90,10 @@ const sign_in_exp = {
     bring_your_ui_title: 'Bring your UI',
     bring_your_ui_description:
       'Upload a compressed package (.zip) to replace the Logto prebuilt UI with your own code. <a>Learn more</a>',
+    bring_your_ui_oss_description: 'Customize the sign-in UI with your own code.',
+    bring_your_ui_oss_card_description:
+      'Upload your custom sign-in UI directly on <a>Logto Cloud</a>. No need to fork and redeploy.',
+    bring_your_ui_oss_try_cloud: 'Try Cloud',
     preview_with_bring_your_ui_description:
       'Your custom UI assets have been successfully uploaded and are now being served. Consequently, the built-in preview window has been disabled.\nTo test your personalized sign-in UI, click the "Live Preview" button to open it in a new browser tab.',
   },
@@ -180,13 +185,16 @@ const sign_in_exp = {
         'To integrate these prebuilt flows, set the related Account API permissions to <strong>Edit</strong> in the settings below.',
       flows_title: 'Integrate out-of-the-box security setting flows',
       flows_description:
-        'Combine your domain with the route to form your account setting URL (e.g., https://auth.foo.com/account/email). Optionally add `redirect=` to return users to your app after a successful update, `show_success=true` to keep the success page visible, or `ui_locales=` to override the default language.',
+        'Combine your domain with the route to form your account setting URL (e.g., https://auth.foo.com/account/email). Optionally add `redirect=` to return users to your app after a successful update, `show_success=true` to keep the success page visible, `ui_locales=` to override the default language, or `identifier=` to pre-fill the identifier input field.',
       tooltips: {
         email: 'Update your primary email address',
         phone: 'Update your primary phone number',
         username: 'Update your username',
         password: 'Set a new password',
+        social: 'Link a social account for sign-in',
+        social_remove: 'Remove a linked social account',
         authenticator_app: 'Set up a new authenticator app for multi-factor authentication',
+        authenticator_app_replace: 'Replace your existing authenticator app with a new one',
         passkey_add: 'Register a new passkey',
         passkey_manage: 'Manage your existing passkeys or add new ones',
         backup_codes_generate: 'Generate a new set of 10 backup codes',

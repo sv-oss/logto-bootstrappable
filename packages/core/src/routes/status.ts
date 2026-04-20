@@ -1,6 +1,7 @@
 import { timingSafeEqual } from 'node:crypto';
 
 import { trySafe } from '@silverhand/essentials';
+import type { Context, Next } from 'koa';
 
 import koaGuard from '#src/middleware/koa-guard.js';
 
@@ -14,7 +15,7 @@ const getSingleHeader = (value: string | string[] | undefined): string | undefin
 export default function statusRoutes<T extends AnonymousRouter>(
   ...[router, tenant]: RouterInitArgs<T>
 ) {
-  router.get('/status', koaGuard({ status: 204 }), async (ctx, next) => {
+  const handleStatusRequest = async (ctx: Context, next: Next) => {
     ctx.status = 204;
 
     const statusApiKeyHeader = getSingleHeader(ctx.request.headers['logto-status-api-key']);
@@ -29,5 +30,7 @@ export default function statusRoutes<T extends AnonymousRouter>(
     }
 
     return next();
-  });
+  };
+
+  router.get('/status', koaGuard({ status: 204 }), handleStatusRequest);
 }

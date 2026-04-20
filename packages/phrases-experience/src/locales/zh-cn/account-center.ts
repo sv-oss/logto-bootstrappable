@@ -31,6 +31,12 @@ const account_center = {
     no_fields_available:
       'No user attributes are available for editing, please contact your administrator.',
   },
+  page: {
+    title: '账户',
+    security_title: '安全',
+    security_description: '你可以在这里修改账户设置，以确保账户安全。',
+    support: '支持',
+  },
   verification: {
     title: '安全验证',
     description: '为保护账户安全，请确认是您本人。请选择验证身份的方法。',
@@ -79,6 +85,40 @@ const account_center = {
     title: '设置用户名',
     description: '用户名只能包含字母、数字和下划线。',
     success: '用户名更新成功。',
+  },
+  security: {
+    add: '添加',
+    change: '更改',
+    remove: '移除',
+    not_set: '未设置',
+    social_sign_in: '社交登录',
+    social_not_linked: '未关联',
+    email_phone: '邮箱 / 手机号',
+    email: '邮箱',
+    phone: '手机号',
+    password: '密码',
+    configured: '已设置',
+    not_configured: '未设置',
+    two_step_verification: '两步验证',
+    authenticator_app: '身份验证器应用',
+    passkeys: '通行密钥',
+    backup_codes: '备用码',
+    email_verification_code: '邮箱验证码',
+    phone_verification_code: '手机验证码',
+    passkeys_count_one: '{{count}} 个通行密钥',
+    passkeys_count_other: '{{count}} 个通行密钥',
+    backup_codes_count_one: '{{count}} 个备用码',
+    backup_codes_count_other: '{{count}} 个备用码',
+    view: '查看',
+    manage: '管理',
+  },
+  social: {
+    linked: '已成功关联 {{connector}}。',
+    not_enabled: '此社交登录方式未启用。请联系管理员寻求帮助。',
+    removed: '已成功移除 {{connector}}。',
+    remove_confirmation_title: '移除社交账号',
+    remove_confirmation_description:
+      '如果你移除 {{connector}}，在重新添加之前，你可能无法再通过它登录。',
   },
   password: {
     title: '设置密码',
@@ -156,6 +196,10 @@ const account_center = {
     totp: {
       title: '身份验证器应用已添加！',
       description: '身份验证器应用已成功关联到你的账号。',
+    },
+    totp_replaced: {
+      title: '身份验证器应用已替换！',
+      description: '你的身份验证器应用已成功替换。',
     },
     backup_code: {
       title: '备用码已生成！',

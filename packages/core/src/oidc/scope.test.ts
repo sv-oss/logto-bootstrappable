@@ -22,6 +22,7 @@ const profileExpectation = Object.freeze([
   'updated_at',
   'username',
   'created_at',
+  'customer_id',
 ]);
 
 describe('OIDC getUserClaims()', () => {

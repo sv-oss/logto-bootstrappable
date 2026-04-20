@@ -27,14 +27,25 @@ type Properties = {
  */
 const runtimeConfigPath = '/runtime-config.js';
 
-export default function koaSpaProxy<StateT, ContextT extends IRouterParamContext, ResponseBodyT>({
+const shouldSkipForMountedApp = (
+  prefix: string,
+  mountedApps: string[],
+  requestPath: string
+): boolean =>
+  !prefix && mountedApps.some((app) => app !== prefix && requestPath.startsWith(`/${app}`));
+
+const shouldServeRuntimeConfig = (packagePath: string, requestPath: string): boolean =>
+  (packagePath === UserApps.AccountCenter || packagePath === 'experience') &&
+  requestPath === runtimeConfigPath;
+
+export default function koaSpaProxy<StateT, ContextT extends IRouterParamContext>({
   mountedApps,
   packagePath = 'experience',
   port = 5001,
   prefix = '',
   queries,
-}: Properties): MiddlewareType<StateT, ContextT, ResponseBodyT> {
-  type Middleware = MiddlewareType<StateT, ContextT, ResponseBodyT>;
+}: Properties): MiddlewareType<StateT, ContextT> {
+  type Middleware = MiddlewareType<StateT, ContextT>;
 
   const distributionPath = path.join('node_modules/@logto', packagePath, 'dist');
 
@@ -58,24 +69,18 @@ export default function koaSpaProxy<StateT, ContextT extends IRouterParamContext
   return async (ctx, next) => {
     const requestPath = ctx.request.path;
     // Skip if the request is for another app
-    if (!prefix && mountedApps.some((app) => app !== prefix && requestPath.startsWith(`/${app}`))) {
+    if (shouldSkipForMountedApp(prefix, mountedApps, requestPath)) {
       return next();
     }
 
     // Serve the runtime config as a JS file for account center and experience SPA. Intercepted
     // before the proxy or static file server so it works in both development and production.
     // The script sets `window.__logtoConfig__` with server-side env vars at request time.
-    if (
-      (packagePath === UserApps.AccountCenter || packagePath === 'experience') &&
-      requestPath === runtimeConfigPath
-    ) {
-      const config: Record<string, string> = {};
+    if (shouldServeRuntimeConfig(packagePath, requestPath)) {
       const defaultPhoneCountryCode = process.env.LOGTO_DEFAULT_PHONE_COUNTRY_CODE;
-      if (defaultPhoneCountryCode) {
-        config.defaultPhoneCountryCode = defaultPhoneCountryCode;
-      }
+      const config = defaultPhoneCountryCode ? { defaultPhoneCountryCode } : {};
       ctx.type = 'application/javascript';
-      ctx.body = `window.__logtoConfig__=${JSON.stringify(config)};` as unknown as ResponseBodyT;
+      ctx.response.body = `window.__logtoConfig__=${JSON.stringify(config)};`;
       ctx.set('Cache-Control', 'no-cache, no-store, must-revalidate');
       return;
     }

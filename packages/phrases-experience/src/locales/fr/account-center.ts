@@ -31,6 +31,13 @@ const account_center = {
     no_fields_available:
       'No user attributes are available for editing, please contact your administrator.',
   },
+  page: {
+    title: 'Compte',
+    security_title: 'Sécurité',
+    security_description:
+      "Modifiez ici les paramètres de votre compte afin d'en garantir la sécurité.",
+    support: 'Assistance',
+  },
   verification: {
     title: 'Vérification de sécurité',
     description:
@@ -85,6 +92,41 @@ const account_center = {
     description:
       "Le nom d'utilisateur doit contenir uniquement des lettres, des chiffres et des tirets bas.",
     success: "Nom d'utilisateur mis à jour avec succès.",
+  },
+  security: {
+    add: 'Ajouter',
+    change: 'Modifier',
+    remove: 'Supprimer',
+    not_set: 'Non défini',
+    social_sign_in: 'Connexion sociale',
+    social_not_linked: 'Non lié',
+    email_phone: 'E-mail / Téléphone',
+    email: 'E-mail',
+    phone: 'Téléphone',
+    password: 'Mot de passe',
+    configured: 'Configuré',
+    not_configured: 'Non configuré',
+    two_step_verification: 'Vérification en deux étapes',
+    authenticator_app: "Application d'authentification",
+    passkeys: 'Passkeys',
+    backup_codes: 'Codes de secours',
+    email_verification_code: 'Code de vérification par e-mail',
+    phone_verification_code: 'Code de vérification par téléphone',
+    passkeys_count_one: '{{count}} passkey',
+    passkeys_count_other: '{{count}} passkeys',
+    backup_codes_count_one: '{{count}} code restant',
+    backup_codes_count_other: '{{count}} codes restants',
+    view: 'Voir',
+    manage: 'Gérer',
+  },
+  social: {
+    linked: '{{connector}} a été lié avec succès.',
+    not_enabled:
+      "Cette méthode de connexion sociale n'est pas activée. Veuillez contacter votre administrateur pour obtenir de l'aide.",
+    removed: '{{connector}} a été supprimé avec succès.',
+    remove_confirmation_title: 'Supprimer le compte social',
+    remove_confirmation_description:
+      "Si vous supprimez {{connector}}, vous ne pourrez peut-être plus vous connecter avec ce compte avant de l'ajouter à nouveau.",
   },
   password: {
     title: 'Définir le mot de passe',
@@ -173,6 +215,10 @@ const account_center = {
     totp: {
       title: "Application d'authentification ajoutée !",
       description: "Votre application d'authentification a été liée avec succès à votre compte.",
+    },
+    totp_replaced: {
+      title: "Application d'authentification remplacée !",
+      description: "Votre application d'authentification a été remplacée avec succès.",
     },
     backup_code: {
       title: 'Codes de secours générés !',
