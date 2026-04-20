@@ -7,11 +7,15 @@ import { isMobile } from 'react-device-detect';
 const noop = () => {};
 const noopAsync = async (): Promise<void> => undefined;
 
+export type AppearanceMode = 'system' | Theme.Light | Theme.Dark;
+
 export type PageContextType = {
   theme: Theme;
+  appearanceMode: AppearanceMode;
   toast: string;
   platform: Platform;
   setTheme: React.Dispatch<React.SetStateAction<Theme>>;
+  setAppearanceMode: React.Dispatch<React.SetStateAction<AppearanceMode>>;
   setToast: React.Dispatch<React.SetStateAction<string>>;
   experienceSettings?: SignInExperienceResponse;
   setExperienceSettings: React.Dispatch<React.SetStateAction<SignInExperienceResponse | undefined>>;
@@ -29,9 +33,11 @@ export type PageContextType = {
 
 const PageContext = createContext<PageContextType>({
   theme: Theme.Light,
+  appearanceMode: 'system',
   toast: '',
   platform: isMobile ? 'mobile' : 'web',
   setTheme: noop,
+  setAppearanceMode: noop,
   setToast: noop,
   experienceSettings: undefined,
   setExperienceSettings: noop,

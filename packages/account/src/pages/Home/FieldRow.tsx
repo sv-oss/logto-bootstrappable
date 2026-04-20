@@ -1,29 +1,34 @@
-import Button from '@experience/shared/components/Button';
 import { AccountCenterControlValue } from '@logto/schemas';
-import type { TFuncKey } from 'i18next';
+import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import styles from './index.module.scss';
 
 export type FieldRowProps = {
   readonly label: string;
-  readonly value?: string;
-  readonly actionKey?: TFuncKey;
+  readonly value?: ReactNode;
+  readonly icon?: ReactNode;
+  readonly actionLabel?: string;
   readonly onAction?: () => void;
 };
 
-export const FieldRow = ({ label, value, actionKey, onAction }: FieldRowProps) => {
+export const FieldRow = ({ label, value, icon, actionLabel, onAction }: FieldRowProps) => {
   const { t } = useTranslation();
 
   return (
     <div className={styles.fieldRow}>
-      <span className={styles.fieldLabel}>{label}</span>
+      <span className={styles.fieldLabel}>
+        {icon && <span className={styles.fieldIcon}>{icon}</span>}
+        {label}
+      </span>
       <span className={`${styles.fieldValue}${value ? '' : ` ${styles.notSet}`}`}>
         {value ?? t('account_center.home.not_set')}
       </span>
-      {actionKey && onAction && (
+      {actionLabel && onAction && (
         <div className={styles.fieldAction}>
-          <Button title={actionKey} type="secondary" size="small" onClick={onAction} />
+          <button type="button" className={styles.rowActionButton} onClick={onAction}>
+            {actionLabel}
+          </button>
         </div>
       )}
     </div>

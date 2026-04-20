@@ -116,7 +116,9 @@ export const bootstrapAccountCenter = async (
     password: AccountCenterControlValue.Edit,
     email: AccountCenterControlValue.Edit,
     name: AccountCenterControlValue.Edit,
+    avatar: AccountCenterControlValue.ReadOnly,
     profile: AccountCenterControlValue.Edit,
+    customData: AccountCenterControlValue.ReadOnly,
     mfa: AccountCenterControlValue.Edit,
     phone: includePhone ? AccountCenterControlValue.Edit : AccountCenterControlValue.Off,
   };
@@ -131,6 +133,6 @@ export const bootstrapAccountCenter = async (
   `);
 
   consoleLog.succeed(
-    'Enabled Account Centre with password, email, profile, and MFA editing for the default tenant'
+    'Enabled Account Centre with profile editing and avatar/customData read-only for the default tenant'
   );
 };

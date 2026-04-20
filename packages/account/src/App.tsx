@@ -213,10 +213,7 @@ const Layout = () => {
   const { accountCenterSettings, experienceSettings, theme } = useContext(PageContext);
   const hideLogtoBranding = experienceSettings?.hideLogtoBranding === true;
   const { pathname } = useLocation();
-  const isHomePage =
-    pathname === '/' &&
-    isDevFeaturesEnabled &&
-    hasVisibleSecuritySection(accountCenterSettings, experienceSettings);
+  const isHomePage = pathname === '/';
 
   return (
     <div className={styles.app}>
@@ -251,6 +248,7 @@ const App = () => (
           UserScope.Profile,
           UserScope.Email,
           UserScope.Phone,
+          UserScope.CustomData,
           UserScope.Identities,
         ],
       }}
