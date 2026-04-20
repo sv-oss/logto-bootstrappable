@@ -237,6 +237,12 @@ export default class GlobalValues {
    * @optional
    */
   public readonly statusApiKey = getEnv('STATUS_API_KEY');
+  /**
+   * Controls whether HTTP request logs are emitted for healthcheck endpoints.
+   *
+   * Default is disabled to avoid noisy healthcheck logs.
+   */
+  public readonly isHealthcheckRequestLoggingEnabled = yes(getEnv('LOG_HTTP_HEALTHCHECK'));
 
   /** The write-only key for PostHog integration. */
   public readonly posthogPublicKey = process.env.POSTHOG_PUBLIC_KEY;

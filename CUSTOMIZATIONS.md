@@ -119,6 +119,14 @@ The koa-logger transporter calls `consoleLog.http(koaString, entry)` for every H
 | `off` / `silent` / `false` | Suppress all HTTP log output |
 | `error` | Log only responses with status ≥ 400; request lines are suppressed |
 
+#### Healthcheck request logging control (`src/app/init.ts`)
+
+Healthcheck probes on `GET /api/status` are supported on both core and admin ports (including domain-based multi-tenancy mode).
+
+HTTP request logging for `/api/status` is **disabled by default** to avoid noisy periodic health probe logs.
+
+- Set `LOG_HTTP_HEALTHCHECK=true` to enable request/response log lines for `/api/status`.
+
 **Text mode fields** (appended as `key=value` pairs after the koa-logger line):
 
 | Field | Source | Lines |

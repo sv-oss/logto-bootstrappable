@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { buildDatabaseUrl, parseTimeoutEnv } from './GlobalValues.js';
+import GlobalValues, { buildDatabaseUrl, parseTimeoutEnv } from './GlobalValues.js';
 
 const databaseEnvKeys = [
   'DB_URL',
@@ -17,6 +17,10 @@ const clearDatabaseEnv = () => {
     // eslint-disable-next-line @silverhand/fp/no-delete, @typescript-eslint/no-dynamic-delete
     delete process.env[key];
   }
+};
+
+const setMinimalDatabaseEnv = () => {
+  process.env.DB_URL = 'postgres://user:pass@host:5432/db';
 };
 
 describe('buildDatabaseUrl', () => {
@@ -145,5 +149,25 @@ describe('parseTimeoutEnv', () => {
   it('accepts negative and decimal values as numbers', () => {
     expect(parseTimeoutEnv('-1')).toBe(-1);
     expect(parseTimeoutEnv('1.5')).toBe(1.5);
+  });
+});
+
+describe('isHealthcheckRequestLoggingEnabled', () => {
+  afterEach(clearDatabaseEnv);
+
+  afterEach(() => {
+    // eslint-disable-next-line @silverhand/fp/no-delete
+    delete process.env.LOG_HTTP_HEALTHCHECK;
+  });
+
+  it('is disabled by default', () => {
+    setMinimalDatabaseEnv();
+    expect(new GlobalValues().isHealthcheckRequestLoggingEnabled).toBe(false);
+  });
+
+  it('is enabled when LOG_HTTP_HEALTHCHECK is truthy', () => {
+    setMinimalDatabaseEnv();
+    process.env.LOG_HTTP_HEALTHCHECK = 'true';
+    expect(new GlobalValues().isHealthcheckRequestLoggingEnabled).toBe(true);
   });
 });
