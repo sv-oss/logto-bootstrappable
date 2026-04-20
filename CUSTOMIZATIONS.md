@@ -264,13 +264,14 @@ Added support for the `LOGTO_OIDC_SIGNING_KEY_TYPE` environment variable. When n
 
 ### `commitlint.config.ts`
 
-Commitlint is configured to follow the **Service Victoria (SV) Standard** (`@service-victoria/projen-templates` `Commitlint` component):
+Commitlint is configured to support both this fork’s existing SV-style commit scopes and upstream Logto scopes, so upstream commits can be merged/cherry-picked without commit-message rewrites:
 
-- `scope-case`: `pascal-case` — scopes must be PascalCase (e.g. `Core`, `Console`, `Schemas`).
-- `header-max-length`: 100 characters (hardcoded; not CI-conditional).
-- `subject-case`: `sentence-case` or `lower-case`.
+- `scope-case`: allows `pascal-case`, `lower-case`, and `kebab-case`.
+- `scope-enum`: includes both upstream lowercase/kebab scopes (for example `core`, `deps-dev`, `app-insights`) and fork PascalCase variants (for example `Core`, `DepsDev`, `AppInsights`).
+- `header-max-length`: 100 locally, with CI override to 110 (matching upstream tolerance for appended PR numbers).
+- `body-max-line-length`: 110 (aligned with upstream).
+- `subject-case`: disabled to allow upstream/PR-generated subjects (including acronym and title-style wording).
 - `type-enum`: upstream conventional types plus fork-specific `api` and `release`.
-- `scope-enum`: allowed scopes (PascalCase) — `Connector`, `Console`, `Core`, `DemoApp`, `Test`, `Phrases`, `Schemas`, `Shared`, `Experience`, `ExperienceLegacy`, `Deps`, `DepsDev`, `Cli`, `Toolkit`, `Cloud`, `AppInsights`, `Elements`, `Translate`, `Tunnel`, `AccountElements`, `Account`, `Api`.
 
 ---
 
