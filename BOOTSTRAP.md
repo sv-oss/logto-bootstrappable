@@ -291,14 +291,16 @@ The following changes are applied automatically whenever the bootstrap runs (i.e
 
 ### Account Centre
 
-The Account Centre for the default tenant is **enabled** with the following fields set to **Edit**:
+The Account Centre for the default tenant is **enabled** with the following field defaults:
 
 | Field | Description |
 |-------|-------------|
 | `password` | Users can set or change their password |
 | `email` | Users can update their primary email address |
 | `name` | Users can update their display name |
-| `profile` | Users can edit their given name, family name, and avatar |
+| `profile` | Users can edit their given name and family name |
+| `avatar` | Users can view their avatar (`ReadOnly`) |
+| `customData` | Users can view their custom data (`ReadOnly`) |
 | `mfa` | Users can configure or remove MFA methods (TOTP, passkeys, backup codes) |
 | `phone` | Users can update their phone number (**only enabled when `LOGTO_SMTP_SMS_*` is configured**; set to `Off` otherwise) |
 
@@ -394,7 +396,7 @@ volumes:
 
 1. **Idempotent via `--swe`:** The bootstrap runs inside the `db seed` transaction. With `--swe`, seeding (and bootstrap) is skipped if the database already exists. This means bootstrap data is created once on first init.
 
-2. **Account Centre always configured:** Whenever any bootstrap variable is set, the Account Centre for the default tenant is enabled with password, email, profile, and MFA editing turned on. No additional environment variable is required.
+2. **Account Centre always configured:** Whenever any bootstrap variable is set, the Account Centre for the default tenant is enabled with password/email/name/profile/MFA editing, `avatar` + `customData` set to `ReadOnly`, and phone editing enabled only when SMTP SMS bootstrap config is present.
 
 3. **Transactional:** All bootstrap operations run within the same database transaction as the seed. If any step fails, the entire seed (including bootstrap) is rolled back.
 

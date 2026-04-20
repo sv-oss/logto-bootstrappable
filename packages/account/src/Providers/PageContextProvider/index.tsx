@@ -24,9 +24,17 @@ type Props = {
 };
 
 const PageContextProvider = ({ children }: Props) => {
+  const appearanceModeStorageKey = 'logto:account-center:appearance-mode';
   const { isAuthenticated } = useLogto();
   const getUserInfoRequest = useApi(getUserInfo, { silent: true });
   const [theme, setTheme] = useState(Theme.Light);
+  const [appearanceMode, setAppearanceMode] = useState<PageContextType['appearanceMode']>(() => {
+    const stored = window.localStorage.getItem(appearanceModeStorageKey);
+
+    return stored === Theme.Dark || stored === Theme.Light || stored === 'system'
+      ? stored
+      : 'system';
+  });
   const [toast, setToast] = useState('');
   const [experienceSettings, setExperienceSettings] =
     useState<PageContextType['experienceSettings']>(undefined);
@@ -157,8 +165,17 @@ const PageContextProvider = ({ children }: Props) => {
   }, []);
 
   useEffect(() => {
+    window.localStorage.setItem(appearanceModeStorageKey, appearanceMode);
+  }, [appearanceMode]);
+
+  useEffect(() => {
     if (!experienceSettings?.color.isDarkModeEnabled) {
       setTheme(Theme.Light);
+      return;
+    }
+
+    if (appearanceMode === Theme.Light || appearanceMode === Theme.Dark) {
+      setTheme(appearanceMode);
       return;
     }
 
@@ -172,16 +189,18 @@ const PageContextProvider = ({ children }: Props) => {
     return () => {
       unsubscribe();
     };
-  }, [experienceSettings]);
+  }, [appearanceMode, experienceSettings]);
 
   const platform = isMobile ? 'mobile' : 'web';
 
   const value = useMemo<PageContextType>(
     () => ({
       theme,
+      appearanceMode,
       toast,
       platform,
       setTheme,
+      setAppearanceMode,
       setToast,
       experienceSettings,
       setExperienceSettings,
@@ -202,6 +221,7 @@ const PageContextProvider = ({ children }: Props) => {
       experienceSettings,
       isLoadingExperience,
       platform,
+      appearanceMode,
       refreshUserInfo,
       theme,
       toast,
@@ -210,6 +230,7 @@ const PageContextProvider = ({ children }: Props) => {
       isLoadingUserInfo,
       verificationId,
       setVerificationIdCallback,
+      setAppearanceMode,
     ]
   );
 

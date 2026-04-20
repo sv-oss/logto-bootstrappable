@@ -10,6 +10,7 @@
   .fullPage {
     display: flex;
     flex-direction: column;
+    --max-width: 100%;
   }
 }
 
@@ -22,7 +23,8 @@
 }
 
 .main {
-  width: 760px;
+  width: min(1200px, 100%);
+  max-width: 1200px;
   display: flex;
   flex-direction: column;
   padding: _.unit(3) 0;
@@ -90,6 +92,10 @@
 }
 
 :global(body.desktop) {
+  .main:not(.cardMain) {
+    padding: _.unit(3) _.unit(6) _.unit(6);
+  }
+
   .cardContainer {
     padding: _.unit(5);
   }
