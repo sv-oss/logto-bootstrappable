@@ -31,6 +31,12 @@ const account_center = {
     no_fields_available:
       'No user attributes are available for editing, please contact your administrator.',
   },
+  page: {
+    title: 'Аккаунт',
+    security_title: 'Безопасность',
+    security_description: 'Измените здесь настройки аккаунта, чтобы обеспечить его безопасность.',
+    support: 'Поддержка',
+  },
   verification: {
     title: 'Проверка безопасности',
     description:
@@ -80,6 +86,41 @@ const account_center = {
     title: 'Установить имя пользователя',
     description: 'Имя пользователя может содержать только буквы, цифры и символы подчеркивания.',
     success: 'Имя пользователя успешно обновлено.',
+  },
+  security: {
+    add: 'Добавить',
+    change: 'Изменить',
+    remove: 'Удалить',
+    not_set: 'Не задано',
+    social_sign_in: 'Социальный вход',
+    social_not_linked: 'Не привязано',
+    email_phone: 'Электронная почта / Телефон',
+    email: 'Электронная почта',
+    phone: 'Телефон',
+    password: 'Пароль',
+    configured: 'Настроено',
+    not_configured: 'Не настроено',
+    two_step_verification: 'Двухэтапная проверка',
+    authenticator_app: 'Приложение для аутентификации',
+    passkeys: 'Passkeys',
+    backup_codes: 'Резервные коды',
+    email_verification_code: 'Код подтверждения по электронной почте',
+    phone_verification_code: 'Код подтверждения по телефону',
+    passkeys_count_one: '{{count}} passkey',
+    passkeys_count_other: '{{count}} passkeys',
+    backup_codes_count_one: '{{count}} код остался',
+    backup_codes_count_other: '{{count}} кодов осталось',
+    view: 'Просмотр',
+    manage: 'Управление',
+  },
+  social: {
+    linked: '{{connector}} успешно привязан.',
+    not_enabled:
+      'Этот способ входа через социальную сеть не включён. Обратитесь к администратору за помощью.',
+    removed: '{{connector}} успешно удален.',
+    remove_confirmation_title: 'Удалить социальный аккаунт',
+    remove_confirmation_description:
+      'Если вы удалите {{connector}}, возможно, вы не сможете входить с его помощью, пока не добавите его снова.',
   },
   password: {
     title: 'Установить пароль',
@@ -165,6 +206,10 @@ const account_center = {
     totp: {
       title: 'Приложение для аутентификации добавлено!',
       description: 'Ваше приложение для аутентификации было успешно привязано к вашему аккаунту.',
+    },
+    totp_replaced: {
+      title: 'Приложение для аутентификации заменено!',
+      description: 'Ваше приложение для аутентификации было успешно заменено.',
     },
     backup_code: {
       title: 'Резервные коды созданы!',

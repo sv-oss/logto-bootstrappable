@@ -80,6 +80,7 @@ const sign_in_exp = {
   },
   custom_ui: {
     title: 'カスタム UI',
+    cloud_tag: 'Cloud',
     css_code_editor_title: 'カスタム CSS',
     css_code_editor_description1: 'カスタム CSS の例をご覧ください。',
     css_code_editor_description2: '<a>{{link}}</a>',
@@ -89,6 +90,10 @@ const sign_in_exp = {
     bring_your_ui_title: 'あなたの UI を持参',
     bring_your_ui_description:
       '圧縮パッケージ (.zip) をアップロードして、Logto のビルトイン UI を独自のコードで置き換えます。<a>詳しくはこちら</a>',
+    bring_your_ui_oss_description: '独自のコードでサインイン UI をカスタマイズします。',
+    bring_your_ui_oss_card_description:
+      'カスタムのサインイン UI を <a>Logto Cloud</a> に直接アップロードできます。フォークや再デプロイは不要です。',
+    bring_your_ui_oss_try_cloud: 'Cloud を試す',
     preview_with_bring_your_ui_description:
       'カスタム UI のアセットは正常にアップロードされ、現在提供されています。したがって、組み込みのプレビューウィンドウは無効になりました。\nパーソナライズされたサインイン UI をテストするには、「ライブプレビュー」ボタンをクリックして新しいブラウザタブで開きます。',
   },
@@ -180,13 +185,16 @@ const sign_in_exp = {
         'これらのプリビルトフローを統合するには、以下の設定で関連するアカウント API の権限を<strong>編集</strong>に設定してください。',
       flows_title: 'すぐに使えるセキュリティ設定フローを統合',
       flows_description:
-        'ドメインとルートを組み合わせてアカウント設定 URL を形成します（例: https://auth.foo.com/account/email）。オプションで `redirect=` を追加して更新成功後にユーザーをアプリに戻したり、`show_success=true` で成功ページを表示し続けたり、`ui_locales=` でデフォルト言語を上書きしたりできます。',
+        'ドメインとルートを組み合わせてアカウント設定 URL を形成します（例: https://auth.foo.com/account/email）。オプションで `redirect=` を追加して更新成功後にユーザーをアプリに戻したり、`show_success=true` で成功ページを表示し続けたり、`ui_locales=` でデフォルト言語を上書きしたり、`identifier=` で識別子入力フィールドを事前入力したりできます。',
       tooltips: {
         email: 'プライマリメールアドレスを更新',
         phone: 'プライマリ電話番号を更新',
         username: 'ユーザー名を更新',
         password: '新しいパスワードを設定',
+        social: 'サインイン用にソーシャルアカウントを連携',
+        social_remove: '連携済みのソーシャルアカウントを削除',
         authenticator_app: '多要素認証のための新しい認証アプリを設定',
+        authenticator_app_replace: 'Replace your existing authenticator app with a new one',
         passkey_add: '新しいパスキーを登録',
         passkey_manage: '既存のパスキーを管理または新しいものを追加',
         backup_codes_generate: '新しいバックアップコード 10 セットを生成',

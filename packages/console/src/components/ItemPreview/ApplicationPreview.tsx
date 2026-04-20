@@ -22,10 +22,18 @@ function ApplicationPreview({
 }: Props) {
   const { t } = useTranslation(undefined, { keyPrefix: 'admin_console' });
 
+  const { isDeviceFlow } = customClientMetadata;
+  const subtitle = [
+    t(`${applicationTypeI18nKey[type]}.title`),
+    isDeviceFlow && t('application_details.device_flow_tag'),
+  ]
+    .filter(Boolean)
+    .join(' | ');
+
   return (
     <ItemPreview
       title={name}
-      subtitle={t(`${applicationTypeI18nKey[type]}.title`)}
+      subtitle={subtitle}
       icon={
         <ApplicationIcon
           className={styles.icon}

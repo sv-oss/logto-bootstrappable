@@ -31,6 +31,12 @@ const account_center = {
     no_fields_available:
       'No user attributes are available for editing, please contact your administrator.',
   },
+  page: {
+    title: 'アカウント',
+    security_title: 'セキュリティ',
+    security_description: 'アカウントの安全を確保するために、ここでアカウント設定を変更できます。',
+    support: 'サポート',
+  },
   verification: {
     title: 'セキュリティ確認',
     description:
@@ -80,6 +86,41 @@ const account_center = {
     title: 'ユーザー名を設定',
     description: 'ユーザー名は英数字とアンダースコアのみ使用できます。',
     success: 'ユーザー名を更新しました。',
+  },
+  security: {
+    add: '追加',
+    change: '変更',
+    remove: '削除',
+    not_set: '未設定',
+    social_sign_in: 'ソーシャルサインイン',
+    social_not_linked: '未連携',
+    email_phone: 'メールアドレス / 電話番号',
+    email: 'メールアドレス',
+    phone: '電話番号',
+    password: 'パスワード',
+    configured: '設定済み',
+    not_configured: '未設定',
+    two_step_verification: '2段階認証',
+    authenticator_app: '認証アプリ',
+    passkeys: 'パスキー',
+    backup_codes: 'バックアップコード',
+    email_verification_code: 'メール認証コード',
+    phone_verification_code: '電話認証コード',
+    passkeys_count_one: '{{count}} 個のパスキー',
+    passkeys_count_other: '{{count}} 個のパスキー',
+    backup_codes_count_one: '{{count}} 個のコード',
+    backup_codes_count_other: '{{count}} 個のコード',
+    view: '表示',
+    manage: '管理',
+  },
+  social: {
+    linked: '{{connector}}の連携に成功しました。',
+    not_enabled:
+      'このソーシャルサインイン方法は有効になっていません。管理者にお問い合わせください。',
+    removed: '{{connector}}の削除に成功しました。',
+    remove_confirmation_title: 'ソーシャルアカウントを削除',
+    remove_confirmation_description:
+      '{{connector}}を削除すると、再度追加するまでそのアカウントでサインインできなくなる可能性があります。',
   },
   password: {
     title: 'パスワードを設定',
@@ -164,6 +205,10 @@ const account_center = {
     totp: {
       title: '認証アプリを追加しました！',
       description: '認証アプリがアカウントに正常にリンクされました。',
+    },
+    totp_replaced: {
+      title: '認証アプリが置き換えられました！',
+      description: '認証アプリが正常に置き換えられました。',
     },
     backup_code: {
       title: 'バックアップコードが生成されました！',

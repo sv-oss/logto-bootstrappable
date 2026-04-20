@@ -80,6 +80,7 @@ const sign_in_exp = {
   },
   custom_ui: {
     title: 'Özelleştirilmiş UI',
+    cloud_tag: 'Cloud',
     css_code_editor_title: 'Özelleştirilmiş CSS',
     css_code_editor_description1: 'Özelleştirilmiş CSS örneğine bakın.',
     css_code_editor_description2: '<a>{{link}}</a>',
@@ -89,6 +90,10 @@ const sign_in_exp = {
     bring_your_ui_title: "UI'nizi Getirin",
     bring_your_ui_description:
       "Logto'nun önceden oluşturulmuş UI'sini kendi kodunuzla değiştirmek için sıkıştırılmış bir paket (.zip) yükleyin. <a>Daha fazla bilgi edinin</a>",
+    bring_your_ui_oss_description: 'Oturum açma arayüzünü kendi kodunuzla özelleştirin.',
+    bring_your_ui_oss_card_description:
+      "Özel oturum açma arayüzünüzü doğrudan <a>Logto Cloud</a>'a yükleyin. Fork almanıza veya yeniden dağıtmanıza gerek yok.",
+    bring_your_ui_oss_try_cloud: "Cloud'u deneyin",
     preview_with_bring_your_ui_description:
       'Özelleştirilmiş UI varlıklarınız başarıyla yüklendi ve şimdi sunuluyor. Sonuç olarak, yerleşik önizleme penceresi devre dışı bırakıldı.\nKişiselleştirilmiş oturum açma UI\'nizi test etmek için "Canlı Önizleme" düğmesine tıklayarak yeni bir tarayıcı sekmesinde açın.',
   },
@@ -179,14 +184,17 @@ const sign_in_exp = {
         'Bu önceden oluşturulmuş akışları entegre etmek için aşağıdaki ayarlarda ilgili Hesap API izinlerini <strong>Düzenle</strong> olarak ayarlayın.',
       flows_title: 'Hazır güvenlik ayarı akışlarını entegre et',
       flows_description:
-        "Hesap ayar URL'nizi oluşturmak için alan adınızı rota ile birleştirin (örneğin, https://auth.foo.com/account/email). İsteğe bağlı olarak `redirect=` ile başarılı bir güncellemeden sonra kullanıcıları uygulamanıza geri döndürebilir, `show_success=true` ile başarı sayfasını görünür tutabilir veya `ui_locales=` ile varsayılan dili geçersiz kılabilirsiniz.",
+        "Hesap ayar URL'nizi oluşturmak için alan adınızı rota ile birleştirin (örneğin, https://auth.foo.com/account/email). İsteğe bağlı olarak `redirect=` ile başarılı bir güncellemeden sonra kullanıcıları uygulamanıza geri döndürebilir, `show_success=true` ile başarı sayfasını görünür tutabilir, `ui_locales=` ile varsayılan dili geçersiz kılabilir veya `identifier=` ile tanımlayıcı giriş alanını önceden doldurabilirsiniz.",
       tooltips: {
         email: 'Birincil e-posta adresinizi güncelleyin',
         phone: 'Birincil telefon numaranızı güncelleyin',
         username: 'Kullanıcı adınızı güncelleyin',
         password: 'Yeni bir parola ayarlayın',
+        social: 'Oturum açmak için bir sosyal hesap bağlayın',
+        social_remove: 'Bağlı sosyal hesabı kaldırın',
         authenticator_app:
           'Çok faktörlü kimlik doğrulama için yeni bir doğrulayıcı uygulaması ayarlayın',
+        authenticator_app_replace: 'Mevcut doğrulayıcı uygulamanızı yeni biriyle değiştirin',
         passkey_add: 'Yeni bir passkey kaydedin',
         passkey_manage: "Mevcut passkey'lerinizi yönetin veya yenilerini ekleyin",
         backup_codes_generate: 'Yeni bir 10 yedek kod seti oluşturun',

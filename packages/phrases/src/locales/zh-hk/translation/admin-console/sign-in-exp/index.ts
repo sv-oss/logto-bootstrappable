@@ -77,6 +77,7 @@ const sign_in_exp = {
   },
   custom_ui: {
     title: '自定義 UI',
+    cloud_tag: 'Cloud',
     css_code_editor_title: '自定義 CSS',
     css_code_editor_description1: '查看自定義 CSS 示例。',
     css_code_editor_description2: '<a>{{link}}</a>',
@@ -86,6 +87,10 @@ const sign_in_exp = {
     bring_your_ui_title: '帶上你的 UI',
     bring_your_ui_description:
       '上傳壓縮包 (.zip) 以用自己的代碼替換 Logto 預建的 UI。<a>了解更多</a>',
+    bring_your_ui_oss_description: '用你的代碼自訂登入 UI。',
+    bring_your_ui_oss_card_description:
+      '將你的自訂登入 UI 直接上傳到 <a>Logto Cloud</a>。無需 fork 和重新部署。',
+    bring_your_ui_oss_try_cloud: '試用 Cloud',
     preview_with_bring_your_ui_description:
       '你的自定義 UI 資源已成功上傳，現在正在提供服務。因此，內建預覽窗口已被禁用。\n要測試你的個性化登錄 UI，請點擊“實時預覽”按鈕在新瀏覽器標籤頁中打開。',
   },
@@ -173,13 +178,16 @@ const sign_in_exp = {
         '要整合這些預建流程，請在下方設定中將相關的帳戶 API 權限設為<strong>編輯</strong>。',
       flows_title: '整合開箱即用的安全設置流程',
       flows_description:
-        '結合你的域名與路徑形成你的帳戶設置 URL（例如，https://auth.foo.com/account/email）。可以選擇性地添加 `redirect=` 在成功更新後返回用戶至你的應用程式，添加 `show_success=true` 以保持成功頁面可見，或添加 `ui_locales=` 以覆蓋預設語言。',
+        '結合你的域名與路徑形成你的帳戶設置 URL（例如，https://auth.foo.com/account/email）。可以選擇性地添加 `redirect=` 在成功更新後返回用戶至你的應用程式，添加 `show_success=true` 以保持成功頁面可見，添加 `ui_locales=` 以覆蓋預設語言，或添加 `identifier=` 以預填識別碼輸入欄位。',
       tooltips: {
         email: '更新你的主電郵地址',
         phone: '更新你的主電話號碼',
         username: '更新你的使用者名稱',
         password: '設置新密碼',
+        social: '連結社交帳號以供登入',
+        social_remove: '移除已連結的社交帳號',
         authenticator_app: '設置多因素驗證的新的身份驗證應用',
+        authenticator_app_replace: '用新的身份驗證應用替換你現有的身份驗證應用',
         passkey_add: '註冊新的通行密鑰',
         passkey_manage: '管理你現有的通行密鑰或添加新的',
         backup_codes_generate: '生成一組新的 10 個備份代碼',

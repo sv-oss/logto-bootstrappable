@@ -77,6 +77,7 @@ const sign_in_exp = {
   },
   custom_ui: {
     title: '커스텀 UI',
+    cloud_tag: 'Cloud',
     css_code_editor_title: '커스텀 CSS',
     css_code_editor_description1: '커스텀 CSS 예제를 확인하세요.',
     css_code_editor_description2: '<a>{{link}}</a>',
@@ -86,6 +87,10 @@ const sign_in_exp = {
     bring_your_ui_title: 'UI 가져오기',
     bring_your_ui_description:
       'Logto 가미리 제공하는 UI 를 나만의 코드로 대체하기 위해 압축 패키지 (.zip)를 업로드하세요. <a>더 알아보기</a>',
+    bring_your_ui_oss_description: '자신의 코드로 로그인 UI를 맞춤 설정하세요.',
+    bring_your_ui_oss_card_description:
+      '사용자 지정 로그인 UI를 <a>Logto Cloud</a>에 직접 업로드하세요. 포크하거나 다시 배포할 필요가 없습니다.',
+    bring_your_ui_oss_try_cloud: 'Cloud 사용해 보기',
     preview_with_bring_your_ui_description:
       '커스텀 UI 자산이 성공적으로 업로드되어 현재 제공되고 있습니다. 따라서 기본 제공 미리보기 창이 비활성화되었습니다.\n개인화된 로그인 UI 를 테스트하려면 "실시간 미리보기" 버튼을 클릭하여 새 브라우저 탭에서 엽니다.',
   },
@@ -175,13 +180,16 @@ const sign_in_exp = {
         '이 사전 구축된 흐름을 통합하려면 아래 설정에서 관련 계정 API 권한을 <strong>편집</strong>으로 설정하세요.',
       flows_title: '기본 제공 보안 설정 흐름 통합',
       flows_description:
-        '도메인과 경로를 결합하여 계정 설정 URL 을 형성하세요 (예: https://auth.foo.com/account/email). 선택적으로 `redirect=`를 추가하여 성공적인 업데이트 후 사용자를 앱으로 되돌리거나, `show_success=true`로 성공 페이지를 표시하거나, `ui_locales=`로 기본 언어를 재정의할 수 있습니다.',
+        '도메인과 경로를 결합하여 계정 설정 URL 을 형성하세요 (예: https://auth.foo.com/account/email). 선택적으로 `redirect=`를 추가하여 성공적인 업데이트 후 사용자를 앱으로 되돌리거나, `show_success=true`로 성공 페이지를 표시하거나, `ui_locales=`로 기본 언어를 재정의하거나, `identifier=`로 식별자 입력 필드를 미리 채울 수 있습니다.',
       tooltips: {
         email: '주 이메일 주소 업데이트',
         phone: '주 전화번호 업데이트',
         username: '사용자 이름 업데이트',
         password: '새 비밀번호 설정',
+        social: '로그인용 소셜 계정 연동',
+        social_remove: '연동된 소셜 계정 제거',
         authenticator_app: '다중 요소 인증을 위한 새 인증 앱 설정',
+        authenticator_app_replace: 'Replace your existing authenticator app with a new one',
         passkey_add: '새 패스키 등록',
         passkey_manage: '기존 패스키 관리 또는 새 패스키 추가',
         backup_codes_generate: '새로운 10 개의 백업 코드 세트 생성',

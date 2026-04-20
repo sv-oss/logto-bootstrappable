@@ -2,6 +2,7 @@ import { useContext } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
 import FormCard from '@/components/FormCard';
+import { isDevFeaturesEnabled } from '@/consts/env';
 import { AppDataContext } from '@/contexts/AppDataProvider';
 import DynamicT from '@/ds-components/DynamicT';
 import FormField from '@/ds-components/FormField';
@@ -37,12 +38,27 @@ const prebuiltRoutes = [
     tooltipKey: 'sign_in_exp.account_center.prebuilt_ui.tooltips.authenticator_app',
   },
   {
+    path: '/account/authenticator-app/replace',
+    tooltipKey: 'sign_in_exp.account_center.prebuilt_ui.tooltips.authenticator_app_replace',
+  },
+  {
     path: '/account/backup-codes/generate',
     tooltipKey: 'sign_in_exp.account_center.prebuilt_ui.tooltips.backup_codes_generate',
   },
   {
     path: '/account/backup-codes/manage',
     tooltipKey: 'sign_in_exp.account_center.prebuilt_ui.tooltips.backup_codes_manage',
+  },
+] as const;
+
+const devPrebuiltRoutes = [
+  {
+    path: '/account/social/:connectorId',
+    tooltipKey: 'sign_in_exp.account_center.prebuilt_ui.tooltips.social',
+  },
+  {
+    path: '/account/social/:connectorId/remove',
+    tooltipKey: 'sign_in_exp.account_center.prebuilt_ui.tooltips.social_remove',
   },
 ] as const;
 
@@ -95,6 +111,15 @@ function IntegratePrebuiltUi() {
                 tenantEndpoint={tenantEndpoint}
               />
             ))}
+            {isDevFeaturesEnabled &&
+              devPrebuiltRoutes.map(({ path, tooltipKey }) => (
+                <PrebuiltUiUrlItem
+                  key={path}
+                  path={path}
+                  tooltip={t(tooltipKey)}
+                  tenantEndpoint={tenantEndpoint}
+                />
+              ))}
           </div>
         </FormField>
         <div className={styles.customizeNote}>

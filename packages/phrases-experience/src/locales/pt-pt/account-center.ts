@@ -31,6 +31,12 @@ const account_center = {
     no_fields_available:
       'No user attributes are available for editing, please contact your administrator.',
   },
+  page: {
+    title: 'Conta',
+    security_title: 'Segurança',
+    security_description: 'Altere aqui as definições da sua conta para garantir a sua segurança.',
+    support: 'Suporte',
+  },
   verification: {
     title: 'Verificação de segurança',
     description:
@@ -84,6 +90,41 @@ const account_center = {
     title: 'Definir nome de utilizador',
     description: 'O nome de utilizador deve conter apenas letras, números e sublinhados.',
     success: 'Nome de utilizador atualizado com sucesso.',
+  },
+  security: {
+    add: 'Adicionar',
+    change: 'Alterar',
+    remove: 'Remover',
+    not_set: 'Não definido',
+    social_sign_in: 'Início de sessão social',
+    social_not_linked: 'Não associada',
+    email_phone: 'E-mail / Telefone',
+    email: 'E-mail',
+    phone: 'Telefone',
+    password: 'Palavra-passe',
+    configured: 'Configurado',
+    not_configured: 'Não configurado',
+    two_step_verification: 'Verificação em dois passos',
+    authenticator_app: 'Aplicação de autenticação',
+    passkeys: 'Passkeys',
+    backup_codes: 'Códigos de cópia de segurança',
+    email_verification_code: 'Código de verificação por e-mail',
+    phone_verification_code: 'Código de verificação por telefone',
+    passkeys_count_one: '{{count}} passkey',
+    passkeys_count_other: '{{count}} passkeys',
+    backup_codes_count_one: '{{count}} código restante',
+    backup_codes_count_other: '{{count}} códigos restantes',
+    view: 'Ver',
+    manage: 'Gerir',
+  },
+  social: {
+    linked: '{{connector}} associada com sucesso.',
+    not_enabled:
+      'Este método de início de sessão social não está ativado. Contacte o seu administrador para obter ajuda.',
+    removed: '{{connector}} removida com sucesso.',
+    remove_confirmation_title: 'Remover conta social',
+    remove_confirmation_description:
+      'Se remover {{connector}}, poderá deixar de conseguir iniciar sessão com esta conta até a adicionar novamente.',
   },
   password: {
     title: 'Definir palavra-passe',
@@ -171,6 +212,10 @@ const account_center = {
     totp: {
       title: 'Aplicação de autenticação adicionada!',
       description: 'A sua aplicação de autenticação foi associada com sucesso à sua conta.',
+    },
+    totp_replaced: {
+      title: 'Aplicativo autenticador substituído!',
+      description: 'Seu aplicativo autenticador foi substituído com sucesso.',
     },
     backup_code: {
       title: 'Códigos de cópia de segurança gerados!',

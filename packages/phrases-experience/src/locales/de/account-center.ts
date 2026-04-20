@@ -31,6 +31,13 @@ const account_center = {
     no_fields_available:
       'No user attributes are available for editing, please contact your administrator.',
   },
+  page: {
+    title: 'Konto',
+    security_title: 'Sicherheit',
+    security_description:
+      'Ändern Sie hier Ihre Kontoeinstellungen, um die Sicherheit Ihres Kontos zu gewährleisten.',
+    support: 'Hilfe',
+  },
   verification: {
     title: 'Sicherheitsüberprüfung',
     description:
@@ -86,6 +93,41 @@ const account_center = {
     title: 'Benutzernamen festlegen',
     description: 'Benutzername darf nur Buchstaben, Zahlen und Unterstriche enthalten.',
     success: 'Benutzername erfolgreich aktualisiert.',
+  },
+  security: {
+    add: 'Hinzufügen',
+    change: 'Ändern',
+    remove: 'Entfernen',
+    not_set: 'Nicht festgelegt',
+    social_sign_in: 'Social-Login',
+    social_not_linked: 'Nicht verknüpft',
+    email_phone: 'E-Mail / Telefon',
+    email: 'E-Mail',
+    phone: 'Telefon',
+    password: 'Passwort',
+    configured: 'Konfiguriert',
+    not_configured: 'Nicht konfiguriert',
+    two_step_verification: '2-Faktor-Authentifizierung',
+    authenticator_app: 'Authenticator-App',
+    passkeys: 'Passkeys',
+    backup_codes: 'Backup-Codes',
+    email_verification_code: 'E-Mail-Bestätigungscode',
+    phone_verification_code: 'Telefon-Bestätigungscode',
+    passkeys_count_one: '{{count}} Passkey',
+    passkeys_count_other: '{{count}} Passkeys',
+    backup_codes_count_one: '{{count}} Code verbleibend',
+    backup_codes_count_other: '{{count}} Codes verbleibend',
+    view: 'Ansehen',
+    manage: 'Verwalten',
+  },
+  social: {
+    linked: '{{connector}} wurde erfolgreich verknüpft.',
+    not_enabled:
+      'Diese Social-Login-Methode ist nicht aktiviert. Bitte kontaktieren Sie Ihren Administrator um Hilfe.',
+    removed: '{{connector}} wurde erfolgreich entfernt.',
+    remove_confirmation_title: 'Soziales Konto entfernen',
+    remove_confirmation_description:
+      'Wenn Sie {{connector}} entfernen, können Sie sich möglicherweise nicht mehr damit anmelden, bis Sie es erneut hinzufügen.',
   },
   password: {
     title: 'Passwort festlegen',
@@ -176,6 +218,10 @@ const account_center = {
     totp: {
       title: 'Authenticator-App hinzugefügt!',
       description: 'Deine Authenticator-App wurde erfolgreich mit deinem Konto verknüpft.',
+    },
+    totp_replaced: {
+      title: 'Authenticator-App ersetzt!',
+      description: 'Ihre Authenticator-App wurde erfolgreich ersetzt.',
     },
     backup_code: {
       title: 'Backup-Codes generiert!',

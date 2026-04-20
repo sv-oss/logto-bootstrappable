@@ -80,6 +80,7 @@ const sign_in_exp = {
   },
   custom_ui: {
     title: 'Benutzerdefinierte UI',
+    cloud_tag: 'Cloud',
     css_code_editor_title: 'Benutzerdefiniertes CSS',
     css_code_editor_description1: 'Siehe das Beispiel für benutzerdefiniertes CSS.',
     css_code_editor_description2: '<a>{{link}}</a>',
@@ -89,6 +90,10 @@ const sign_in_exp = {
     bring_your_ui_title: 'Bringen Sie Ihr UI',
     bring_your_ui_description:
       'Laden Sie ein komprimiertes Paket (.zip) hoch, um die vorgefertigte Benutzeroberfläche von Logto durch Ihren eigenen Code zu ersetzen. <a>Erfahren Sie mehr</a>',
+    bring_your_ui_oss_description: 'Passen Sie die Anmeldeoberfläche mit Ihrem eigenen Code an.',
+    bring_your_ui_oss_card_description:
+      'Laden Sie Ihre benutzerdefinierte Anmeldeoberfläche direkt in <a>Logto Cloud</a> hoch. Kein Fork und kein erneutes Deployment erforderlich.',
+    bring_your_ui_oss_try_cloud: 'Cloud ausprobieren',
     preview_with_bring_your_ui_description:
       'Ihre benutzerdefinierten UI-Assets wurden erfolgreich hochgeladen und werden jetzt bereitgestellt. Daher wurde das eingebaute Vorschaufenster deaktiviert.\nUm Ihre personalisierte Anmelde-Benutzeroberfläche zu testen, klicken Sie auf die Schaltfläche "Live-Vorschau", um sie in einem neuen Browser-Tab zu öffnen.',
   },
@@ -180,14 +185,17 @@ const sign_in_exp = {
         'Um diese vorgefertigten Flows zu integrieren, setzen Sie die entsprechenden Account-API-Berechtigungen in den Einstellungen unten auf <strong>Bearbeiten</strong>.',
       flows_title: 'Vorgefertigte Sicherheits-Einstellungen integrieren',
       flows_description:
-        'Kombinieren Sie Ihre Domain mit der Route, um Ihre Konto-Einstellungs-URL zu bilden (z. B. https://auth.foo.com/account/email). Optional können Sie `redirect=` hinzufügen, um Benutzer nach erfolgreicher Aktualisierung zurück zu Ihrer App zu leiten, `show_success=true`, um die Erfolgsseite sichtbar zu halten, oder `ui_locales=`, um die Standardsprache zu überschreiben.',
+        'Kombinieren Sie Ihre Domain mit der Route, um Ihre Konto-Einstellungs-URL zu bilden (z. B. https://auth.foo.com/account/email). Optional können Sie `redirect=` hinzufügen, um Benutzer nach erfolgreicher Aktualisierung zurück zu Ihrer App zu leiten, `show_success=true`, um die Erfolgsseite sichtbar zu halten, `ui_locales=`, um die Standardsprache zu überschreiben, oder `identifier=`, um das Eingabefeld für den Bezeichner vorab auszufüllen.',
       tooltips: {
         email: 'Aktualisieren Sie Ihre primäre E-Mail-Adresse',
         phone: 'Aktualisieren Sie Ihre primäre Telefonnummer',
         username: 'Aktualisieren Sie Ihren Benutzernamen',
         password: 'Setzen Sie ein neues Passwort',
+        social: 'Verknüpfen Sie ein Social-Konto für die Anmeldung',
+        social_remove: 'Entfernen Sie ein verknüpftes Social-Konto',
         authenticator_app:
           'Richten Sie eine neue Authentifizierungs-App für die Multi-Faktor-Authentifizierung ein',
+        authenticator_app_replace: 'Replace your existing authenticator app with a new one',
         passkey_add: 'Registrieren Sie einen neuen Sicherheitsschlüssel',
         passkey_manage:
           'Verwalten Sie Ihre vorhandenen Sicherheitsschlüssel oder fügen Sie neue hinzu',

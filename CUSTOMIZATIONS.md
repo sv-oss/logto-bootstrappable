@@ -6,6 +6,10 @@ This document describes all changes made to the upstream [Logto](https://github.
 
 The primary addition is a **self-service management dashboard** built into the Account Center SPA (`packages/account`). This allows end-users to view and edit their own profile, security settings, and MFA options from a single page, gated by the existing `AccountCenterFieldControl` settings configured in the admin console.
 
+### Upstream catch-up notes
+
+- **v1.38.0 integration:** The account center routing now keeps fork-specific routes (`/profile`, `/authenticator-app/manage`) while also retaining upstream v1.38.0 additions (social account routes/callback flow and authenticator app replace flow). The fork behavior remains: users with existing TOTP are redirected to manage/remove instead of seeing an error screen.
+
 ---
 
 ## Changes by Package

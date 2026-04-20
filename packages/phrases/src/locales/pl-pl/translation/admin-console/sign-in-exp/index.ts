@@ -80,6 +80,7 @@ const sign_in_exp = {
   },
   custom_ui: {
     title: 'Niestandardowy interfejs użytkownika',
+    cloud_tag: 'Cloud',
     css_code_editor_title: 'Niestandardowy CSS',
     css_code_editor_description1: 'Zobacz przykład niestandardowego CSS.',
     css_code_editor_description2: '<a>{{link}}</a>',
@@ -89,6 +90,10 @@ const sign_in_exp = {
     bring_your_ui_title: 'Przynieś swój interfejs użytkownika',
     bring_your_ui_description:
       'Prześlij skompresowany pakiet (.zip), aby zastąpić predefiniowany interfejs użytkownika Logto swoim własnym kodem. <a>Dowiedz się więcej</a>',
+    bring_your_ui_oss_description: 'Dostosuj interfejs logowania za pomocą własnego kodu.',
+    bring_your_ui_oss_card_description:
+      'Prześlij własny interfejs logowania bezpośrednio do <a>Logto Cloud</a>. Nie musisz robić forka ani ponownie wdrażać.',
+    bring_your_ui_oss_try_cloud: 'Wypróbuj Cloud',
     preview_with_bring_your_ui_description:
       'Twoje niestandardowe zasoby interfejsu użytkownika zostały pomyślnie przesłane i są teraz dostępne. W rezultacie wbudowane okno podglądu zostało wyłączone.\nAby przetestować swoje spersonalizowane UI logowania, kliknij przycisk "Podgląd na żywo", aby otworzyć go w nowej karcie przeglądarki.',
   },
@@ -180,14 +185,17 @@ const sign_in_exp = {
         'Aby zintegrować te gotowe przepływy, ustaw powiązane uprawnienia Account API na <strong>Edytuj</strong> w ustawieniach poniżej.',
       flows_title: 'Integruj gotowe przepływy ustawień bezpieczeństwa',
       flows_description:
-        'Połącz swoją domenę ze ścieżką, aby utworzyć URL ustawień konta (np. https://auth.foo.com/account/email). Opcjonalnie dodaj `redirect=`, aby użytkownicy mogli wrócić do Twojej aplikacji po pomyślnej aktualizacji, `show_success=true`, aby strona sukcesu była widoczna, lub `ui_locales=`, aby nadpisać domyślny język.',
+        'Połącz swoją domenę ze ścieżką, aby utworzyć URL ustawień konta (np. https://auth.foo.com/account/email). Opcjonalnie dodaj `redirect=`, aby użytkownicy mogli wrócić do Twojej aplikacji po pomyślnej aktualizacji, `show_success=true`, aby strona sukcesu była widoczna, `ui_locales=`, aby nadpisać domyślny język, lub `identifier=`, aby wstępnie wypełnić pole identyfikatora.',
       tooltips: {
         email: 'Zaktualizuj swój główny adres e-mail',
         phone: 'Zaktualizuj swój główny numer telefonu',
         username: 'Zaktualizuj swoją nazwę użytkownika',
         password: 'Ustaw nowe hasło',
+        social: 'Połącz konto społecznościowe do logowania',
+        social_remove: 'Usuń połączone konto społecznościowe',
         authenticator_app:
           'Skonfiguruj nową aplikację uwierzytelniającą dla uwierzytelniania wieloskładnikowego',
+        authenticator_app_replace: 'Replace your existing authenticator app with a new one',
         passkey_add: 'Zarejestruj nowy klucz dostępu',
         passkey_manage: 'Zarządzaj istniejącymi kluczami dostępu lub dodaj nowe',
         backup_codes_generate: 'Wygeneruj nowy zestaw 10 kodów zapasowych',

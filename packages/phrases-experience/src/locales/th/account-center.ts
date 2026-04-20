@@ -31,6 +31,12 @@ const account_center = {
     no_fields_available:
       'No user attributes are available for editing, please contact your administrator.',
   },
+  page: {
+    title: 'บัญชี',
+    security_title: 'ความปลอดภัย',
+    security_description: 'เปลี่ยนการตั้งค่าบัญชีของคุณที่นี่เพื่อให้บัญชีของคุณปลอดภัย',
+    support: 'ฝ่ายช่วยเหลือ',
+  },
   verification: {
     title: 'การยืนยันความปลอดภัย',
     description:
@@ -80,6 +86,41 @@ const account_center = {
     title: 'ตั้งชื่อผู้ใช้',
     description: 'ชื่อผู้ใช้ต้องมีเฉพาะตัวอักษร ตัวเลข และขีดล่างเท่านั้น',
     success: 'อัปเดตชื่อผู้ใช้เรียบร้อยแล้ว',
+  },
+  security: {
+    add: 'เพิ่ม',
+    change: 'เปลี่ยน',
+    remove: 'ลบ',
+    not_set: 'ยังไม่ได้ตั้งค่า',
+    social_sign_in: 'การเข้าสู่ระบบด้วยโซเชียล',
+    social_not_linked: 'ยังไม่ได้เชื่อมโยง',
+    email_phone: 'อีเมล / โทรศัพท์',
+    email: 'อีเมล',
+    phone: 'โทรศัพท์',
+    password: 'รหัสผ่าน',
+    configured: 'ตั้งค่าแล้ว',
+    not_configured: 'ยังไม่ได้ตั้งค่า',
+    two_step_verification: 'การยืนยันแบบ 2 ขั้นตอน',
+    authenticator_app: 'แอป Authenticator',
+    passkeys: 'Passkeys',
+    backup_codes: 'รหัสสำรอง',
+    email_verification_code: 'รหัสยืนยันทางอีเมล',
+    phone_verification_code: 'รหัสยืนยันทางโทรศัพท์',
+    passkeys_count_one: '{{count}} passkey',
+    passkeys_count_other: '{{count}} passkeys',
+    backup_codes_count_one: 'เหลือ {{count}} รหัส',
+    backup_codes_count_other: 'เหลือ {{count}} รหัส',
+    view: 'ดู',
+    manage: 'จัดการ',
+  },
+  social: {
+    linked: 'เชื่อมโยง {{connector}} สำเร็จแล้ว',
+    not_enabled:
+      'วิธีการเข้าสู่ระบบผ่านโซเชียลนี้ยังไม่ได้เปิดใช้งาน โปรดติดต่อผู้ดูแลระบบเพื่อขอความช่วยเหลือ',
+    removed: 'นำ {{connector}} ออกสำเร็จแล้ว',
+    remove_confirmation_title: 'ลบบัญชีโซเชียล',
+    remove_confirmation_description:
+      'หากคุณลบ {{connector}} คุณอาจไม่สามารถลงชื่อเข้าใช้ด้วยบัญชีนี้ได้จนกว่าจะเพิ่มอีกครั้ง',
   },
   password: {
     title: 'ตั้งรหัสผ่าน',
@@ -160,6 +201,10 @@ const account_center = {
     totp: {
       title: 'เพิ่มแอป Authenticator แล้ว!',
       description: 'แอป Authenticator ของคุณได้รับการเชื่อมต่อกับบัญชีของคุณเรียบร้อยแล้ว',
+    },
+    totp_replaced: {
+      title: 'แอป Authenticator ถูกแทนที่แล้ว!',
+      description: 'แอป Authenticator ของคุณถูกแทนที่เรียบร้อยแล้ว',
     },
     backup_code: {
       title: 'สร้างรหัสสำรองแล้ว!',

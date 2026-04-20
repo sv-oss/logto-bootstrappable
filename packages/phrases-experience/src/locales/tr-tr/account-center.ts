@@ -31,6 +31,13 @@ const account_center = {
     no_fields_available:
       'No user attributes are available for editing, please contact your administrator.',
   },
+  page: {
+    title: 'Hesap',
+    security_title: 'Güvenlik',
+    security_description:
+      'Hesabınızın güvenliğini sağlamak için hesap ayarlarınızı burada değiştirebilirsiniz.',
+    support: 'Destek',
+  },
   verification: {
     title: 'Güvenlik doğrulaması',
     description:
@@ -80,6 +87,41 @@ const account_center = {
     title: 'Kullanıcı adını ayarla',
     description: 'Kullanıcı adı yalnızca harf, rakam ve alt çizgi içerebilir.',
     success: 'Kullanıcı adı başarıyla güncellendi.',
+  },
+  security: {
+    add: 'Ekle',
+    change: 'Değiştir',
+    remove: 'Kaldır',
+    not_set: 'Ayarlanmamış',
+    social_sign_in: 'Sosyal giriş',
+    social_not_linked: 'Bağlanmadı',
+    email_phone: 'E-posta / Telefon',
+    email: 'E-posta',
+    phone: 'Telefon',
+    password: 'Parola',
+    configured: 'Yapılandırıldı',
+    not_configured: 'Yapılandırılmadı',
+    two_step_verification: 'İki adımlı doğrulama',
+    authenticator_app: 'Kimlik doğrulama uygulaması',
+    passkeys: 'Passkeyler',
+    backup_codes: 'Yedek kodlar',
+    email_verification_code: 'E-posta doğrulama kodu',
+    phone_verification_code: 'Telefon doğrulama kodu',
+    passkeys_count_one: '{{count}} passkey',
+    passkeys_count_other: '{{count}} passkey',
+    backup_codes_count_one: '{{count}} kod kaldı',
+    backup_codes_count_other: '{{count}} kod kaldı',
+    view: 'Görüntüle',
+    manage: 'Yönet',
+  },
+  social: {
+    linked: '{{connector}} başarıyla bağlandı.',
+    not_enabled:
+      'Bu sosyal oturum açma yöntemi etkin değil. Yardım için lütfen yöneticinizle iletişime geçin.',
+    removed: '{{connector}} başarıyla kaldırıldı.',
+    remove_confirmation_title: 'Sosyal hesabı kaldır',
+    remove_confirmation_description:
+      '{{connector}} kaldırılırsa, yeniden ekleyene kadar bu hesapla oturum açamayabilirsiniz.',
   },
   password: {
     title: 'Şifreyi ayarla',
@@ -165,6 +207,10 @@ const account_center = {
     totp: {
       title: 'Authenticator uygulaması eklendi!',
       description: 'Authenticator uygulamanız hesabınıza başarıyla bağlandı.',
+    },
+    totp_replaced: {
+      title: 'Authenticator uygulaması değiştirildi!',
+      description: 'Authenticator uygulamanız başarıyla değiştirildi.',
     },
     backup_code: {
       title: 'Yedek kodlar oluşturuldu!',

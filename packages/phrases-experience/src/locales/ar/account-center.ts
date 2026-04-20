@@ -31,6 +31,12 @@ const account_center = {
     no_fields_available:
       'No user attributes are available for editing, please contact your administrator.',
   },
+  page: {
+    title: 'الحساب',
+    security_title: 'الأمان',
+    security_description: 'غيّر إعدادات حسابك هنا لضمان أمان حسابك.',
+    support: 'الدعم',
+  },
   verification: {
     title: 'التحقق الأمني',
     description:
@@ -80,6 +86,41 @@ const account_center = {
     title: 'تعيين اسم المستخدم',
     description: 'يجب أن يحتوي اسم المستخدم على أحرف وأرقام وشرطات سفلية فقط.',
     success: 'تم تحديث اسم المستخدم بنجاح.',
+  },
+  security: {
+    add: 'إضافة',
+    change: 'تغيير',
+    remove: 'إزالة',
+    not_set: 'غير محدد',
+    social_sign_in: 'تسجيل الدخول الاجتماعي',
+    social_not_linked: 'غير مرتبط',
+    email_phone: 'البريد الإلكتروني / الهاتف',
+    email: 'البريد الإلكتروني',
+    phone: 'الهاتف',
+    password: 'كلمة المرور',
+    configured: 'تم الإعداد',
+    not_configured: 'غير معدّ',
+    two_step_verification: 'التحقق بخطوتين',
+    authenticator_app: 'تطبيق المصادقة',
+    passkeys: 'مفاتيح المرور',
+    backup_codes: 'رموز النسخ الاحتياطي',
+    email_verification_code: 'رمز التحقق عبر البريد الإلكتروني',
+    phone_verification_code: 'رمز التحقق عبر الهاتف',
+    passkeys_count_one: '{{count}} مفتاح مرور',
+    passkeys_count_other: '{{count}} مفاتيح مرور',
+    backup_codes_count_one: '{{count}} رمز متبقٍ',
+    backup_codes_count_other: '{{count}} رموز متبقية',
+    view: 'عرض',
+    manage: 'إدارة',
+  },
+  social: {
+    linked: 'تم ربط {{connector}} بنجاح.',
+    not_enabled:
+      'طريقة تسجيل الدخول الاجتماعي هذه غير مفعلة. يُرجى التواصل مع المسؤول للحصول على المساعدة.',
+    removed: 'تمت إزالة {{connector}} بنجاح.',
+    remove_confirmation_title: 'إزالة الحساب الاجتماعي',
+    remove_confirmation_description:
+      'إذا أزلت {{connector}}، فقد لا تتمكن من تسجيل الدخول به حتى تقوم بإضافته مرة أخرى.',
   },
   password: {
     title: 'تعيين كلمة المرور',
@@ -160,6 +201,10 @@ const account_center = {
     totp: {
       title: 'تمت إضافة تطبيق المصادقة!',
       description: 'تم ربط تطبيق المصادقة بحسابك بنجاح.',
+    },
+    totp_replaced: {
+      title: 'تم استبدال تطبيق المصادقة!',
+      description: 'تم استبدال تطبيق المصادقة الخاص بك بنجاح.',
     },
     backup_code: {
       title: 'تم إنشاء رموز النسخ الاحتياطي!',

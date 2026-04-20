@@ -40,6 +40,12 @@ const account_center = {
     family_name_label: 'Family name',
     saved: 'Profile updated successfully.',
   },
+  page: {
+    title: 'Account',
+    security_title: 'Security',
+    security_description: 'Change your account settings here to ensure your account security.',
+    support: 'Support',
+  },
   verification: {
     title: 'Security verification',
     description:
@@ -90,6 +96,41 @@ const account_center = {
     title: 'Set username',
     description: 'Username must contain only letters, numbers, and underscores.',
     success: 'Username updated successfully.',
+  },
+  security: {
+    add: 'Add',
+    change: 'Change',
+    remove: 'Remove',
+    not_set: 'Not set',
+    social_sign_in: 'Social sign-in',
+    social_not_linked: 'Not linked',
+    email_phone: 'Email / Phone',
+    email: 'Email',
+    phone: 'Phone',
+    password: 'Password',
+    configured: 'Configured',
+    not_configured: 'Not configured',
+    two_step_verification: '2-step verification',
+    authenticator_app: 'Authenticator app',
+    passkeys: 'Passkeys',
+    backup_codes: 'Backup codes',
+    email_verification_code: 'Email verification code',
+    phone_verification_code: 'Phone verification code',
+    passkeys_count_one: '{{count}} passkey',
+    passkeys_count_other: '{{count}} passkeys',
+    backup_codes_count_one: '{{count}} code remaining',
+    backup_codes_count_other: '{{count}} codes remaining',
+    view: 'View',
+    manage: 'Manage',
+  },
+  social: {
+    linked: '{{connector}} linked successfully.',
+    removed: '{{connector}} removed successfully.',
+    not_enabled:
+      'This social sign-in method is not enabled. Please contact your administrator for assistance.',
+    remove_confirmation_title: 'Remove social account',
+    remove_confirmation_description:
+      'If you remove {{connector}}, you may not be able to sign in with it until you add it back again.',
   },
   password: {
     title: 'Set password',
@@ -179,6 +220,10 @@ const account_center = {
     totp: {
       title: 'Authenticator app added!',
       description: 'Your authenticator app has been successfully linked to your account.',
+    },
+    totp_replaced: {
+      title: 'Authenticator app replaced!',
+      description: 'Your authenticator app has been successfully replaced.',
     },
     backup_code: {
       title: 'Backup codes generated!',

@@ -31,6 +31,12 @@ const account_center = {
     no_fields_available:
       'No user attributes are available for editing, please contact your administrator.',
   },
+  page: {
+    title: 'Акаунт',
+    security_title: 'Безпека',
+    security_description: 'Тут можна змінити налаштування акаунта, щоб забезпечити його безпеку.',
+    support: 'Підтримка',
+  },
   verification: {
     title: 'Перевірка безпеки',
     description:
@@ -82,6 +88,41 @@ const account_center = {
     title: "Встановити ім'я користувача",
     description: "Ім'я користувача може містити лише літери, цифри та символи підкреслення.",
     success: "Ім'я користувача успішно оновлено.",
+  },
+  security: {
+    add: 'Додати',
+    change: 'Змінити',
+    remove: 'Видалити',
+    not_set: 'Не встановлено',
+    social_sign_in: 'Соціальний вхід',
+    social_not_linked: 'Не прив’язано',
+    email_phone: 'Електронна пошта / Телефон',
+    email: 'Електронна пошта',
+    phone: 'Телефон',
+    password: 'Пароль',
+    configured: 'Налаштовано',
+    not_configured: 'Не налаштовано',
+    two_step_verification: 'Двоетапна перевірка',
+    authenticator_app: 'Додаток для автентифікації',
+    passkeys: 'Passkeys',
+    backup_codes: 'Резервні коди',
+    email_verification_code: 'Код підтвердження електронної пошти',
+    phone_verification_code: 'Код підтвердження телефону',
+    passkeys_count_one: '{{count}} passkey',
+    passkeys_count_other: '{{count}} passkeys',
+    backup_codes_count_one: '{{count}} код залишився',
+    backup_codes_count_other: '{{count}} кодів залишилось',
+    view: 'Перегляд',
+    manage: 'Керування',
+  },
+  social: {
+    linked: '{{connector}} успішно прив’язано.',
+    not_enabled:
+      'Цей спосіб входу через соціальну мережу не ввімкнено. Будь ласка, зверніться до адміністратора по допомогу.',
+    removed: '{{connector}} успішно видалено.',
+    remove_confirmation_title: 'Видалити соціальний акаунт',
+    remove_confirmation_description:
+      'Якщо ви видалите {{connector}}, можливо, ви не зможете входити через нього, доки не додасте його знову.',
   },
   password: {
     title: 'Встановити пароль',
@@ -168,6 +209,10 @@ const account_center = {
     totp: {
       title: 'Додаток для автентифікації додано!',
       description: "Ваш додаток для автентифікації успішно під'єднано до вашого акаунту.",
+    },
+    totp_replaced: {
+      title: 'Додаток для автентифікації замінено!',
+      description: 'Ваш додаток для автентифікації було успішно замінено.',
     },
     backup_code: {
       title: 'Резервні коди створено!',

@@ -8,8 +8,7 @@ import { Trans, useTranslation } from 'react-i18next';
 import ExternalLinkIcon from '@/assets/icons/external-link.svg?react';
 import FormCard from '@/components/FormCard';
 import MultiTextInputField from '@/components/MultiTextInputField';
-import { applicationDataStructure, thirdPartyApp } from '@/consts';
-import { isDevFeaturesEnabled } from '@/consts/env';
+import { applicationDataStructure, deviceFlow, thirdPartyApp } from '@/consts';
 import { AppDataContext } from '@/contexts/AppDataProvider';
 import Button from '@/ds-components/Button';
 import CodeEditor from '@/ds-components/CodeEditor';
@@ -23,6 +22,7 @@ import {
 } from '@/ds-components/MultiTextInput/utils';
 import TextInput from '@/ds-components/TextInput';
 import TextLink from '@/ds-components/TextLink';
+import useDocumentationUrl from '@/hooks/use-documentation-url';
 import { isJsonObject } from '@/utils/json';
 
 import ProtectedAppSettings from './ProtectedAppSettings';
@@ -89,11 +89,11 @@ function Settings({ data }: Props) {
     formState: { errors },
   } = useFormContext<ApplicationForm>();
   const { tenantEndpoint } = useContext(AppDataContext);
+  const { getDocumentationUrl } = useDocumentationUrl();
 
   const { type: applicationType, isThirdParty, customClientMetadata } = data;
 
-  // DEV: Device flow
-  const isDeviceFlow = isDevFeaturesEnabled && Boolean(customClientMetadata.isDeviceFlow);
+  const isDeviceFlow = Boolean(customClientMetadata.isDeviceFlow);
   const isProtectedApp = applicationType === ApplicationType.Protected;
   const redirectUriValidator = createRedirectUriValidator(applicationType);
   const uriPatternRules: MultiTextInputRule = {
@@ -122,15 +122,13 @@ function Settings({ data }: Props) {
       description={`application_details.${isThirdParty ? 'third_party_' : ''}settings_description`}
       learnMoreLink={{ href: isThirdParty ? thirdPartyApp : applicationDataStructure }}
     >
-      {/* DEV: Device flow notification banner */}
       {isDeviceFlow && (
         <div className={styles.deviceFlowBanner}>
           <span className={styles.deviceFlowEmoji}>🎉</span>
           <span>
             <Trans
               components={{
-                // TODO: Replace with actual documentation link when available
-                a: <TextLink href="" />,
+                a: <TextLink targetBlank="noopener" href={getDocumentationUrl(deviceFlow)} />,
               }}
             >
               {t('application_details.device_flow_notification')}

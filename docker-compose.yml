@@ -1,5 +1,4 @@
 # This compose file is for demonstration only, do not use in prod.
-#
 services:
   app:
     depends_on:
