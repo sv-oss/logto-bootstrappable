@@ -80,6 +80,6 @@
     "qrcode": "^1.5.4",
     "react-router-dom": "^6.30.2",
     "react-syntax-highlighter": "^15.5.0",
-    "ua-parser-js": "^2.0.3"
+    "ua-parser-js": "^2.0.10"
   }
 }
