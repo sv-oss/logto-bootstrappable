@@ -132,7 +132,7 @@ button {
   background: var(--color-bg-float);
   box-shadow: var(--color-shadow-2);
   visibility: hidden;
-  opacity: 0;
+  opacity: 0%;
   transition: opacity 0.16s ease;
 
   &.visible {
@@ -179,17 +179,11 @@ button {
 
 :global(body.mobile) {
   .header {
-    padding: _.unit(3) _.unit(5) _.unit(2);
+    padding: _.unit(4) _.unit(5);
+    background: var(--color-bg-float-base);
   }
 
   .logo {
     height: 30px;
-  }
-}
-
-:global(body.mobile) {
-  .header {
-    padding: _.unit(4) _.unit(5);
-    background: var(--color-bg-float-base);
   }
 }

@@ -78,8 +78,8 @@ const TotpBinding = ({ isReplace }: Props) => {
   const [isQrCodeFormat, setIsQrCodeFormat] = useState(!isMobile);
   const [codeInput, setCodeInput] = useState<string[]>([]);
   const [errorMessage, setErrorMessage] = useState<string>();
-
-
+  const [hasTotpAlready, setHasTotpAlready] = useState<boolean>();
+  useEffect(() => {
     const checkExistingMfa = async () => {
       const [error, result] = await getMfaRequest();
       if (error) {

@@ -1,5 +1,4 @@
 import { TemplateType } from '@logto/connector-kit';
-import type { Transporter } from 'nodemailer';
 import nodemailer from 'nodemailer';
 
 import createConnector from './index.js';
@@ -17,7 +16,9 @@ type SendMailInput = {
 const sendMail = vi.fn(async (_mailOptions: SendMailInput) => ({}));
 
 // @ts-expect-error for testing
-vi.spyOn(nodemailer, 'createTransport').mockReturnValue({ sendMail } as Transporter);
+vi.spyOn(nodemailer, 'createTransport').mockReturnValue({
+  sendMail,
+} as ReturnType<typeof nodemailer.createTransport>);
 
 describe('SMTP SMS connector', () => {
   afterEach(() => {

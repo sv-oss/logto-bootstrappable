@@ -156,14 +156,15 @@ describe('UpdateSuccess', () => {
   });
 
   describe('fallback navigation', () => {
-    it('shows no done button when there is no pending return', () => {
+    it('returns to the account home when there is no pending return', () => {
       renderWithPageContext(<UpdateSuccess identifierType="password" />, {
         initialEntries: ['/success'],
       });
 
-      expect(screen.queryByTestId('action')).toBeNull();
+      fireEvent.click(screen.getByTestId('action'));
+
       expect(window.location.assign).not.toHaveBeenCalled();
-      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith('/');
     });
   });
 });

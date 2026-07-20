@@ -3,6 +3,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import ConsoleLog from './ConsoleLog.js';
 
+afterEach(() => {
+  vi.restoreAllMocks();
+});
+
 describe('ConsoleLog audit()', () => {
   const auditPayload: Record<string, unknown> = {
     key: 'Interaction.SignIn.Submit',

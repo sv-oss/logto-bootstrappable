@@ -102,14 +102,16 @@ describe('when the language is English', () => {
 describe('when the language is not English', () => {
   it('should be custom phrase merged with built-in phrase when both of them exist', async () => {
     await expect(getPhrases(customizedLanguage)).resolves.toEqual(
-      deepmerge(customizedBuiltInPhrase, customizedCustomPhrase)
+      deepmerge(englishBuiltInPhrase, deepmerge(customizedBuiltInPhrase, customizedCustomPhrase))
     );
   });
 
   it('should be built-in phrase when there is built-in phrase and no custom phrase', async () => {
     const builtInOnlyLanguage = trTrTag;
     const builtInOnlyPhrase = resource[trTrTag];
-    await expect(getPhrases(builtInOnlyLanguage)).resolves.toEqual(builtInOnlyPhrase);
+    await expect(getPhrases(builtInOnlyLanguage)).resolves.toEqual(
+      deepmerge(englishBuiltInPhrase, builtInOnlyPhrase)
+    );
   });
 
   it('should be built-in phrase when there is custom phrase and no built-in phrase', async () => {

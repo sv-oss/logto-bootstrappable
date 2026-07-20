@@ -1,8 +1,4 @@
 const account_center = {
-  home: {
-    title: 'Stránka nenalezena',
-    description: 'Tato stránka není k dispozici.',
-  },
   page: {
     title: 'Účet',
     security_title: 'Zabezpečení',

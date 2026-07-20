@@ -1,5 +1,4 @@
 import { type EmailTemplateDetails, TemplateType } from '@logto/connector-kit';
-import type { Transporter } from 'nodemailer';
 import nodemailer from 'nodemailer';
 
 import createConnector from './index.js';
@@ -23,7 +22,9 @@ const getI18nEmailTemplate = vi.fn().mockResolvedValue(undefined);
 const sendMail = vi.fn();
 
 // @ts-expect-error for testing
-vi.spyOn(nodemailer, 'createTransport').mockReturnValue({ sendMail } as Transporter);
+vi.spyOn(nodemailer, 'createTransport').mockReturnValue({
+  sendMail,
+} as ReturnType<typeof nodemailer.createTransport>);
 
 describe('SMTP connector', () => {
   afterEach(() => {

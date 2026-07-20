@@ -36,7 +36,6 @@ describe('createDefaultSignInExperience', () => {
 
   it('keeps legacy null signUpProfileFields for seeded default tenants', () => {
     const row = createDefaultSignInExperience('some-tenant-id', false);
-    // signUpProfileFields will be in the generated type once db-entries are regenerated for v1.41
-    expect((row as unknown as Record<string, unknown>)['signUpProfileFields']).toBeNull();
+    expect('signUpProfileFields' in row && row.signUpProfileFields).toBeNull();
   });
 });

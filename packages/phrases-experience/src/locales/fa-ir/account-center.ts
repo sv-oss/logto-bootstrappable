@@ -1,8 +1,4 @@
 const account_center = {
-  home: {
-    title: 'صفحه یافت نشد',
-    description: 'این صفحه در دسترس نیست.',
-  },
   page: {
     title: 'حساب',
     security_title: 'امنیت',

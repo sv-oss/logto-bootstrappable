@@ -159,9 +159,11 @@ export const createMockPageContext = (
   overrides: Partial<PageContextType> = {}
 ): PageContextType => ({
   theme: Theme.Light,
+  appearanceMode: 'system',
   toast: '',
   platform: 'web',
   setTheme: noop,
+  setAppearanceMode: noop,
   setToast: noop,
   experienceSettings: clone(mockSignInExperienceSettings),
   setExperienceSettings: noop,
