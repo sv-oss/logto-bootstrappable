@@ -1,10 +1,9 @@
 import { FormProvider, useForm } from 'react-hook-form';
-import { Trans, useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 
 import DetailsForm from '@/components/DetailsForm';
 import { isCloud } from '@/consts/env';
 import InlineNotification from '@/ds-components/InlineNotification';
-import TextLink from '@/ds-components/TextLink';
 import useUserPreferences from '@/hooks/use-user-preferences';
 
 import SessionsFormCard from './SessionsFormCard';
@@ -19,10 +18,13 @@ type OidcConfigFormData = {
 function OidcConfigs() {
   const { t } = useTranslation(undefined, { keyPrefix: 'admin_console' });
   const {
-    data: { ossOidcConfigNoticeAcknowledged },
+    data: userPreferences,
     isLoading: isLoadingUserPreferences,
     update,
   } = useUserPreferences();
+  const cloudOidcPrivateKeyRotationNoticeAcknowledged = Boolean(
+    userPreferences.cloudOidcPrivateKeyRotationNoticeAcknowledged
+  );
   const formMethods = useForm<OidcConfigFormData>();
   const { errorMessage, onSubmit } = useSessionConfigForm(formMethods);
 
@@ -33,31 +35,14 @@ function OidcConfigs() {
 
   return (
     <div className={styles.container}>
-      {!isCloud && !isLoadingUserPreferences && !ossOidcConfigNoticeAcknowledged && (
+      {isCloud && !isLoadingUserPreferences && !cloudOidcPrivateKeyRotationNoticeAcknowledged && (
         <InlineNotification
           action="general.got_it"
           onClick={() => {
-            void update({ ossOidcConfigNoticeAcknowledged: true });
+            void update({ cloudOidcPrivateKeyRotationNoticeAcknowledged: true });
           }}
         >
-          <Trans
-            components={{
-              keyRotationsLink: (
-                <TextLink
-                  href="https://docs.logto.io/developers/signing-keys#rotate-signing-keys-from-console-ui"
-                  targetBlank="noopener"
-                />
-              ),
-              centralCacheLink: (
-                <TextLink
-                  href="https://docs.logto.io/logto-oss/central-cache"
-                  targetBlank="noopener"
-                />
-              ),
-            }}
-          >
-            {t('oidc_configs.oss_notice')}
-          </Trans>
+          {t('oidc_configs.cloud_private_key_rotation_notice')}
         </InlineNotification>
       )}
       <FormProvider {...formMethods}>

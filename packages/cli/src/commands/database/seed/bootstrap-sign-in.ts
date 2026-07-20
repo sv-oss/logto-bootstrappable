@@ -120,6 +120,8 @@ export const bootstrapAccountCenter = async (
     profile: AccountCenterControlValue.Edit,
     customData: AccountCenterControlValue.ReadOnly,
     mfa: AccountCenterControlValue.Edit,
+    passkey: AccountCenterControlValue.Edit,
+    session: AccountCenterControlValue.Edit,
     phone: includePhone ? AccountCenterControlValue.Edit : AccountCenterControlValue.Off,
   };
 
@@ -133,6 +135,6 @@ export const bootstrapAccountCenter = async (
   `);
 
   consoleLog.succeed(
-    'Enabled Account Centre with profile editing and avatar/customData read-only for the default tenant'
+    'Enabled Account Centre with profile/MFA/passkey/session editing and avatar/customData read-only for the default tenant'
   );
 };

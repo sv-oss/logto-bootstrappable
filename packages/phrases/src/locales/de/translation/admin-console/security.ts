@@ -88,7 +88,45 @@ const security = {
     custom_words_description:
       'Personalisierte kontextspezifische Wörter, Groß-/Kleinschreibung wird nicht beachtet, ein Wort pro Zeile.',
     custom_words_placeholder: 'Name Ihres Dienstes, Firmenname, etc.',
+    password_expiration: 'Passwortablauf',
+    password_expiration_description:
+      'Benutzer müssen ihr Passwort nach einer festgelegten Anzahl von Tagen zurücksetzen. Benutzer, die sich über SSO oder Passkey anmelden, sind nicht betroffen.',
+    enable_password_expiration: 'Passwortablauf aktivieren',
+    enable_password_expiration_description:
+      'Benutzer müssen ihr Passwort regelmäßig zurücksetzen. Bestehende Benutzer ohne aufgezeichnetes Datum der Passwortänderung werden ab dem Datum bewertet, an dem diese Richtlinie aktiviert wurde.',
+    enable_password_expiration_tip:
+      'Du kannst den Passwortablauf erst aktivieren, nachdem du in der Anmeldeerfahrung mindestens eine Methode zum Zurücksetzen des Passworts mit einem gültigen Connector konfiguriert hast.',
+    expiration_period: 'Passwort-Gültigkeitsdauer (Tage)',
+    expiration_period_description:
+      'Anzahl der Tage, die ein Passwort gültig bleibt, bevor es abläuft.',
+    expiration_period_error:
+      'Die Passwort-Gültigkeitsdauer muss zwischen {{min}} und {{max}} Tagen liegen.',
+    password_expiration_recovery_reminder:
+      'Einige Benutzer haben möglicherweise keine E-Mail-Adresse oder Telefonnummer, um einen Code zur Passwortwiederherstellung zu erhalten, und können daher ein abgelaufenes Passwort nicht zurücksetzen. Verlange bei der Registrierung eine E-Mail-Adresse oder Telefonnummer, damit jeder Benutzer sein Passwort wiederherstellen kann.',
   },
+  verification_code_policy: {
+    card_title: 'Verifizierungscode',
+    card_description:
+      'Konfigurieren Sie die Ablaufdauer und die maximale Anzahl erneuter Versuche für Verifizierungscodes, die bei Anmeldung, Registrierung und Passwortzurücksetzung verwendet werden.',
+    enable: {
+      title: 'Verifizierungscode-Einstellungen anpassen',
+      description:
+        'Erlaubt die Anpassung der Ablaufdauer des Verifizierungscodes und der maximalen Anzahl erneuter Versuche.',
+    },
+    expiration_duration: {
+      title: 'Ablaufdauer (Sekunden)',
+      description:
+        'Die Dauer in Sekunden, während der ein Verifizierungscode nach dem Senden gültig bleibt.',
+      error_message: 'Die Ablaufdauer muss zwischen 60 und 3600 Sekunden liegen.',
+    },
+    max_retry_attempts: {
+      title: 'Maximale Anzahl erneuter Versuche',
+      description:
+        'Maximale Anzahl fehlgeschlagener Verifizierungsversuche, bevor der Code ungültig wird.',
+      error_message: 'Die maximale Anzahl erneuter Versuche muss zwischen 1 und 100 liegen.',
+    },
+  },
+
   sentinel_policy: {
     card_title: 'Identifier-Sperre',
     card_description:

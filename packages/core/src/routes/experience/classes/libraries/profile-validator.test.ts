@@ -1,21 +1,31 @@
 import { consoleUserPreferenceKey } from '@logto/schemas';
 
+import { mockSignInExperience } from '#src/__mocks__/sign-in-experience.js';
 import { mockUser } from '#src/__mocks__/user.js';
 import RequestError from '#src/errors/RequestError/index.js';
 import { MockQueries } from '#src/test-utils/tenant.js';
 
 import { ProfileValidator } from './profile-validator.js';
+import type { SignInExperienceValidator } from './sign-in-experience-validator.js';
 
 const { jest } = import.meta;
 
 describe('ProfileValidator', () => {
   const mockFindAllCustomProfileFields = jest.fn();
+  const mockFindDefaultSignInExperience = jest.fn().mockResolvedValue(mockSignInExperience);
+  const mockGetSignInExperienceData = jest.fn().mockResolvedValue(mockSignInExperience);
   const queries = new MockQueries({
     customProfileFields: {
       findAllCustomProfileFields: mockFindAllCustomProfileFields,
     },
+    signInExperiences: {
+      findDefaultSignInExperience: mockFindDefaultSignInExperience,
+    },
   });
-  const profileValidator = new ProfileValidator(queries);
+  const signInExperienceValidator = {
+    getSignInExperienceData: mockGetSignInExperienceData,
+  } as unknown as SignInExperienceValidator;
+  const profileValidator = new ProfileValidator(queries, signInExperienceValidator);
 
   describe('validateAndParseCustomProfile', () => {
     it('should parse and split profile data into built-in and custom fields', () => {
@@ -224,6 +234,70 @@ describe('ProfileValidator', () => {
     it('should return false when no custom profile fields are defined', async () => {
       mockFindAllCustomProfileFields.mockResolvedValue([]);
       expect(await profileValidator.hasMissingExtraProfileFields({})).toBe(false);
+    });
+
+    it('should reuse the sign-in experience validator cache', async () => {
+      mockGetSignInExperienceData.mockClear();
+      mockGetSignInExperienceData.mockResolvedValueOnce({
+        ...mockSignInExperience,
+        signUpProfileFields: [{ name: 'company' }],
+      });
+
+      mockFindDefaultSignInExperience.mockClear();
+      mockFindAllCustomProfileFields.mockResolvedValue([
+        { type: 'Text', name: 'company', required: true },
+      ]);
+
+      expect(
+        await profileValidator.hasMissingExtraProfileFields({
+          customData: { company: 'Logto' },
+        })
+      ).toBe(false);
+      expect(mockGetSignInExperienceData).toHaveBeenCalledTimes(1);
+      expect(mockFindDefaultSignInExperience).not.toHaveBeenCalled();
+    });
+
+    describe('with signUpProfileFields subset', () => {
+      afterEach(() => {
+        mockGetSignInExperienceData.mockResolvedValue(mockSignInExperience);
+      });
+
+      it('should only enforce configured fields', async () => {
+        mockFindAllCustomProfileFields.mockResolvedValue([
+          { type: 'Text', name: 'company', required: true },
+          { type: 'Text', name: 'inviteCode', required: true },
+        ]);
+        mockGetSignInExperienceData.mockResolvedValue({
+          ...mockSignInExperience,
+          signUpProfileFields: [{ name: 'company' }],
+        });
+
+        // `inviteCode` is outside the sign-up subset, so missing it should be ignored.
+        expect(
+          await profileValidator.hasMissingExtraProfileFields({
+            customData: { company: 'Logto' },
+          })
+        ).toBe(false);
+        // `company` is in the subset and still required.
+        expect(await profileValidator.hasMissingExtraProfileFields({})).toBe(true);
+      });
+
+      it('should fall back to the full catalog when signUpProfileFields is null', async () => {
+        mockFindAllCustomProfileFields.mockResolvedValue([
+          { type: 'Text', name: 'company', required: true },
+          { type: 'Text', name: 'inviteCode', required: true },
+        ]);
+        mockGetSignInExperienceData.mockResolvedValue({
+          ...mockSignInExperience,
+          signUpProfileFields: null,
+        });
+
+        expect(
+          await profileValidator.hasMissingExtraProfileFields({
+            customData: { company: 'Logto' },
+          })
+        ).toBe(true);
+      });
     });
   });
 });

@@ -36,6 +36,11 @@ const account_center = {
     security_title: 'Sicurezza',
     security_description:
       'Modifica qui le impostazioni del tuo account per garantirne la sicurezza.',
+    profile_title: 'Informazioni personali',
+    profile_description: 'Modifica qui le tue informazioni personali.',
+    sidebar_personal_info: 'Informazioni personali',
+    sidebar_security: 'Sicurezza',
+    sidebar_sessions: 'Sessioni',
     support: 'Supporto',
   },
   verification: {
@@ -47,6 +52,9 @@ const account_center = {
     error_verify_failed: 'Verifica non riuscita. Inserisci di nuovo il codice.',
     verification_required: 'Verifica scaduta. Conferma di nuovo la tua identità.',
     try_another_method: 'Prova un altro metodo di verifica',
+    no_available_methods_title: 'Nessun metodo di verifica disponibile',
+    no_available_methods_description:
+      'Non hai configurato alcun metodo di verifica. Aggiungi prima una password, un indirizzo e-mail o un numero di telefono al tuo account.',
   },
   password_verification: {
     title: 'Verifica la password',
@@ -90,6 +98,7 @@ const account_center = {
   username: {
     title: 'Imposta nome utente',
     description: 'Il nome utente può contenere solo lettere, numeri e trattini bassi.',
+    policy_description: '{{requirements}}',
     success: 'Nome utente aggiornato con successo.',
   },
   security: {
@@ -112,11 +121,37 @@ const account_center = {
     email_verification_code: 'Codice di verifica e-mail',
     phone_verification_code: 'Codice di verifica telefonico',
     passkeys_count_one: '{{count}} passkey',
-    passkeys_count_other: '{{count}} passkeys',
+    passkeys_count_other: '{{count}} passkey',
     backup_codes_count_one: '{{count}} codice rimanente',
     backup_codes_count_other: '{{count}} codici rimanenti',
     view: 'Visualizza',
     manage: 'Gestisci',
+    turn_on_2_step_verification_description:
+      "Aggiungi un ulteriore livello di sicurezza. Ti verrà richiesto un secondo passaggio di verifica all'accesso.",
+    turn_off_2_step_verification: 'Disattiva la verifica in due passaggi',
+    turn_off_2_step_verification_description:
+      "La disattivazione della verifica in due passaggi rimuoverà il livello di protezione aggiuntivo dal tuo account all'accesso. Sei sicuro di voler continuare?",
+    disable_2_step_verification: 'Disattiva',
+    no_verification_method_warning:
+      "Non hai aggiunto un secondo metodo di verifica. Aggiungine almeno uno per attivare la verifica in due passaggi all'accesso.",
+    passkey_sign_in_prompt: 'Richiedi la configurazione di un passkey',
+    passkey_sign_in_prompt_description:
+      'Quando è attivo, ti verrà chiesto di configurare un passkey per un accesso più rapido e sicuro.',
+    account_removal: "Eliminazione dell'account",
+    delete_your_account: 'Elimina il tuo account',
+    delete_account: "Elimina l'account",
+    remove_username_confirmation_title: 'Rimuovi il nome utente',
+    remove_username_confirmation_description:
+      'Una volta rimosso, non potrai più accedere con questo nome utente. Sei sicuro di voler continuare?',
+    remove_email_confirmation_title: "Rimuovi l'indirizzo email",
+    remove_email_confirmation_description:
+      'Una volta rimosso, non potrai più accedere con questo indirizzo email. Sei sicuro di voler continuare?',
+    remove_phone_confirmation_title: 'Rimuovi il numero di telefono',
+    remove_phone_confirmation_description:
+      'Una volta rimosso, non potrai più accedere con questo numero di telefono. Sei sicuro di voler continuare?',
+    email_removed: "L'indirizzo email è stato rimosso con successo.",
+    phone_removed: 'Il numero di telefono è stato rimosso con successo.',
+    username_removed: 'Il nome utente è stato rimosso con successo.',
   },
   social: {
     linked: '{{connector}} collegato con successo.',
@@ -261,14 +296,28 @@ const account_center = {
       "Hai verificato con successo questo dispositivo per l'autenticazione a due fattori. Personalizza il nome per riconoscerlo se hai più chiavi.",
     name_input_label: 'Nome',
   },
-  profile: {
-    title: 'Edit profile',
-    description: 'Update your display name and avatar.',
-    name_label: 'Display name',
-    avatar_label: 'Avatar URL',
-    given_name_label: 'Given name',
-    family_name_label: 'Family name',
-    saved: 'Profile updated successfully.',
+  sessions: {
+    page_title: 'Sessioni',
+    page_description:
+      'Gestisci le tue sessioni attive e le applicazioni di terze parti autorizzate.',
+    title: 'Sessioni',
+    current_session: 'Sessione corrente',
+    signed_in_at: 'Accesso effettuato {{date}}',
+    revoke_session: 'Disconnetti',
+    revoke_session_title: 'Disconnetti sessione',
+    revoke_session_description:
+      'Questo disconnetterà la sessione e revocherà tutti gli accessi associati. Sei sicuro di voler continuare?',
+    no_other_sessions: 'Nessuna altra sessione attiva.',
+    loading: 'Caricamento...',
+    third_party_apps_title: 'App di terze parti',
+    no_third_party_apps: 'Nessuna applicazione di terze parti autorizzata.',
+    third_party_apps_load_failed: 'Impossibile caricare le app di terze parti. Riprova.',
+    granted_at: 'Autorizzato {{date}}',
+    revoke_grant: 'Rimuovi',
+    revoke_grant_title: 'Rimuovi accesso app di terze parti',
+    revoke_grant_description:
+      'Questo revocherà tutti gli accessi concessi a questa applicazione. Sei sicuro di voler continuare?',
+    revoke_grant_failed: 'Revoca di alcune autorizzazioni non riuscita. Riprova.',
   },
 };
 

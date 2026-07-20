@@ -1,5 +1,5 @@
 import { emailRegEx } from '@logto/core-kit';
-import { SignInIdentifier } from '@logto/schemas';
+import { SignInIdentifier, type UsernamePolicy } from '@logto/schemas';
 import { PhoneNumberParser } from '@logto/shared/universal';
 import i18next from 'i18next';
 import type { TFuncKey } from 'i18next';
@@ -34,10 +34,14 @@ export const validatePhone = (value: string): ErrorType | undefined => {
   }
 };
 
-export const validateIdentifierField = (type: IdentifierInputType, value: string) => {
+export const validateIdentifierField = (
+  type: IdentifierInputType,
+  value: string,
+  usernamePolicy?: UsernamePolicy
+) => {
   switch (type) {
     case SignInIdentifier.Username: {
-      return validateUsername(value);
+      return validateUsername(value, usernamePolicy);
     }
 
     case SignInIdentifier.Email: {

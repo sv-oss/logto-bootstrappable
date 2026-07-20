@@ -7,14 +7,26 @@
   gap: _.unit(2);
 }
 
+.cspConfig {
+  display: flex;
+  flex-direction: column;
+  margin-top: _.unit(6);
+}
+
+.cspDescription {
+  margin-top: _.unit(2);
+  font: var(--font-body-2);
+  color: var(--color-text-secondary);
+}
+
 .ossCard {
   display: flex;
   align-items: center;
   gap: _.unit(4);
   padding: _.unit(4);
-  border: 1px solid rgba(93, 52, 242, 12%);
+  border: 1px solid var(--color-overlay-primary-pressed);
   border-radius: _.unit(3);
-  background: rgba(93, 52, 242, 4%);
+  background: var(--color-overlay-primary-subtle);
 
   .ossCardContent {
     display: flex;
@@ -31,9 +43,11 @@
     height: 40px;
     flex-shrink: 0;
     border-radius: _.unit(2);
-    background: rgba(93, 52, 242, 8%);
+    background: var(--color-overlay-primary-hover);
+    color: var(--color-text-link);
 
-    > img {
+    > img,
+    > svg {
       width: 20px;
       height: 20px;
     }
@@ -45,6 +59,6 @@
   }
 
   .highlight {
-    color: var(--color-primary);
+    color: var(--color-text-link);
   }
 }

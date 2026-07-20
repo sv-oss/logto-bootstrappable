@@ -302,6 +302,8 @@ The Account Centre for the default tenant is **enabled** with the following fiel
 | `avatar` | Users can view their avatar (`ReadOnly`) |
 | `customData` | Users can view their custom data (`ReadOnly`) |
 | `mfa` | Users can configure or remove MFA methods (TOTP, passkeys, backup codes) |
+| `passkey` | Users can register or remove passkeys (WebAuthn) |
+| `session` | Users can view and revoke active sessions |
 | `phone` | Users can update their phone number (**only enabled when `LOGTO_SMTP_SMS_*` is configured**; set to `Off` otherwise) |
 
 This allows end-users to self-manage their credentials and profile via the Account Centre SPA without further configuration.

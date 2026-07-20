@@ -15,8 +15,8 @@ import type Router from 'koa-router';
 import { z } from 'zod';
 
 import RequestError from '#src/errors/RequestError/index.js';
+import { generateWebAuthnAuthenticationOptions } from '#src/libraries/verification-helpers/webauthn.js';
 import koaGuard from '#src/middleware/koa-guard.js';
-import { generateWebAuthnAuthenticationOptions } from '#src/routes/interaction/utils/webauthn.js';
 import type TenantContext from '#src/tenants/TenantContext.js';
 import assertThat from '#src/utils/assert-that.js';
 
@@ -303,7 +303,7 @@ export default function webAuthnVerificationRoute<T extends ExperienceInteractio
       const { identifier } = ctx.guard.body;
 
       // Look up user by identifier to get their WebAuthn credentials
-      const user = await findUserByIdentifier(queries.users, identifier);
+      const user = await findUserByIdentifier(queries, identifier);
 
       const { mfaVerifications = [] } = user ?? {};
       const { hostname } = ctx.URL;

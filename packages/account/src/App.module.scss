@@ -20,6 +20,15 @@
   flex: 1;
   display: flex;
   justify-content: center;
+  align-items: flex-start;
+}
+
+.withSidebar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: _.unit(6);
+  align-items: start;
+  padding: 0 _.unit(6);
 }
 
 .main {
@@ -55,6 +64,10 @@
     flex-direction: column;
   }
 
+  .fullPage {
+    background: var(--color-bg-float-base);
+  }
+
   .container {
     flex: 1;
     display: flex;
@@ -68,6 +81,11 @@
     width: auto;
     flex: 1;
     padding: _.unit(4) _.unit(5);
+    background: var(--color-bg-float-base);
+  }
+
+  .withMobileTabNav .main {
+    padding-top: _.unit(4);
   }
 
   .cardContainer {
@@ -118,10 +136,17 @@
     padding-bottom: _.unit(7);
   }
 
+  @media only screen and (max-width: 1060px) {
+    .withSidebar {
+      display: flex;
+      justify-content: center;
+    }
+  }
+
   @media only screen and (max-width: 800px) {
     .main:not(.cardMain) {
       width: auto;
-      padding: _.unit(3) _.unit(5);
+      padding: _.unit(4);
     }
   }
 

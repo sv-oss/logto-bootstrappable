@@ -38,9 +38,12 @@ dump.rdb
 
 # Claude local files
 .claude/
+docs/superpowers/
+CLAUDE.md
 
 # connectors
 /packages/core/connectors
 
 # console auto generated files
 /packages/console/src/consts/jwt-customizer-type-definition.ts
+packages/connectors/connector-whatsapp/test-send.mjs

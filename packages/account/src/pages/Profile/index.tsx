@@ -1,159 +1,171 @@
-import Button from '@experience/shared/components/Button';
-import InputField from '@experience/shared/components/InputFields/InputField';
-import { AccountCenterControlValue } from '@logto/schemas';
-import { useContext, useState, type ChangeEvent, type FormEvent } from 'react';
+import { AccountCenterControlValue, type CustomProfileField } from '@logto/schemas';
+import classNames from 'classnames';
+import { useCallback, useContext, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import LoadingContext from '@ac/Providers/LoadingContextProvider/LoadingContext';
 import PageContext from '@ac/Providers/PageContextProvider/PageContext';
-import { updateProfile, updateProfileFields } from '@ac/apis/account';
-import ErrorPage from '@ac/components/ErrorPage';
+import { updateAvatar } from '@ac/apis/account';
+import AccountPageHeader from '@ac/components/AccountPageHeader';
+import AvatarUploadField from '@ac/components/AvatarUploadField';
+import PageFooter from '@ac/components/PageFooter';
+import { layoutClassNames } from '@ac/constants/layout';
 import useApi from '@ac/hooks/use-api';
-import useErrorHandler from '@ac/hooks/use-error-handler';
-import SecondaryPageLayout from '@ac/layouts/SecondaryPageLayout';
+import { getProfileFieldControlKey } from '@ac/utils/profile-field-control';
 
+import homeStyles from '../Home/index.module.scss';
+
+import EditProfileFieldModal from './EditProfileFieldModal';
 import styles from './index.module.scss';
+import { getAccountCenterProfileFields, getProfileFieldValue } from './profile-field-values';
+import type { ProfileFieldRow } from './types';
+
+const profileLabelKeys: Record<string, string> = {
+  name: 'profile.name',
+  avatar: 'profile.avatar',
+  fullname: 'profile.fullname',
+  address: 'profile.address.formatted',
+};
 
 const Profile = () => {
   const { t } = useTranslation();
-  const { loading } = useContext(LoadingContext);
-  const { accountCenterSettings, userInfo, refreshUserInfo, setToast } = useContext(PageContext);
-  const updateProfileRequest = useApi(updateProfile);
-  const updateProfileFieldsRequest = useApi(updateProfileFields);
-  const handleError = useErrorHandler();
+  const { accountCenterSettings, experienceSettings, userInfo, refreshUserInfo, setToast } =
+    useContext(PageContext);
+  const profileFields = getAccountCenterProfileFields(accountCenterSettings);
+  const [editingField, setEditingField] = useState<ProfileFieldRow>();
 
-  const [name, setName] = useState(userInfo?.name ?? '');
-  const [avatar, setAvatar] = useState(userInfo?.avatar ?? '');
-  const [givenName, setGivenName] = useState(userInfo?.profile?.givenName ?? '');
-  const [familyName, setFamilyName] = useState(userInfo?.profile?.familyName ?? '');
-
-  const fields = accountCenterSettings?.fields ?? {};
-  const { Off, Edit } = AccountCenterControlValue;
-
-  const nameEnabled = fields.name !== Off;
-  const avatarEnabled = fields.avatar !== Off;
-  const profileEnabled = fields.profile !== Off;
-  const nameEditable = fields.name === Edit;
-  const avatarEditable = fields.avatar === Edit;
-  const profileEditable = fields.profile === Edit;
-
-  if (!accountCenterSettings?.enabled || (!nameEnabled && !avatarEnabled && !profileEnabled)) {
-    return (
-      <ErrorPage titleKey="error.something_went_wrong" messageKey="error.feature_not_enabled" />
+  const fieldRows = useMemo(() => {
+    const customProfileFieldCatalog =
+      experienceSettings?.customProfileFieldCatalog ??
+      experienceSettings?.customProfileFields ??
+      [];
+    const customProfileFieldMap = new Map(
+      customProfileFieldCatalog.map((field: CustomProfileField) => [field.name, field])
     );
-  }
 
-  const handleSubmit = async (event?: FormEvent) => {
-    event?.preventDefault();
+    return profileFields.reduce<ProfileFieldRow[]>((rows, { name }) => {
+      const field = customProfileFieldMap.get(name);
+      const controlKey = getProfileFieldControlKey(name, field);
 
-    const mainPayload = {
-      ...(nameEditable && { name: name.trim() || null }),
-      ...(avatarEditable && { avatar: avatar.trim() || null }),
-    };
+      const controlValue = accountCenterSettings?.fields[controlKey];
 
-    const profilePayload = {
-      ...(profileEditable && { givenName: givenName.trim() || undefined }),
-      ...(profileEditable && { familyName: familyName.trim() || undefined }),
-    };
+      if (!controlValue || controlValue === AccountCenterControlValue.Off) {
+        return rows;
+      }
 
-    const hasMainChanges = nameEditable || avatarEditable;
-    const hasProfileChanges = profileEditable;
+      const labelKey = profileLabelKeys[name] ?? `profile.${name}`;
+      const label =
+        field?.label === undefined || field.label === ''
+          ? t(labelKey, { defaultValue: name })
+          : field.label;
 
-    const [mainError] = hasMainChanges ? await updateProfileRequest(mainPayload) : [undefined];
-
-    if (mainError) {
-      await handleError(mainError, {
-        'account_center.field_not_editable': async () => {
-          setToast(t('error.something_went_wrong'));
+      return [
+        ...rows,
+        {
+          name,
+          label,
+          value: getProfileFieldValue(userInfo, { name, label }, t, field, styles.avatar),
+          controlKey,
+          controlValue,
+          field,
         },
-      });
-      return;
-    }
+      ];
+    }, []);
+  }, [
+    accountCenterSettings?.fields,
+    experienceSettings?.customProfileFieldCatalog,
+    experienceSettings?.customProfileFields,
+    profileFields,
+    t,
+    userInfo,
+  ]);
 
-    const [profileError] = hasProfileChanges
-      ? await updateProfileFieldsRequest(profilePayload)
-      : [undefined];
+  const updateAvatarRequest = useApi(updateAvatar);
 
-    if (profileError) {
-      await handleError(profileError, {
-        'account_center.field_not_editable': async () => {
-          setToast(t('error.something_went_wrong'));
-        },
-      });
-      return;
-    }
+  const handleAvatarChange = useCallback(
+    async (avatarUrl: string) => {
+      const [error] = await updateAvatarRequest({ avatar: avatarUrl });
 
+      if (error) {
+        throw error instanceof Error ? error : new Error(String(error));
+      }
+
+      await refreshUserInfo();
+      setToast(t('account_center.update_success.default.description'));
+    },
+    [refreshUserInfo, setToast, t, updateAvatarRequest]
+  );
+
+  const handleUpdated = useCallback(async () => {
     await refreshUserInfo();
-    setToast(t('account_center.profile.saved'));
-  };
-
-  const isAnyEditable = nameEditable || avatarEditable || profileEditable;
+    setToast(t('account_center.update_success.default.description'));
+  }, [refreshUserInfo, setToast, t]);
 
   return (
-    <SecondaryPageLayout
-      title="account_center.profile.title"
-      description="account_center.profile.description"
-    >
-      <form className={styles.container} onSubmit={handleSubmit}>
-        {profileEnabled && (
-          <InputField
-            label={t('account_center.profile.given_name_label')}
-            name="givenName"
-            value={givenName}
-            isDisabled={!profileEditable}
-            onChange={({ target: { value } }: ChangeEvent<HTMLInputElement>) => {
-              setGivenName(value);
-            }}
-          />
-        )}
+    <>
+      <div className={homeStyles.container}>
+        <AccountPageHeader
+          titleKey="account_center.page.profile_title"
+          descriptionKey="account_center.page.profile_description"
+        />
+        <div className={classNames(homeStyles.content, layoutClassNames.pageContent)}>
+          {fieldRows.length > 0 ? (
+            <div className={classNames(styles.section, layoutClassNames.section)}>
+              <div className={classNames(styles.card, layoutClassNames.card)}>
+                {fieldRows.map((fieldRow) => {
+                  const { name, label, value, controlValue } = fieldRow;
 
-        {profileEnabled && (
-          <InputField
-            label={t('account_center.profile.family_name_label')}
-            name="familyName"
-            value={familyName}
-            isDisabled={!profileEditable}
-            onChange={({ target: { value } }: ChangeEvent<HTMLInputElement>) => {
-              setFamilyName(value);
-            }}
-          />
-        )}
+                  if (name === 'avatar' && controlValue === AccountCenterControlValue.Edit) {
+                    return (
+                      <AvatarUploadField
+                        key={name}
+                        label={label}
+                        value={userInfo?.avatar ?? ''}
+                        onChange={handleAvatarChange}
+                      />
+                    );
+                  }
 
-        {nameEnabled && (
-          <InputField
-            label={t('account_center.profile.name_label')}
-            name="name"
-            value={name}
-            isDisabled={!nameEditable}
-            onChange={({ target: { value } }: ChangeEvent<HTMLInputElement>) => {
-              setName(value);
-            }}
-          />
-        )}
-
-        {avatarEnabled && (
-          <InputField
-            label={t('account_center.profile.avatar_label')}
-            name="avatar"
-            type="url"
-            value={avatar}
-            isDisabled={!avatarEditable}
-            onChange={({ target: { value } }: ChangeEvent<HTMLInputElement>) => {
-              setAvatar(value);
-            }}
-          />
-        )}
-
-        {isAnyEditable && (
-          <Button
-            className={styles.submit}
-            title="action.save"
-            htmlType="submit"
-            isLoading={loading}
-          />
-        )}
-      </form>
-    </SecondaryPageLayout>
+                  return (
+                    <div key={name} className={classNames(styles.row, layoutClassNames.row)}>
+                      <div className={styles.topLine}>
+                        <div className={styles.name}>{label}</div>
+                        {name !== 'avatar' && controlValue === AccountCenterControlValue.Edit && (
+                          <div className={styles.actions}>
+                            <button
+                              type="button"
+                              className={styles.changeButton}
+                              onClick={() => {
+                                setEditingField(fieldRow);
+                              }}
+                            >
+                              {t('account_center.security.change')}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                      <div className={classNames(styles.value, !value && styles.secondaryValue)}>
+                        {value ?? t('account_center.security.not_set')}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            <div className={styles.empty} />
+          )}
+        </div>
+        <PageFooter />
+      </div>
+      <EditProfileFieldModal
+        field={editingField}
+        userInfo={userInfo}
+        onUpdated={handleUpdated}
+        onClose={() => {
+          setEditingField(undefined);
+        }}
+      />
+    </>
   );
 };
 

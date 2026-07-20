@@ -7,6 +7,8 @@ import {
   type JwtCustomizerType,
   type JwtCustomizerUserContext,
   type JwtCustomizerApplicationContext,
+  type JwtCustomizerOrganizationContext,
+  jwtCustomizerOrganizationContextGuard,
   type LogtoJwtTokenKey,
   type CustomJwtApiContext,
   type CustomJwtScriptPayload,
@@ -35,13 +37,15 @@ import { type ScopeLibrary } from '#src/libraries/scope.js';
 import { type UserLibrary } from '#src/libraries/user.js';
 import type Queries from '#src/tenants/Queries.js';
 import {
-  LocalVmError,
   getJwtCustomizerScripts,
-  runScriptFunctionInLocalVm,
-  buildLocalVmErrorBody,
   type CustomJwtDeployRequestBody,
   parseAzureFunctionsResponseError,
 } from '#src/utils/custom-jwt/index.js';
+import {
+  buildLocalVmErrorBody,
+  LocalVmError,
+  runScriptFunctionInLocalVm,
+} from '#src/utils/local-vm/index.js';
 
 import { type CloudConnectionLibrary } from './cloud-connection.js';
 
@@ -175,6 +179,25 @@ export class JwtCustomizerLibrary {
 
     const { secret: _, ...rest } = application;
     return rest;
+  }
+
+  /**
+   * Fetch the target organization context for organization (API resource) access tokens.
+   *
+   * Returns `undefined` when the organization cannot be found (e.g. it was deleted between
+   * authorization and token issuance), so a missing organization degrades gracefully instead
+   * of failing token issuance.
+   */
+  async getOrganizationContext(
+    organizationId: string
+  ): Promise<JwtCustomizerOrganizationContext | undefined> {
+    const organization = await trySafe(this.queries.organizations.findById(organizationId));
+
+    if (!organization) {
+      return;
+    }
+
+    return jwtCustomizerOrganizationContextGuard.parse(organization);
   }
 
   /**

@@ -1,18 +1,22 @@
+/* eslint-disable max-lines -- This route module already hosts several Sign-in Experience endpoints; keep this API change colocated with the existing update flow. */
 import { DemoConnector } from '@logto/connector-kit';
 import { PasswordPolicyChecker } from '@logto/core-kit';
 import {
   ConnectorType,
   SignInExperiences,
-  ForgotPasswordMethod,
   MfaPolicy,
   ProductEvent,
   type SignInExperience,
+  ForgotPasswordMethod,
+  passwordExpirationPolicyGuard,
+  verificationCodePolicyGuard,
 } from '@logto/schemas';
 import { conditional, type Optional, tryThat } from '@silverhand/essentials';
 import { literal, object, string, z } from 'zod';
 
 import { EnvSet } from '#src/env-set/index.js';
 import {
+  getForgotPasswordAvailability,
   validateSignUp,
   validateSignIn,
   parseEmailBlocklistPolicy,
@@ -28,6 +32,8 @@ import { captureEvent } from '../../utils/posthog.js';
 import type { ManagementApiRouter, RouterInitArgs } from '../types.js';
 
 import customUiAssetsRoutes from './custom-ui-assets/index.js';
+import { hasCustomUiCspSources, normalizeCustomUiCsp } from './custom-ui-csp.js';
+import usernamePolicyRoutes from './username-policy.js';
 
 const isMfaEnabled = (mfa: Optional<SignInExperience['mfa']>): boolean =>
   Boolean(mfa?.factors && mfa.factors.length > 0);
@@ -47,8 +53,9 @@ export default function signInExperiencesRoutes<T extends ManagementApiRouter>(
   const { findDefaultSignInExperience, updateDefaultSignInExperience } = queries.signInExperiences;
   const { deleteConnectorById } = queries.connectors;
   const { findUserById } = queries.users;
+  const { normalizeProfileFields } = libraries.customProfileFields;
   const {
-    signInExperiences: { validateLanguageInfo },
+    signInExperiences: { validateLanguageInfo, findCaseConflicts },
     quota,
   } = libraries;
   const { getLogtoConnectors } = connectors;
@@ -82,6 +89,8 @@ export default function signInExperiencesRoutes<T extends ManagementApiRouter>(
           supportEmail: true,
           supportWebsiteUrl: true,
           unknownSessionRedirectUrl: true,
+          passwordExpiration: true,
+          verificationCodePolicy: true,
         })
         .merge(
           object({
@@ -90,17 +99,26 @@ export default function signInExperiencesRoutes<T extends ManagementApiRouter>(
             supportEmail: string().email().optional().nullable().or(literal('')),
             supportWebsiteUrl: string().url().optional().nullable().or(literal('')),
             unknownSessionRedirectUrl: string().url().optional().nullable().or(literal('')),
+            passwordExpiration: passwordExpirationPolicyGuard,
+            verificationCodePolicy: verificationCodePolicyGuard,
           })
         )
         .partial(),
       response: signInExperienceResponseGuard,
-      status: [200, 400, 404, 422, 403],
+      status: [200, 400, 404, 422, 403, 409],
     }),
     // eslint-disable-next-line complexity
     async (ctx, next) => {
       const {
         query: { removeUnusedDemoSocialConnector },
-        body: { socialSignInConnectorTargets, emailBlocklistPolicy, ...rest },
+        body: {
+          socialSignInConnectorTargets,
+          emailBlocklistPolicy,
+          signUpProfileFields,
+          customUiCsp,
+          usernamePolicy,
+          ...rest
+        },
       } = ctx.guard;
       const {
         languageInfo,
@@ -113,7 +131,13 @@ export default function signInExperiencesRoutes<T extends ManagementApiRouter>(
         forgotPasswordMethods,
         hideLogtoBranding,
         passkeySignIn,
+        passwordExpiration,
+        verificationCodePolicy,
       } = rest;
+
+      const normalizedSignUpProfileFields = await normalizeProfileFields(signUpProfileFields);
+      const normalizedCustomUiCsp = conditional(customUiCsp && normalizeCustomUiCsp(customUiCsp));
+      const hasCustomUiCsp = hasCustomUiCspSources(normalizedCustomUiCsp);
 
       if (languageInfo) {
         await validateLanguageInfo(languageInfo);
@@ -123,6 +147,24 @@ export default function signInExperiencesRoutes<T extends ManagementApiRouter>(
         getLogtoConnectors(),
         findDefaultSignInExperience(),
       ]);
+
+      // Flipping usernames to case-insensitive would merge accounts that differ only by case, so
+      // reject the flip while such conflicts exist. Only the actual case-sensitive ->
+      // case-insensitive transition needs checking: a tenant that is already case-insensitive
+      // cannot have accumulated case conflicts (uniqueness was enforced case-insensitively), so we
+      // skip the (potentially expensive) scan otherwise.
+      if (usernamePolicy?.caseSensitive === false && currentSettings.usernamePolicy.caseSensitive) {
+        const { totalConflicts, samples } = await findCaseConflicts(20);
+        if (totalConflicts > 0) {
+          throw new RequestError(
+            {
+              code: 'sign_in_experiences.username_policy_case_conflicts_exist',
+              status: 409,
+            },
+            { totalConflicts, samples }
+          );
+        }
+      }
 
       // Remove unavailable connectors
       const filteredSocialSignInConnectorTargets = socialSignInConnectorTargets?.filter((target) =>
@@ -200,23 +242,81 @@ export default function signInExperiencesRoutes<T extends ManagementApiRouter>(
         mfa && !isMfaEnabled(mfa) && adaptiveMfa === undefined ? { enabled: false } : adaptiveMfa;
 
       if (forgotPasswordMethods) {
-        const hasEmailConnector = connectors.some(({ type }) => type === ConnectorType.Email);
-        const hasSmsConnector = connectors.some(({ type }) => type === ConnectorType.Sms);
+        const forgotPasswordAvailability = getForgotPasswordAvailability(
+          connectors,
+          forgotPasswordMethods
+        );
 
         for (const method of forgotPasswordMethods) {
-          if (method === ForgotPasswordMethod.EmailVerificationCode && !hasEmailConnector) {
+          if (
+            method === ForgotPasswordMethod.EmailVerificationCode &&
+            !forgotPasswordAvailability.email
+          ) {
             throw new RequestError({
               code: 'sign_in_experiences.forgot_password_method_requires_connector',
               method: 'email',
             });
           }
-          if (method === ForgotPasswordMethod.PhoneVerificationCode && !hasSmsConnector) {
+
+          if (
+            method === ForgotPasswordMethod.PhoneVerificationCode &&
+            !forgotPasswordAvailability.phone
+          ) {
             throw new RequestError({
               code: 'sign_in_experiences.forgot_password_method_requires_connector',
               method: 'sms',
             });
           }
         }
+      }
+
+      const passwordExpirationPayload =
+        passwordExpiration?.enabled === false
+          ? { enabled: false }
+          : {
+              ...currentSettings.passwordExpiration,
+              ...passwordExpiration,
+            };
+
+      const passwordExpirationResult =
+        passwordExpirationPolicyGuard.safeParse(passwordExpirationPayload);
+
+      assertThat(
+        passwordExpirationResult.success,
+        new RequestError({
+          code: 'sign_in_experiences.password_expiration_invalid_period_days',
+          status: 422,
+        })
+      );
+
+      const currentPasswordExpiration = passwordExpirationResult.data;
+
+      // `enabledAt` is server-managed and never editable via the API: preserve the stored value
+      // while the policy stays enabled, stamp a fresh timestamp when toggling disabled -> enabled,
+      // and ignore any client-provided value.
+      const storedEnabledAt = currentSettings.passwordExpiration.enabled
+        ? currentSettings.passwordExpiration.enabledAt
+        : undefined;
+      const passwordExpirationToPersist = currentPasswordExpiration.enabled
+        ? {
+            ...currentPasswordExpiration,
+            enabledAt: storedEnabledAt ?? Date.now(),
+          }
+        : currentPasswordExpiration;
+
+      if (currentPasswordExpiration.enabled) {
+        const forgotPasswordAvailability = getForgotPasswordAvailability(
+          connectors,
+          forgotPasswordMethods ?? currentSettings.forgotPasswordMethods
+        );
+
+        assertThat(
+          forgotPasswordAvailability.email || forgotPasswordAvailability.phone,
+          new RequestError({
+            code: 'sign_in_experiences.password_expiration_requires_forgot_password',
+            status: 422,
+          })
+        );
       }
 
       /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
@@ -258,6 +358,17 @@ export default function signInExperiencesRoutes<T extends ManagementApiRouter>(
             details: 'Hide Logto branding is not supported in this environment',
           })
         );
+      }
+      if (hasCustomUiCsp) {
+        assertThat(
+          EnvSet.values.isCloud,
+          new RequestError({
+            code: 'request.invalid_input',
+            details: 'Custom UI CSP configuration is not available',
+          })
+        );
+      }
+      if (hideLogtoBranding === true || hasCustomUiCsp) {
         await quota.guardTenantUsageByKey('bringYourUiEnabled');
       }
       if (passkeySignIn?.enabled) {
@@ -277,6 +388,19 @@ export default function signInExperiencesRoutes<T extends ManagementApiRouter>(
             emailBlocklistPolicy: parseEmailBlocklistPolicy(emailBlocklistPolicy),
           }
         ),
+        ...conditional(
+          normalizedSignUpProfileFields !== undefined && {
+            signUpProfileFields: normalizedSignUpProfileFields,
+          }
+        ),
+        ...conditional(
+          normalizedCustomUiCsp !== undefined && {
+            customUiCsp: normalizedCustomUiCsp,
+          }
+        ),
+        ...conditional(passwordExpiration && { passwordExpiration: passwordExpirationToPersist }),
+        ...conditional(usernamePolicy && { usernamePolicy }),
+        ...conditional(verificationCodePolicy && { verificationCodePolicy }),
       };
 
       ctx.body = await updateDefaultSignInExperience(payload);
@@ -345,4 +469,7 @@ export default function signInExperiencesRoutes<T extends ManagementApiRouter>(
   );
 
   customUiAssetsRoutes(...args);
+
+  usernamePolicyRoutes(...args);
 }
+/* eslint-enable max-lines */

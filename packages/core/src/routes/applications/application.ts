@@ -6,6 +6,7 @@ import {
   Applications,
   ApplicationType,
   buildBuiltInApplicationDataForTenant,
+  defaultApplicationSecretName,
   hasSecrets,
   InternalRole,
   ProductEvent,
@@ -25,6 +26,8 @@ import { parseSearchParamsForSearch } from '#src/utils/search.js';
 import { captureEvent } from '../../utils/posthog.js';
 import type { ManagementApiRouter, RouterInitArgs } from '../types.js';
 
+import { assertApplicationAccessControlHasRules } from './application-access-control/utils.js';
+import applicationAccessControlRoutes from './application-access-control.js';
 import applicationCustomDataRoutes from './application-custom-data.js';
 import { generateInternalSecret } from './application-secret.js';
 import { applicationCreateGuard, applicationPatchGuard } from './types.js';
@@ -53,16 +56,14 @@ const assertThirdPartyApplicationTokenExchangeDisabled = (
   }
 };
 
-const hideOidcClientMetadataForSamlApp = (application: Application) => {
-  return {
-    ...application,
-    ...conditional(
-      application.type === ApplicationType.SAML && {
-        oidcClientMetadata: buildOidcClientMetadata(),
-      }
-    ),
-  };
-};
+const hideOidcClientMetadataForSamlApp = (application: Application) => ({
+  ...application,
+  ...conditional(
+    application.type === ApplicationType.SAML && {
+      oidcClientMetadata: buildOidcClientMetadata(),
+    }
+  ),
+});
 
 const hideOidcClientMetadataForSamlApps = (applications: readonly Application[]) => {
   return applications.map((application) => hideOidcClientMetadataForSamlApp(application));
@@ -234,7 +235,7 @@ export default function applicationRoutes<T extends ManagementApiRouter>(
 
       if (hasSecrets(application.type)) {
         await queries.applicationSecrets.insert({
-          name: 'Default secret',
+          name: defaultApplicationSecretName,
           applicationId: application.id,
           value: generateStandardSecret(),
         });
@@ -330,6 +331,12 @@ export default function applicationRoutes<T extends ManagementApiRouter>(
         throw new RequestError('application.saml.use_saml_app_api');
       }
 
+      if (rest.appLevelAccessControlEnabled === true) {
+        assertApplicationAccessControlHasRules(
+          await queries.applicationAccessControl.findApplicationAccessControl(id)
+        );
+      }
+
       assertThirdPartyApplicationTokenExchangeDisabled(
         pendingUpdateApplication.isThirdParty,
         rest.customClientMetadata?.allowTokenExchange
@@ -386,7 +393,11 @@ export default function applicationRoutes<T extends ManagementApiRouter>(
         }
       }
 
-      if (protectedAppMetadata) {
+      const updatedProtectedApplication = await (async () => {
+        if (!protectedAppMetadata) {
+          return;
+        }
+
         const { type, protectedAppMetadata: originProtectedAppMetadata } = pendingUpdateApplication;
         assertThat(type === ApplicationType.Protected, 'application.protected_application_only');
         assertThat(
@@ -396,7 +407,7 @@ export default function applicationRoutes<T extends ManagementApiRouter>(
             status: 422,
           })
         );
-        await queries.applications.updateApplicationById(id, {
+        const updatedApplication = await queries.applications.updateApplicationById(id, {
           protectedAppMetadata: {
             ...originProtectedAppMetadata,
             ...protectedAppMetadata,
@@ -411,12 +422,15 @@ export default function applicationRoutes<T extends ManagementApiRouter>(
           });
           throw error;
         }
-      }
+        return updatedApplication;
+      })();
 
-      ctx.body =
+      const updatedApplication =
         Object.keys(rest).length > 0
           ? await queries.applications.updateApplicationById(id, rest, 'replace')
-          : pendingUpdateApplication;
+          : (updatedProtectedApplication ?? pendingUpdateApplication);
+
+      ctx.body = updatedApplication;
 
       return next();
     }
@@ -468,5 +482,7 @@ export default function applicationRoutes<T extends ManagementApiRouter>(
   );
 
   applicationCustomDataRoutes(router, tenant);
+
+  applicationAccessControlRoutes(router, tenant);
 }
 /* eslint-enable max-lines */

@@ -32,6 +32,7 @@ const jwt_claims = {
   restore: '恢复默认',
   restored: '已恢复',
   data_source_tab: '数据来源',
+  error_handling_tab: '错误处理',
   test_tab: '测试上下文',
   jwt_claims_description: '默认声明会自动包含在JWT中，不能被覆盖。',
   user_data: {
@@ -50,6 +51,10 @@ const jwt_claims = {
     title: '应用程序上下文',
     subtitle: '使用 `context.application` 输入参数提供与令牌关联的应用程序信息。',
   },
+  organization_data: {
+    title: '机构上下文',
+    subtitle: '使用 `context.organization` 输入参数提供目标机构信息，仅适用于机构令牌。',
+  },
   token_data: {
     title: '令牌数据',
     subtitle: '使用`token`输入参数查看当前访问令牌负载。',
@@ -57,6 +62,18 @@ const jwt_claims = {
   api_context: {
     title: 'API 上下文：访问控制',
     subtitle: '使用 `api.denyAccess` 方法拒绝令牌请求。',
+  },
+  error_handling: {
+    title: '错误处理',
+    subtitle: '控制当脚本执行失败时是否阻止签发令牌。',
+    input_field_title: '脚本报错时的令牌签发行为',
+    block_issuance_switch: '当脚本报错时阻止签发令牌',
+    default_hint_create:
+      '新建的自定义 claims 脚本在脚本执行失败时默认会阻止签发令牌。如果 API 已经返回了该值，则优先使用已保存的值。',
+    default_hint_edit:
+      '没有这个设置的现有自定义 claims 脚本会保持原有行为，在你明确保存一个值之前，此选项默认仍为关闭。',
+    warning:
+      '启用后，脚本运行时错误会以 `invalid_request` (400) 和本地化的 `error_description` 拒绝令牌请求。调用 `api.denyAccess` 仍会返回 `access_denied`。',
   },
   fetch_external_data: {
     title: '获取外部数据',

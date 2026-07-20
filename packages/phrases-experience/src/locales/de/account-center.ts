@@ -36,6 +36,11 @@ const account_center = {
     security_title: 'Sicherheit',
     security_description:
       'Ändern Sie hier Ihre Kontoeinstellungen, um die Sicherheit Ihres Kontos zu gewährleisten.',
+    profile_title: 'Persönliche Informationen',
+    profile_description: 'Ändere hier deine persönlichen Informationen.',
+    sidebar_personal_info: 'Persönliche Informationen',
+    sidebar_security: 'Sicherheit',
+    sidebar_sessions: 'Sitzungen',
     support: 'Hilfe',
   },
   verification: {
@@ -48,6 +53,9 @@ const account_center = {
     error_verify_failed: 'Verifizierung fehlgeschlagen. Bitte gib den Code erneut ein.',
     verification_required: 'Verifizierung abgelaufen. Bitte bestätige deine Identität erneut.',
     try_another_method: 'Versuche eine andere Verifizierungsmethode',
+    no_available_methods_title: 'Keine Verifizierungsmethoden verfügbar',
+    no_available_methods_description:
+      'Du hast noch keine Verifizierungsmethoden eingerichtet. Bitte füge zuerst ein Passwort, eine E-Mail-Adresse oder eine Telefonnummer zu deinem Konto hinzu.',
   },
   password_verification: {
     title: 'Passwort bestätigen',
@@ -92,6 +100,7 @@ const account_center = {
   username: {
     title: 'Benutzernamen festlegen',
     description: 'Benutzername darf nur Buchstaben, Zahlen und Unterstriche enthalten.',
+    policy_description: '{{requirements}}',
     success: 'Benutzername erfolgreich aktualisiert.',
   },
   security: {
@@ -119,6 +128,32 @@ const account_center = {
     backup_codes_count_other: '{{count}} Codes verbleibend',
     view: 'Ansehen',
     manage: 'Verwalten',
+    turn_on_2_step_verification_description:
+      'Fügen Sie eine zusätzliche Sicherheitsebene hinzu. Sie werden bei der Anmeldung zu einem zweiten Verifizierungsschritt aufgefordert.',
+    turn_off_2_step_verification: '2-Faktor-Verifizierung deaktivieren',
+    turn_off_2_step_verification_description:
+      'Das Deaktivieren der 2-Faktor-Verifizierung entfernt die zusätzliche Schutzebene für Ihr Konto bei der Anmeldung. Möchten Sie wirklich fortfahren?',
+    disable_2_step_verification: 'Deaktivieren',
+    no_verification_method_warning:
+      'Sie haben keine zweite Verifizierungsmethode hinzugefügt. Fügen Sie mindestens eine hinzu, um die 2-Faktor-Verifizierung bei der Anmeldung zu aktivieren.',
+    passkey_sign_in_prompt: 'Zur Einrichtung eines Passkeys auffordern',
+    passkey_sign_in_prompt_description:
+      'Wenn aktiviert, werden Sie aufgefordert, einen Passkey für eine schnellere und sicherere Anmeldung einzurichten.',
+    account_removal: 'Kontolöschung',
+    delete_your_account: 'Ihr Konto löschen',
+    delete_account: 'Konto löschen',
+    remove_username_confirmation_title: 'Benutzernamen entfernen',
+    remove_username_confirmation_description:
+      'Nach dem Entfernen können Sie sich nicht mehr mit diesem Benutzernamen anmelden. Möchten Sie wirklich fortfahren?',
+    remove_email_confirmation_title: 'E-Mail-Adresse entfernen',
+    remove_email_confirmation_description:
+      'Nach dem Entfernen können Sie sich nicht mehr mit dieser E-Mail-Adresse anmelden. Möchten Sie wirklich fortfahren?',
+    remove_phone_confirmation_title: 'Telefonnummer entfernen',
+    remove_phone_confirmation_description:
+      'Nach dem Entfernen können Sie sich nicht mehr mit dieser Telefonnummer anmelden. Möchten Sie wirklich fortfahren?',
+    email_removed: 'E-Mail-Adresse wurde erfolgreich entfernt.',
+    phone_removed: 'Telefonnummer wurde erfolgreich entfernt.',
+    username_removed: 'Benutzername erfolgreich entfernt.',
   },
   social: {
     linked: '{{connector}} wurde erfolgreich verknüpft.',
@@ -267,14 +302,30 @@ const account_center = {
       'Sie haben dieses Gerät erfolgreich für die 2-Schritt-Authentifizierung verifiziert. Passen Sie den Namen an, um ihn zu erkennen, wenn Sie mehrere Schlüssel haben.',
     name_input_label: 'Name',
   },
-  profile: {
-    title: 'Edit profile',
-    description: 'Update your display name and avatar.',
-    name_label: 'Display name',
-    avatar_label: 'Avatar URL',
-    given_name_label: 'Given name',
-    family_name_label: 'Family name',
-    saved: 'Profile updated successfully.',
+  sessions: {
+    page_title: 'Sitzungen',
+    page_description:
+      'Verwalten Sie Ihre aktiven Sitzungen und autorisierte Drittanbieter-Anwendungen.',
+    title: 'Sitzungen',
+    current_session: 'Aktuelle Sitzung',
+    signed_in_at: 'Angemeldet {{date}}',
+    revoke_session: 'Abmelden',
+    revoke_session_title: 'Sitzung abmelden',
+    revoke_session_description:
+      'Dadurch wird die Sitzung abgemeldet und alle zugehörigen Zugriffe widerrufen. Möchten Sie wirklich fortfahren?',
+    no_other_sessions: 'Keine weiteren aktiven Sitzungen.',
+    loading: 'Laden...',
+    third_party_apps_title: 'Drittanbieter-Apps',
+    no_third_party_apps: 'Keine autorisierten Drittanbieter-Anwendungen.',
+    third_party_apps_load_failed:
+      'Drittanbieter-Apps konnten nicht geladen werden. Bitte versuche es erneut.',
+    granted_at: 'Autorisiert {{date}}',
+    revoke_grant: 'Entfernen',
+    revoke_grant_title: 'Drittanbieter-App-Zugriff entfernen',
+    revoke_grant_description:
+      'Dadurch wird der gesamte dieser Anwendung gewährte Zugriff widerrufen. Möchten Sie wirklich fortfahren?',
+    revoke_grant_failed:
+      'Einige Berechtigungen konnten nicht widerrufen werden. Bitte versuchen Sie es erneut.',
   },
 };
 

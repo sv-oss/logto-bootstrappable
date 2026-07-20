@@ -1,5 +1,45 @@
 # Change Log
 
+## 1.22.0
+
+### Minor Changes
+
+- d41082bd7d: add app-level access control for applications
+
+  Add a new application access control feature that allows administrators to restrict user access to applications. When enabled, users who do not have permission to access an application will see an access denied error message when they attempt to sign in or access the application. This feature can be configured in the Console Security settings.
+
+  Supported custom control rules include:
+
+  - User IDs
+  - User roles
+  - Organizations
+  - Organization roles
+
+  Refer to the documentation for more details: https://docs.logto.io/integrate-logto/app-level-access-control
+
+### Patch Changes
+
+- 9847dfd13: fix one-time token consent handling for switch-account sign-in flows
+
+## 1.21.0
+
+### Minor Changes
+
+- ab073bb65f: support blocking token issuance when custom JWT scripts fail
+
+  This update adds configurable JWT customizer error handling for access tokens and client credentials flows.
+
+  - core now preserves `api.denyAccess()` as `access_denied` and converts other blocking-mode script failures into localized `invalid_request` responses
+  - console adds a dedicated `Error handling` tab for configuring the behavior, defaults `blockIssuanceOnError` to enabled for newly created scripts, keeps existing scripts without a saved value on the legacy disabled default, and aligns the related guidance copy
+  - schemas, phrases, and integration coverage are updated to match the new blocking behavior and localized error messages
+
+### Patch Changes
+
+- 5c83985dbe: return response bodies from organization user and role assignment APIs
+
+  - POST `/organizations/:id/users` now returns `{ userIds: string[] }` echoing the user IDs that were sent with the request
+  - POST `/organizations/:id/users/:userId/roles` now returns `{ organizationRoleIds: string[] }` with the final deduplicated role IDs that were assigned, resolved from any provided role names
+
 ## 1.20.0
 
 ### Minor Changes

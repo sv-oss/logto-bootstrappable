@@ -120,6 +120,42 @@ const application_details = {
   field_custom_data_tip:
     'Additional custom application info not listed in the pre-defined application properties, such as business-specific settings and configurations.',
   custom_data_invalid: 'Custom data must be a valid JSON object',
+  access_control: {
+    name: 'Rules',
+    title: 'Access control',
+    description: 'Customize your rules for the app-level access control.',
+    enable: 'Enable app-level access control',
+    enable_description:
+      'Enable granular access control to restrict which users can access this application. If disabled, all registered users in the system can access it.',
+    enable_without_rules_notice: 'Add at least one access rule before enabling access control.',
+    load_error: 'Failed to load access control rules.',
+    custom_allow_rules: 'Custom allow rules',
+    custom_allow_rules_description:
+      'Create rules so users with certain attributes can access automatically. At least one rule is required when enabled.',
+    rules: 'Access rules',
+    add_rules: 'Add rules',
+    rules_description: 'Users can access this app when they match any one of the configured rules.',
+    empty_rules_description: 'No rules are configured yet.',
+    delete_rule_confirmation: 'Are you sure you want to remove this rule?',
+    rule_table_rules: 'Rules',
+    rule_table_description: 'Description',
+    rule_table_users: 'Users',
+    rule_table_members: 'Members',
+    rule_table_user_id: 'User ID',
+    rule_count: '{{count}} rule',
+    rule_count_other: '{{count}} rules',
+    rule_users: 'Users',
+    rule_users_description: 'Specific users can access this app.',
+    rule_roles: 'Roles',
+    rule_user_roles: 'User roles',
+    rule_user_roles_description: 'Users assigned to selected user roles can access this app.',
+    rule_organizations: 'Organizations',
+    rule_organizations_description:
+      'All current and future members of selected organizations can access this app.',
+    rule_organization_roles: 'Organization roles',
+    rule_organization_roles_description:
+      'Members with selected organization roles in selected organizations can access this app.',
+  },
   branding: {
     name: 'Branding',
     description: 'Customize your app logo and branding color for the app-level experience.',

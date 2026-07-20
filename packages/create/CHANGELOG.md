@@ -1,5 +1,31 @@
 # Change Log
 
+## 1.41.0
+
+### Patch Changes
+
+- @logto/cli@1.41.0
+
+## 1.40.1
+
+### Patch Changes
+
+- @logto/cli@1.40.1
+
+## 1.40.0
+
+### Patch Changes
+
+- Updated dependencies [32c9ea4d81]
+  - @logto/cli@1.40.0
+
+## 1.39.0
+
+### Patch Changes
+
+- Updated dependencies [3350b13ec8]
+  - @logto/cli@1.39.0
+
 ## 1.38.0
 
 ### Patch Changes

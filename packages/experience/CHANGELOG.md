@@ -1,5 +1,63 @@
 # Change Log
 
+## 1.20.0
+
+### Minor Changes
+
+- d41082bd7d: add app-level access control for applications
+
+  Add a new application access control feature that allows administrators to restrict user access to applications. When enabled, users who do not have permission to access an application will see an access denied error message when they attempt to sign in or access the application. This feature can be configured in the Console Security settings.
+
+  Supported custom control rules include:
+
+  - User IDs
+  - User roles
+  - Organizations
+  - Organization roles
+
+  Refer to the documentation for more details: https://docs.logto.io/integrate-logto/app-level-access-control
+
+- c2016a044c: add a configurable per-tenant password expiration policy
+
+  Operators can enable password expiration from Console → Security → Password policy and set the number of days a password stays valid. When a password reaches the end of its valid period — or is manually expired for a specific user — the end user is forced through the forgot-password flow on their next password sign-in before they can continue. Users signing in via SSO or passkey are not affected.
+
+  - **Console**: a new "Password expiration" card with an enable toggle and a valid-period (days) input, an inline reminder when sign-up requires no contact identifier to guarantee password recovery, and a per-user "Expire password" action on the user details page.
+  - **Core / API**: the policy is stored on the sign-in experience (`passwordExpiration`) and enforced after password verification. `PATCH /api/users/:userId/password/expiration` lets admins manually expire a user's password, and deleting the last forgot-password connector is rejected while the policy is enabled.
+  - **Experience**: an expired password prompts the user to reset it via the configured recovery method before sign-in completes.
+
+  Legacy users without a recorded password-change date are anchored to the timestamp the policy was enabled, so they get a full valid period instead of being expired immediately.
+
+- 67b99bba85: apply the tenant username policy in sign-in experience and account center username forms
+
+  Usernames entered during sign-up, profile fulfillment, and account center editing are validated against the tenant username policy with localized inline errors. The dedicated username pages (continue flow and account center) state the policy requirements in their page description, and the sign-up identifier form surfaces the full requirements sentence when an entered username violates the policy.
+
+### Patch Changes
+
+- 72820ac41e: prevent theme flash in sign-in experience and account center
+
+  Sign-in experience and account center now apply tenant theme, platform, and brand color before the app hydrates, reducing flashes of the wrong theme during initial page load.
+
+## 1.19.2
+
+### Patch Changes
+
+- 346816a350: fix: require terms agreement when the sign-in flow turns into a registration
+
+  When the agreement policy is `ManualRegistrationOnly` ("Require checkbox agreement on registration only"), signing in with an unregistered email or phone and then confirming "create a new account" used to create the account without ever asking the user to agree to the terms. The terms agreement is now prompted before the account is created on this path, matching the dedicated registration form and the social/SSO registration flows.
+
+## 1.19.1
+
+### Patch Changes
+
+- cc9857d073: fix: add localStorage fallback for social/SSO redirect state in in-app browsers
+
+  Some in-app browsers (e.g., Instagram, Facebook, LINE) open OAuth IdP pages in a new WebView, causing sessionStorage to be lost when redirecting back. This change adds a localStorage-based fallback mechanism:
+
+  - Before redirecting to the IdP, continue storing state in sessionStorage and also store a fallback redirect context bundle (state, verificationId, connectorId) in localStorage
+  - On callback, if sessionStorage state is missing, attempt to restore from localStorage
+  - localStorage entries are consumed on read and auto-swept after 10 minutes
+  - If both storages are empty, show an error toast to the user
+
 ## 1.19.0
 
 ### Minor Changes

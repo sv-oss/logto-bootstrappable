@@ -1,75 +1,145 @@
-import {
-  AccountCenterControlValue,
-  MfaFactor,
-  type UserMfaVerificationResponse,
-} from '@logto/schemas';
-import { formatToInternationalPhoneNumber } from '@logto/shared/universal';
-import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { InlineNotification } from '@experience/components/Notification';
+import { AccountCenterControlValue, MfaPolicy } from '@logto/schemas';
+import { useCallback, useContext, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import PageContext from '@ac/Providers/PageContextProvider/PageContext';
-import EmailIcon from '@ac/assets/icons/email.svg?react';
-import BackupCodeIcon from '@ac/assets/icons/factor-backup-code.svg?react';
-import TotpIcon from '@ac/assets/icons/factor-totp.svg?react';
-import WebAuthnIcon from '@ac/assets/icons/factor-webauthn.svg?react';
-import PhoneIcon from '@ac/assets/icons/phone.svg?react';
-import {
-  authenticatorAppRoute,
-  backupCodesGenerateRoute,
-  backupCodesManageRoute,
-  emailRoute,
-  passkeyAddRoute,
-  passkeyManageRoute,
-  phoneRoute,
-} from '@ac/constants/routes';
+import ConfirmModal from '@ac/components/ConfirmModal';
+import ToggleSwitch from '@ac/components/ToggleSwitch';
+import { verifiedActionRoute } from '@ac/constants/routes';
 import { getPendingReturn, setPendingReturn } from '@ac/utils/account-center-route';
-import { hasVisibleMfaSection } from '@ac/utils/security-page';
+import {
+  hasConfiguredSecondFactor,
+  hasEnabledSecondFactor,
+  hasVisibleMfaSection,
+} from '@ac/utils/security-page';
+import { sessionStorage } from '@ac/utils/session-storage';
 
-import { getMfaVerifications } from '../../../apis/mfa';
+import { getMfaSettings, updateMfaSettings } from '../../../apis/mfa';
 import useApi from '../../../hooks/use-api';
+import useErrorHandler from '../../../hooks/use-error-handler';
+import { useMfaVerifications } from '../MfaVerificationsProvider';
+import SecurityRow from '../components/SecurityRow';
+import SecuritySection from '../components/SecuritySection';
+import { SecuritySkeleton } from '../components/SecuritySkeleton';
 
+import MfaSkeleton from './MfaSkeleton';
 import styles from './index.module.scss';
+import useMfaRows from './use-mfa-rows';
 
-const factorIcon = {
-  [MfaFactor.TOTP]: TotpIcon,
-  [MfaFactor.WebAuthn]: WebAuthnIcon,
-  [MfaFactor.BackupCode]: BackupCodeIcon,
-  [MfaFactor.EmailVerificationCode]: EmailIcon,
-  [MfaFactor.PhoneVerificationCode]: PhoneIcon,
+/** MFA policies where users cannot skip MFA verification */
+const mandatoryMfaPolicies = new Set<MfaPolicy>([
+  MfaPolicy.Mandatory,
+  MfaPolicy.PromptAtSignInAndSignUpMandatory,
+  MfaPolicy.PromptOnlyAtSignInMandatory,
+]);
+
+type MfaContentProps = {
+  readonly isLoading: boolean;
+  readonly hasToggle: boolean;
+  readonly isTwoStepEnabled: boolean;
+  readonly rows: ReturnType<typeof useMfaRows>;
+  readonly onToggleChange: (checked: boolean) => Promise<void>;
 };
 
-type Row = {
-  key: string;
-  icon: typeof TotpIcon;
-  label: string;
-  value?: string;
-  isPlainValue?: boolean;
-  isConfigured: boolean;
-  action?: { label: string; handler: () => void };
+const MfaContent = ({
+  isLoading,
+  hasToggle,
+  isTwoStepEnabled,
+  rows,
+  onToggleChange,
+}: MfaContentProps) => {
+  const { t } = useTranslation();
+
+  if (isLoading) {
+    return (
+      <SecuritySkeleton ariaLabel={t('account_center.security.two_step_verification')}>
+        <MfaSkeleton hasToggle={hasToggle} rows={rows} />
+      </SecuritySkeleton>
+    );
+  }
+
+  return (
+    <>
+      {hasToggle && (
+        <div className={styles.toggleRow}>
+          <div className={styles.toggleInfo}>
+            <div className={styles.toggleTitle}>
+              {t('account_center.security.two_step_verification')}
+            </div>
+            <div className={styles.toggleDescription}>
+              {t('account_center.security.turn_on_2_step_verification_description')}
+            </div>
+          </div>
+          <ToggleSwitch
+            isChecked={isTwoStepEnabled}
+            onChange={(checked) => {
+              void onToggleChange(checked);
+            }}
+          />
+        </div>
+      )}
+      {hasToggle && rows.length > 0 && <div className={styles.divider} />}
+      {rows.map((row) => (
+        <SecurityRow key={row.key} row={row} />
+      ))}
+    </>
+  );
 };
 
 const MfaSection = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { accountCenterSettings, experienceSettings, userInfo } = useContext(PageContext);
-  const [mfaVerifications, setMfaVerifications] = useState<UserMfaVerificationResponse>();
+  const { accountCenterSettings, experienceSettings, verificationId, setVerificationId, setToast } =
+    useContext(PageContext);
+  const {
+    mfaVerifications,
+    isLoading: isLoadingMfaVerifications,
+    hasLoaded: hasLoadedMfaVerifications,
+  } = useMfaVerifications();
+  const [skipMfaOnSignIn, setSkipMfaOnSignIn] = useState<boolean>();
+  const [hasLoadedMfaSettings, setHasLoadedMfaSettings] = useState(false);
+  const [isLoadingMfaSettings, setIsLoadingMfaSettings] = useState(false);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const handleError = useErrorHandler();
+
+  const updateMfaSettingsApi = useApi(updateMfaSettings);
 
   const mfaControl = accountCenterSettings?.fields.mfa;
-  const enabledFactors = experienceSettings?.mfa.factors ?? [];
+  const mfaPolicy = experienceSettings?.mfa.policy;
+  const isEditable = mfaControl === AccountCenterControlValue.Edit;
+  const isMfaSectionVisible = hasVisibleMfaSection(mfaControl, experienceSettings);
 
-  const getMfaRequest = useApi(getMfaVerifications, { silent: true });
+  const showToggle =
+    isEditable &&
+    mfaPolicy !== undefined &&
+    !mandatoryMfaPolicies.has(mfaPolicy) &&
+    hasEnabledSecondFactor(experienceSettings);
 
-  const fetchMfaVerifications = useCallback(async () => {
-    const [error, result] = await getMfaRequest();
+  const isTwoStepEnabled = skipMfaOnSignIn === false;
+  const hasConfiguredMfa = hasConfiguredSecondFactor(mfaVerifications, experienceSettings);
+  const isMfaSectionLoading =
+    (isMfaSectionVisible && (!hasLoadedMfaVerifications || isLoadingMfaVerifications)) ||
+    (showToggle && (!hasLoadedMfaSettings || isLoadingMfaSettings));
+
+  const getMfaSettingsRequest = useApi(getMfaSettings, { silent: true });
+
+  const fetchMfaSettings = useCallback(async () => {
+    setIsLoadingMfaSettings(true);
+    const [error, result] = await getMfaSettingsRequest();
     if (!error && result) {
-      setMfaVerifications(result);
+      setSkipMfaOnSignIn(result.skipMfaOnSignIn);
     }
-  }, [getMfaRequest]);
+    setHasLoadedMfaSettings(true);
+    setIsLoadingMfaSettings(false);
+  }, [getMfaSettingsRequest]);
 
   useEffect(() => {
-    void fetchMfaVerifications();
-  }, [fetchMfaVerifications]);
+    if (showToggle) {
+      void fetchMfaSettings();
+    }
+  }, [showToggle, fetchMfaSettings]);
 
   const navigateTo = useCallback(
     (route: string) => {
@@ -79,225 +149,116 @@ const MfaSection = () => {
     [navigate]
   );
 
-  const webAuthnVerifications =
-    mfaVerifications?.filter((verification) => verification.type === MfaFactor.WebAuthn) ?? [];
-  const totpVerification = mfaVerifications?.find(
-    (verification) => verification.type === MfaFactor.TOTP
-  );
-  const backupCodeVerification = mfaVerifications?.find(
-    (verification) => verification.type === MfaFactor.BackupCode
+  const rows = useMfaRows(mfaVerifications, navigateTo);
+  const shouldShowMfaCard = showToggle || rows.length > 0;
+
+  const updateSkipMfaOnSignIn = useCallback(
+    async (verifiedId: string, skipMfaOnSignIn: boolean) => {
+      const [error] = await updateMfaSettingsApi(verifiedId, { skipMfaOnSignIn });
+
+      if (error) {
+        await handleError(error, {
+          'verification_record.permission_denied': async () => {
+            setVerificationId(undefined);
+            setToast(t('account_center.verification.verification_required'));
+          },
+        });
+        return;
+      }
+
+      setSkipMfaOnSignIn(skipMfaOnSignIn);
+    },
+    [handleError, setToast, setVerificationId, t, updateMfaSettingsApi]
   );
 
-  const isEditable = mfaControl === AccountCenterControlValue.Edit;
+  const handleToggleChange = useCallback(
+    async (checked: boolean) => {
+      const skipMfa = !checked;
 
-  const rows = useMemo(() => {
-    if (!hasVisibleMfaSection(mfaControl, experienceSettings)) {
-      return [];
+      if (!checked) {
+        setIsConfirmModalOpen(true);
+        return;
+      }
+
+      if (verificationId) {
+        await updateSkipMfaOnSignIn(verificationId, skipMfa);
+        return;
+      }
+
+      sessionStorage.setPendingVerifiedAction('enable-mfa');
+      navigateTo(verifiedActionRoute);
+    },
+    [navigateTo, updateSkipMfaOnSignIn, verificationId]
+  );
+
+  const handleConfirmDisable = useCallback(async () => {
+    setIsConfirmModalOpen(false);
+
+    if (verificationId) {
+      await updateSkipMfaOnSignIn(verificationId, true);
+      return;
     }
 
-    const buildWebAuthnRow = (): Row[] => {
-      if (!enabledFactors.includes(MfaFactor.WebAuthn)) {
-        return [];
-      }
-      const isConfigured = webAuthnVerifications.length > 0;
-      const Icon = factorIcon[MfaFactor.WebAuthn];
-      return [
-        {
-          key: 'webauthn',
-          icon: Icon,
-          label: t('account_center.security.passkeys'),
-          value: isConfigured
-            ? t('account_center.security.passkeys_count', {
-                count: webAuthnVerifications.length,
-              })
-            : undefined,
-          isConfigured,
-          action: isEditable
-            ? {
-                label: isConfigured
-                  ? t('account_center.security.manage')
-                  : t('account_center.security.add'),
-                handler: () => {
-                  navigateTo(isConfigured ? passkeyManageRoute : passkeyAddRoute);
-                },
-              }
-            : undefined,
-        },
-      ];
-    };
+    sessionStorage.setPendingVerifiedAction('disable-mfa');
+    navigateTo(verifiedActionRoute);
+  }, [navigateTo, updateSkipMfaOnSignIn, verificationId]);
 
-    const buildTotpRow = (): Row[] => {
-      if (!enabledFactors.includes(MfaFactor.TOTP)) {
-        return [];
-      }
-      const isConfigured = Boolean(totpVerification);
-      const Icon = factorIcon[MfaFactor.TOTP];
-      return [
-        {
-          key: 'totp',
-          icon: Icon,
-          label: t('account_center.security.authenticator_app'),
-          value: isConfigured ? t('account_center.security.configured') : undefined,
-          isConfigured,
-          action:
-            isEditable && !isConfigured
-              ? {
-                  label: t('account_center.security.add'),
-                  handler: () => {
-                    navigateTo(authenticatorAppRoute);
-                  },
-                }
-              : undefined,
-        },
-      ];
-    };
+  useEffect(() => {
+    if (!verificationId) {
+      return;
+    }
 
-    const buildBackupCodeRow = (): Row[] => {
-      if (!enabledFactors.includes(MfaFactor.BackupCode)) {
-        return [];
-      }
-      const isConfigured = Boolean(backupCodeVerification);
-      const Icon = factorIcon[MfaFactor.BackupCode];
-      return [
-        {
-          key: 'backup-code',
-          icon: Icon,
-          label: t('account_center.security.backup_codes'),
-          value: isConfigured
-            ? t('account_center.security.backup_codes_count', {
-                count: backupCodeVerification?.remainCodes ?? 0,
-              })
-            : undefined,
-          isConfigured,
-          action: isEditable
-            ? {
-                label: isConfigured
-                  ? t('account_center.security.manage')
-                  : t('account_center.security.add'),
-                handler: () => {
-                  navigateTo(isConfigured ? backupCodesManageRoute : backupCodesGenerateRoute);
-                },
-              }
-            : undefined,
-        },
-      ];
-    };
+    const pendingAction = sessionStorage.getPendingVerifiedAction();
 
-    const buildEmailRow = (): Row[] => {
-      if (!enabledFactors.includes(MfaFactor.EmailVerificationCode) || !userInfo?.primaryEmail) {
-        return [];
-      }
-      const Icon = factorIcon[MfaFactor.EmailVerificationCode];
-      return [
-        {
-          key: 'email',
-          icon: Icon,
-          label: t('account_center.security.email_verification_code'),
-          value: userInfo.primaryEmail,
-          isPlainValue: true,
-          isConfigured: true,
-          action: isEditable
-            ? {
-                label: t('account_center.security.change'),
-                handler: () => {
-                  navigateTo(emailRoute);
-                },
-              }
-            : undefined,
-        },
-      ];
-    };
+    if (pendingAction !== 'enable-mfa' && pendingAction !== 'disable-mfa') {
+      return;
+    }
 
-    const buildPhoneRow = (): Row[] => {
-      if (!enabledFactors.includes(MfaFactor.PhoneVerificationCode) || !userInfo?.primaryPhone) {
-        return [];
-      }
-      const Icon = factorIcon[MfaFactor.PhoneVerificationCode];
-      return [
-        {
-          key: 'phone',
-          icon: Icon,
-          label: t('account_center.security.phone_verification_code'),
-          value: formatToInternationalPhoneNumber(userInfo.primaryPhone),
-          isPlainValue: true,
-          isConfigured: true,
-          action: isEditable
-            ? {
-                label: t('account_center.security.change'),
-                handler: () => {
-                  navigateTo(phoneRoute);
-                },
-              }
-            : undefined,
-        },
-      ];
-    };
+    sessionStorage.clearPendingVerifiedAction();
+    void updateSkipMfaOnSignIn(verificationId, pendingAction === 'disable-mfa');
+  }, [updateSkipMfaOnSignIn, verificationId]);
 
-    return [
-      ...buildWebAuthnRow(),
-      ...buildTotpRow(),
-      ...buildBackupCodeRow(),
-      ...buildEmailRow(),
-      ...buildPhoneRow(),
-    ];
-  }, [
-    mfaControl,
-    experienceSettings,
-    enabledFactors,
-    webAuthnVerifications,
-    totpVerification,
-    backupCodeVerification,
-    userInfo,
-    isEditable,
-    t,
-    navigateTo,
-  ]);
-
-  if (rows.length === 0) {
+  if (!shouldShowMfaCard) {
     return null;
   }
 
   return (
-    <div className={styles.section}>
-      <div className={styles.sectionTitle}>
-        {t('account_center.security.two_step_verification')}
-      </div>
-      <div className={styles.card}>
-        {rows.map(({ key, icon: Icon, label, value, isPlainValue, isConfigured, action }) => (
-          <div key={key} className={styles.row}>
-            <div className={styles.info}>
-              <div className={styles.name}>
-                <Icon className={styles.icon} />
-                {label}
-              </div>
-              <div className={styles.value}>
-                {isConfigured ? (
-                  isPlainValue ? (
-                    <span className={styles.plainValue}>{value}</span>
-                  ) : (
-                    <span className={styles.statusTag}>
-                      <span className={styles.statusDot} />
-                      {value}
-                    </span>
-                  )
-                ) : (
-                  <span className={styles.notConfigured}>
-                    {t('account_center.security.not_configured')}
-                  </span>
-                )}
-              </div>
-            </div>
-            {action && (
-              <div className={styles.actions}>
-                <button type="button" className={styles.actionButton} onClick={action.handler}>
-                  {action.label}
-                </button>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
+    <>
+      <SecuritySection
+        title={t('account_center.security.two_step_verification')}
+        notification={
+          !isMfaSectionLoading && showToggle && isTwoStepEnabled && !hasConfiguredMfa ? (
+            <InlineNotification
+              message="account_center.security.no_verification_method_warning"
+              className={styles.notification}
+            />
+          ) : undefined
+        }
+      >
+        <MfaContent
+          isLoading={isMfaSectionLoading}
+          hasToggle={showToggle}
+          isTwoStepEnabled={isTwoStepEnabled}
+          rows={rows}
+          onToggleChange={handleToggleChange}
+        />
+      </SecuritySection>
+      <ConfirmModal
+        isOpen={isConfirmModalOpen}
+        title="account_center.security.turn_off_2_step_verification"
+        confirmText="account_center.security.disable_2_step_verification"
+        confirmButtonType="danger"
+        cancelText="action.cancel"
+        onConfirm={() => {
+          void handleConfirmDisable();
+        }}
+        onCancel={() => {
+          setIsConfirmModalOpen(false);
+        }}
+      >
+        {t('account_center.security.turn_off_2_step_verification_description')}
+      </ConfirmModal>
+    </>
   );
 };
 

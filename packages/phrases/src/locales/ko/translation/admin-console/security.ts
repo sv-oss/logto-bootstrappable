@@ -85,7 +85,40 @@ const security = {
     custom_words_description:
       '컨텍스트에 따라 맞춤형 단어입니다. 대소문자를 구분하지 않으며, 한 줄에 하나씩 작성하세요.',
     custom_words_placeholder: '서비스 이름, 회사 이름 등.',
+    password_expiration: '비밀번호 만료',
+    password_expiration_description:
+      '설정된 일수가 지난 후 사용자가 비밀번호를 재설정하도록 요구합니다. SSO 또는 패스키를 통해 로그인하는 사용자는 영향을 받지 않습니다.',
+    enable_password_expiration: '비밀번호 만료 활성화',
+    enable_password_expiration_description:
+      '사용자가 주기적으로 비밀번호를 재설정하도록 요구합니다. 비밀번호 변경 날짜가 기록되지 않은 기존 사용자는 이 정책이 활성화된 날짜를 기준으로 평가됩니다.',
+    enable_password_expiration_tip:
+      '로그인 환경에서 유효한 커넥터가 연결된 비밀번호 찾기 방법을 하나 이상 구성한 후에만 비밀번호 만료를 활성화할 수 있습니다.',
+    expiration_period: '비밀번호 유효 기간 (일)',
+    expiration_period_description: '비밀번호가 만료되기 전까지 유효한 일수입니다.',
+    expiration_period_error: '비밀번호 유효 기간은 {{min}}일에서 {{max}}일 사이여야 합니다.',
+    password_expiration_recovery_reminder:
+      '일부 사용자는 비밀번호 복구 코드를 받을 이메일 주소나 전화번호가 없어 만료된 비밀번호를 재설정하지 못할 수 있습니다. 모든 사용자가 비밀번호를 복구할 수 있도록 가입 시 이메일 주소 또는 전화번호를 필수로 요구하세요.',
   },
+  verification_code_policy: {
+    card_title: '인증 코드',
+    card_description:
+      '로그인, 가입, 비밀번호 재설정 흐름에서 사용되는 인증 코드의 만료 시간과 최대 재시도 횟수를 설정하세요.',
+    enable: {
+      title: '인증 코드 설정 사용자 지정',
+      description: '인증 코드 만료 시간과 최대 재시도 횟수를 사용자 지정할 수 있도록 허용해요.',
+    },
+    expiration_duration: {
+      title: '만료 시간(초)',
+      description: '인증 코드가 전송된 후 유효하게 유지되는 시간(초)이에요.',
+      error_message: '만료 시간은 60초에서 3600초 사이여야 해요.',
+    },
+    max_retry_attempts: {
+      title: '최대 재시도 횟수',
+      description: '코드가 무효화되기 전에 허용되는 최대 인증 실패 횟수예요.',
+      error_message: '최대 재시도 횟수는 1에서 100 사이여야 해요.',
+    },
+  },
+
   sentinel_policy: {
     card_title: '식별자 잠금',
     card_description:

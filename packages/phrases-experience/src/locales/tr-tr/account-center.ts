@@ -36,6 +36,11 @@ const account_center = {
     security_title: 'Güvenlik',
     security_description:
       'Hesabınızın güvenliğini sağlamak için hesap ayarlarınızı burada değiştirebilirsiniz.',
+    profile_title: 'Kişisel bilgiler',
+    profile_description: 'Kişisel bilgilerinizi burada değiştirin.',
+    sidebar_personal_info: 'Kişisel bilgiler',
+    sidebar_security: 'Güvenlik',
+    sidebar_sessions: 'Oturumlar',
     support: 'Destek',
   },
   verification: {
@@ -47,6 +52,9 @@ const account_center = {
     error_verify_failed: 'Doğrulama başarısız. Lütfen kodu tekrar gir.',
     verification_required: 'Doğrulama süresi doldu. Lütfen kimliğini yeniden doğrula.',
     try_another_method: 'Başka bir doğrulama yöntemi deneyin',
+    no_available_methods_title: 'Kullanılabilir doğrulama yöntemi yok',
+    no_available_methods_description:
+      'Ayarlanmış herhangi bir doğrulama yönteminiz yok. Lütfen önce hesabınıza bir parola, e-posta adresi veya telefon numarası ekleyin.',
   },
   password_verification: {
     title: 'Parolayı doğrula',
@@ -86,6 +94,7 @@ const account_center = {
   username: {
     title: 'Kullanıcı adını ayarla',
     description: 'Kullanıcı adı yalnızca harf, rakam ve alt çizgi içerebilir.',
+    policy_description: '{{requirements}}',
     success: 'Kullanıcı adı başarıyla güncellendi.',
   },
   security: {
@@ -113,6 +122,32 @@ const account_center = {
     backup_codes_count_other: '{{count}} kod kaldı',
     view: 'Görüntüle',
     manage: 'Yönet',
+    turn_on_2_step_verification_description:
+      'Ekstra bir güvenlik katmanı ekleyin. Oturum açarken ikinci bir doğrulama adımı istenecektir.',
+    turn_off_2_step_verification: '2 adımlı doğrulamayı kapat',
+    turn_off_2_step_verification_description:
+      '2 adımlı doğrulamayı devre dışı bırakmak, oturum açarken hesabınızdaki ek koruma katmanını kaldıracaktır. Devam etmek istediğinizden emin misiniz?',
+    disable_2_step_verification: 'Devre dışı bırak',
+    no_verification_method_warning:
+      'İkinci bir doğrulama yöntemi eklemediniz. Oturum açarken 2 adımlı doğrulamayı etkinleştirmek için en az bir tane ekleyin.',
+    passkey_sign_in_prompt: 'Passkey kurulumu için sor',
+    passkey_sign_in_prompt_description:
+      'Açık olduğunda, daha hızlı ve daha güvenli oturum açma için bir passkey kurmanız istenir.',
+    account_removal: 'Hesap silme',
+    delete_your_account: 'Hesabını sil',
+    delete_account: 'Hesabı sil',
+    remove_username_confirmation_title: 'Kullanıcı adını kaldır',
+    remove_username_confirmation_description:
+      'Kaldırıldığında, bu kullanıcı adıyla artık oturum açamayacaksınız. Devam etmek istediğinizden emin misiniz?',
+    remove_email_confirmation_title: 'E-posta adresini kaldır',
+    remove_email_confirmation_description:
+      'Kaldırıldığında, bu e-posta adresiyle artık oturum açamayacaksınız. Devam etmek istediğinizden emin misiniz?',
+    remove_phone_confirmation_title: 'Telefon numarasını kaldır',
+    remove_phone_confirmation_description:
+      'Kaldırıldığında, bu telefon numarasıyla artık oturum açamayacaksınız. Devam etmek istediğinizden emin misiniz?',
+    email_removed: 'E-posta adresi başarıyla kaldırıldı.',
+    phone_removed: 'Telefon numarası başarıyla kaldırıldı.',
+    username_removed: 'Kullanıcı adı başarıyla kaldırıldı.',
   },
   social: {
     linked: '{{connector}} başarıyla bağlandı.',
@@ -255,14 +290,28 @@ const account_center = {
       'Bu cihazı 2 adımlı kimlik doğrulama için başarıyla doğruladınız. Birden fazla anahtarınız varsa tanımak için adı özelleştirin.',
     name_input_label: 'Ad',
   },
-  profile: {
-    title: 'Edit profile',
-    description: 'Update your display name and avatar.',
-    name_label: 'Display name',
-    avatar_label: 'Avatar URL',
-    given_name_label: 'Given name',
-    family_name_label: 'Family name',
-    saved: 'Profile updated successfully.',
+  sessions: {
+    page_title: 'Oturumlar',
+    page_description:
+      'Aktif oturumlarınızı ve yetkilendirilmiş üçüncü taraf uygulamalarını yönetin.',
+    title: 'Oturumlar',
+    current_session: 'Mevcut oturum',
+    signed_in_at: '{{date}} tarihinde giriş yapıldı',
+    revoke_session: 'Çıkış yap',
+    revoke_session_title: 'Oturumu kapat',
+    revoke_session_description:
+      'Bu, oturumu kapatacak ve ilgili tüm erişimi iptal edecektir. Devam etmek istediğinizden emin misiniz?',
+    no_other_sessions: 'Başka aktif oturum yok.',
+    loading: 'Yükleniyor...',
+    third_party_apps_title: 'Üçüncü taraf uygulamalar',
+    no_third_party_apps: 'Yetkilendirilmiş üçüncü taraf uygulama yok.',
+    third_party_apps_load_failed: 'Üçüncü taraf uygulamalar yüklenemedi. Lütfen tekrar deneyin.',
+    granted_at: '{{date}} tarihinde yetkilendirildi',
+    revoke_grant: 'Kaldır',
+    revoke_grant_title: 'Üçüncü taraf uygulama erişimini kaldır',
+    revoke_grant_description:
+      'Bu, bu uygulamaya verilen tüm erişimi iptal edecektir. Devam etmek istediğinizden emin misiniz?',
+    revoke_grant_failed: 'Bazı izinler iptal edilemedi. Lütfen tekrar deneyin.',
   },
 };
 

@@ -12,6 +12,7 @@ import { type LogEntry } from '#src/middleware/koa-audit-log.js';
 import type Libraries from '#src/tenants/Libraries.js';
 import type Queries from '#src/tenants/Queries.js';
 import assertThat from '#src/utils/assert-that.js';
+import { assertUsernameAllowed } from '#src/utils/user.js';
 
 import type {
   SanitizedInteractionProfile,
@@ -41,7 +42,7 @@ export class Profile {
     private readonly interactionContext: InteractionContext
   ) {
     this.signInExperienceValidator = new SignInExperienceValidator(libraries, queries);
-    this.profileValidator = new ProfileValidator(queries);
+    this.profileValidator = new ProfileValidator(queries, this.signInExperienceValidator);
     this.#data = data;
   }
 
@@ -153,6 +154,15 @@ export class Profile {
 
     if (user) {
       this.profileValidator.guardProfileNotExistInCurrentUserAccount(user, profile);
+    }
+
+    // Runs before the uniqueness check so a format/policy violation is reported ahead of
+    // "username already in use", matching the account and /me routes.
+    if (profile.username) {
+      assertUsernameAllowed(
+        await this.signInExperienceValidator.getUsernamePolicy(),
+        profile.username
+      );
     }
 
     await this.profileValidator.guardProfileUniquenessAcrossUsers(profile);

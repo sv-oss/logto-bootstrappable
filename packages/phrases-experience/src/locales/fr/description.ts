@@ -47,6 +47,8 @@ const description = {
   enter_username: "Définir un nom d'utilisateur",
   enter_username_description:
     "Le nom d'utilisateur est une alternative pour la connexion. Le nom d'utilisateur doit contenir uniquement des lettres, des chiffres et des underscores.",
+  enter_username_policy_description:
+    "Le nom d'utilisateur est une alternative pour la connexion. {{requirements}}",
   link_email: "Lier l'adresse e-mail",
   link_phone: 'Lier le numéro de téléphone',
   link_email_or_phone: "Lier l'adresse e-mail ou le numéro de téléphone",
@@ -86,6 +88,17 @@ const description = {
     character_types_other:
       'doit contenir au moins {{count}} types de lettres majuscules, lettres minuscules, chiffres et symboles',
   },
+  username_requirements: "Nom d'utilisateur {{items, list}}.",
+  username_requirement: {
+    length: 'doit comporter entre {{min}} et {{max}} caractères',
+    characters: 'ne peut contenir que {{characters, list}}',
+  },
+  username_character: {
+    uppercase: 'lettres majuscules',
+    lowercase: 'lettres minuscules',
+    number: 'chiffres',
+    underscore: 'traits de soulignement',
+  },
   use: 'Utiliser',
   single_sign_on_email_form: "Entrez votre adresse e-mail d'entreprise",
   single_sign_on_connectors_list:
@@ -110,6 +123,9 @@ const description = {
   identifier_register_description:
     'Entrez votre {{types, list(type: disjunction;)}} pour créer un nouveau compte.',
   all_account_creation_options: 'Toutes les options de création de compte',
+  password_expired:
+    'Votre mot de passe a expiré et doit être réinitialisé avant de pouvoir vous connecter.',
+  password_expiration_reset: 'Réinitialiser le mot de passe',
   back_to_sign_in: 'Retour à la connexion',
   support_email: 'Email de support: <link></link>',
   support_website: 'Site web de support: <link></link>',

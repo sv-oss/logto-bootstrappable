@@ -1,5 +1,36 @@
 # Change Log
 
+## 2.11.0
+
+### Minor Changes
+
+- e1fadfb1a: add a shared username policy type, Zod guard, and default value
+- a88413689: add a shared username policy validator
+
+### Patch Changes
+
+- Updated dependencies [67b99bba85]
+  - @logto/shared@3.4.1
+
+## 2.10.0
+
+### Minor Changes
+
+- e4eaa5aef5: add custom CSP utility methods
+
+## 2.9.0
+
+### Minor Changes
+
+- 93523a1ae0: add subtle primary overlay color token for console themes
+
+  This adds the missing `--color-overlay-primary-subtle` token for both light and dark console themes.
+
+### Patch Changes
+
+- Updated dependencies [3350b13ec8]
+  - @logto/shared@3.4.0
+
 ## 2.8.0
 
 ### Minor Changes

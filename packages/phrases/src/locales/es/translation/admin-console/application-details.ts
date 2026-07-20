@@ -122,6 +122,45 @@ const application_details = {
   field_custom_data_tip:
     'Información personalizada adicional de la aplicación no listada en las propiedades predefinidas de la aplicación, como configuraciones específicas del negocio.',
   custom_data_invalid: 'Los datos personalizados deben ser un objeto JSON válido',
+  access_control: {
+    name: 'Reglas',
+    title: 'Control de acceso',
+    description: 'Personaliza tus reglas para el control de acceso a nivel de aplicación.',
+    enable: 'Habilitar control de acceso a nivel de aplicación',
+    enable_description:
+      'Habilita el control de acceso granular para restringir qué usuarios pueden acceder a esta aplicación. Si está deshabilitado, todos los usuarios registrados en el sistema pueden acceder a ella.',
+    enable_without_rules_notice:
+      'Agrega al menos una regla de acceso antes de habilitar el control de acceso.',
+    load_error: 'No se pudieron cargar las reglas de control de acceso.',
+    custom_allow_rules: 'Reglas de permiso personalizadas',
+    custom_allow_rules_description:
+      'Crea reglas para que los usuarios con ciertos atributos puedan acceder automáticamente. Se requiere al menos una regla cuando está habilitado.',
+    rules: 'Reglas de acceso',
+    add_rules: 'Agregar reglas',
+    rules_description:
+      'Los usuarios pueden acceder a esta aplicación cuando coinciden con cualquiera de las reglas configuradas.',
+    empty_rules_description: 'Aún no hay reglas configuradas.',
+    delete_rule_confirmation: '¿Seguro que quieres eliminar esta regla?',
+    rule_table_rules: 'Reglas',
+    rule_table_description: 'Descripción',
+    rule_table_users: 'Usuarios',
+    rule_table_members: 'Miembros',
+    rule_table_user_id: 'ID de usuario',
+    rule_count: '{{count}} regla',
+    rule_count_other: '{{count}} reglas',
+    rule_users: 'Usuarios',
+    rule_users_description: 'Usuarios específicos pueden acceder a esta aplicación.',
+    rule_roles: 'Roles',
+    rule_user_roles: 'Roles de usuario',
+    rule_user_roles_description:
+      'Los usuarios asignados a los roles de usuario seleccionados pueden acceder a esta aplicación.',
+    rule_organizations: 'Organizaciones',
+    rule_organizations_description:
+      'Todos los miembros actuales y futuros de las organizaciones seleccionadas pueden acceder a esta aplicación.',
+    rule_organization_roles: 'Roles de organización',
+    rule_organization_roles_description:
+      'Los miembros con los roles de organización seleccionados en las organizaciones seleccionadas pueden acceder a esta aplicación.',
+  },
   branding: {
     name: 'Marca',
     description:

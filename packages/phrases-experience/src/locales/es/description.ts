@@ -47,6 +47,8 @@ const description = {
   enter_username: 'Establecer nombre de usuario',
   enter_username_description:
     'El nombre de usuario es una alternativa para iniciar sesión. Debe contener solo letras, números y guiones bajos.',
+  enter_username_policy_description:
+    'El nombre de usuario es una alternativa para iniciar sesión. {{requirements}}',
   link_email: 'Vincular correo electrónico',
   link_phone: 'Vincular teléfono',
   link_email_or_phone: 'Vincular correo electrónico o teléfono',
@@ -86,6 +88,17 @@ const description = {
     character_types_other:
       'debe contener al menos {{count}} tipos de letras mayúsculas, letras minúsculas, dígitos y símbolos',
   },
+  username_requirements: 'Nombre de usuario {{items, list}}.',
+  username_requirement: {
+    length: 'debe tener entre {{min}} y {{max}} caracteres',
+    characters: 'solo puede contener {{characters, list}}',
+  },
+  username_character: {
+    uppercase: 'letras mayúsculas',
+    lowercase: 'letras minúsculas',
+    number: 'números',
+    underscore: 'guiones bajos',
+  },
   use: 'Usar',
   single_sign_on_email_form: 'Ingrese su dirección de correo electrónico corporativo',
   single_sign_on_connectors_list:
@@ -111,6 +124,9 @@ const description = {
   identifier_register_description:
     'Ingrese su {{types, list(type: disjunction;)}} para crear una nueva cuenta.',
   all_account_creation_options: 'Todas las opciones de creación de cuenta',
+  password_expired:
+    'Tu contraseña ha caducado y debe ser restablecida antes de que puedas iniciar sesión.',
+  password_expiration_reset: 'Restablecer contraseña',
   back_to_sign_in: 'Volver a iniciar sesión',
   support_email: 'Correo electrónico de soporte: <link></link>',
   support_website: 'Sitio web de soporte: <link></link>',

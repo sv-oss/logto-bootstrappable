@@ -88,7 +88,45 @@ const security = {
     custom_words_description:
       'Personaliza las palabras específicas del contexto, sin importar las mayúsculas y minúsculas, y una por línea.',
     custom_words_placeholder: 'Nombre de su servicio, nombre de la empresa, etc.',
+    password_expiration: 'Expiración de contraseña',
+    password_expiration_description:
+      'Requerir a los usuarios que restablezcan su contraseña después de un número determinado de días. Los usuarios que inician sesión a través de SSO o clave de acceso no se ven afectados.',
+    enable_password_expiration: 'Habilitar expiración de contraseña',
+    enable_password_expiration_description:
+      'Requerir a los usuarios que restablezcan periódicamente su contraseña. Los usuarios existentes sin una fecha de cambio de contraseña registrada serán evaluados a partir de la fecha en que se habilitó esta política.',
+    enable_password_expiration_tip:
+      'Solo puedes habilitar la expiración de contraseña después de configurar al menos un método de recuperación de contraseña con un conector válido en la experiencia de inicio de sesión.',
+    expiration_period: 'Periodo de validez de la contraseña (dias)',
+    expiration_period_description:
+      'Número de días que una contraseña permanece válida antes de expirar.',
+    expiration_period_error:
+      'El período de validez de la contraseña debe estar entre {{min}} y {{max}} días.',
+    password_expiration_recovery_reminder:
+      'Es posible que algunos usuarios no tengan una dirección de correo electrónico o un número de teléfono para recibir un código de recuperación de contraseña, por lo que no podrán restablecer una contraseña caducada. Exige una dirección de correo electrónico o un número de teléfono en el registro para asegurarte de que todos los usuarios puedan recuperar su contraseña.',
   },
+  verification_code_policy: {
+    card_title: 'Código de verificación',
+    card_description:
+      'Configura la duración de expiración y el número máximo de reintentos para los códigos de verificación usados en los flujos de inicio de sesión, registro y restablecimiento de contraseña.',
+    enable: {
+      title: 'Personalizar ajustes del código de verificación',
+      description:
+        'Permitir la personalización de la duración de expiración del código de verificación y el número máximo de reintentos.',
+    },
+    expiration_duration: {
+      title: 'Duración de expiración (segundos)',
+      description:
+        'La duración en segundos durante la cual un código de verificación permanece válido después de enviarse.',
+      error_message: 'La duración de expiración debe estar entre 60 y 3600 segundos.',
+    },
+    max_retry_attempts: {
+      title: 'Número máximo de reintentos',
+      description:
+        'Número máximo de intentos de verificación fallidos permitidos antes de invalidar el código.',
+      error_message: 'El número máximo de reintentos debe estar entre 1 y 100.',
+    },
+  },
+
   sentinel_policy: {
     card_title: 'Bloqueo de identificador',
     card_description:

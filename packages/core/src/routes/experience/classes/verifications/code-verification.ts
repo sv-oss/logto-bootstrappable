@@ -99,7 +99,10 @@ abstract class CodeVerification<T extends CodeVerificationType>
    * the verification id is used as `interaction_jti` to uniquely identify the passcode record in DB
    * for the current interaction.
    */
-  async sendVerificationCode(payload?: SendPasscodeContextPayload) {
+  async sendVerificationCode(
+    payload?: SendPasscodeContextPayload,
+    options?: { skipDelivery?: boolean }
+  ) {
     const { createPasscode, sendPasscode } = this.libraries.passcodes;
 
     const verificationCode = await createPasscode(
@@ -107,6 +110,10 @@ abstract class CodeVerification<T extends CodeVerificationType>
       this.templateType,
       getPasscodeIdentifierPayload(this.identifier)
     );
+
+    if (options?.skipDelivery) {
+      return;
+    }
 
     await sendPasscode(verificationCode, payload);
   }
@@ -143,7 +150,7 @@ abstract class CodeVerification<T extends CodeVerificationType>
       new RequestError({ code: 'session.verification_failed', status: 400 })
     );
 
-    const user = await findUserByIdentifier(this.queries.users, this.identifier);
+    const user = await findUserByIdentifier(this.queries, this.identifier);
 
     assertThat(
       user,

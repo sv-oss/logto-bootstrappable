@@ -36,6 +36,11 @@ const account_center = {
     security_title: 'Sécurité',
     security_description:
       "Modifiez ici les paramètres de votre compte afin d'en garantir la sécurité.",
+    profile_title: 'Informations personnelles',
+    profile_description: 'Changez vos informations personnelles ici.',
+    sidebar_personal_info: 'Informations personnelles',
+    sidebar_security: 'Sécurité',
+    sidebar_sessions: 'Sessions',
     support: 'Assistance',
   },
   verification: {
@@ -47,6 +52,9 @@ const account_center = {
     error_verify_failed: 'Échec de la vérification. Veuillez saisir le code à nouveau.',
     verification_required: 'La vérification a expiré. Veuillez confirmer à nouveau votre identité.',
     try_another_method: 'Essayez une autre méthode de vérification',
+    no_available_methods_title: 'Aucune méthode de vérification disponible',
+    no_available_methods_description:
+      "Vous n'avez configuré aucune méthode de vérification. Veuillez d'abord ajouter un mot de passe, une adresse e-mail ou un numéro de téléphone à votre compte.",
   },
   password_verification: {
     title: 'Vérifier le mot de passe',
@@ -91,6 +99,7 @@ const account_center = {
     title: "Définir le nom d'utilisateur",
     description:
       "Le nom d'utilisateur doit contenir uniquement des lettres, des chiffres et des tirets bas.",
+    policy_description: '{{requirements}}',
     success: "Nom d'utilisateur mis à jour avec succès.",
   },
   security: {
@@ -118,6 +127,32 @@ const account_center = {
     backup_codes_count_other: '{{count}} codes restants',
     view: 'Voir',
     manage: 'Gérer',
+    turn_on_2_step_verification_description:
+      'Ajoutez une couche de sécurité supplémentaire. Vous serez invité à effectuer une deuxième étape de vérification lors de la connexion.',
+    turn_off_2_step_verification: 'Désactiver la vérification en deux étapes',
+    turn_off_2_step_verification_description:
+      'La désactivation de la vérification en deux étapes supprimera la couche de protection supplémentaire de votre compte lors de la connexion. Êtes-vous sûr de vouloir continuer ?',
+    disable_2_step_verification: 'Désactiver',
+    no_verification_method_warning:
+      "Vous n'avez pas ajouté de deuxième méthode de vérification. Ajoutez-en au moins une pour activer la vérification en deux étapes lors de la connexion.",
+    passkey_sign_in_prompt: 'Inviter à configurer un passkey',
+    passkey_sign_in_prompt_description:
+      'Lorsque cette option est activée, il vous sera demandé de configurer un passkey pour une connexion plus rapide et plus sécurisée.',
+    account_removal: 'Suppression du compte',
+    delete_your_account: 'Supprimez votre compte',
+    delete_account: 'Supprimer le compte',
+    remove_username_confirmation_title: "Supprimer le nom d'utilisateur",
+    remove_username_confirmation_description:
+      "Une fois supprimé, vous ne pourrez plus vous connecter avec ce nom d'utilisateur. Êtes-vous sûr de vouloir continuer ?",
+    remove_email_confirmation_title: "Supprimer l'adresse e-mail",
+    remove_email_confirmation_description:
+      'Une fois supprimée, vous ne pourrez plus vous connecter avec cette adresse e-mail. Êtes-vous sûr de vouloir continuer ?',
+    remove_phone_confirmation_title: 'Supprimer le numéro de téléphone',
+    remove_phone_confirmation_description:
+      'Une fois supprimé, vous ne pourrez plus vous connecter avec ce numéro de téléphone. Êtes-vous sûr de vouloir continuer ?',
+    email_removed: "L'adresse e-mail a été supprimée avec succès.",
+    phone_removed: 'Le numéro de téléphone a été supprimé avec succès.',
+    username_removed: "Le nom d'utilisateur a été supprimé avec succès.",
   },
   social: {
     linked: '{{connector}} a été lié avec succès.',
@@ -263,14 +298,28 @@ const account_center = {
       "Vous avez vérifié cet appareil avec succès pour l'authentification en deux étapes. Personnalisez le nom pour le reconnaître si vous avez plusieurs clés.",
     name_input_label: 'Nom',
   },
-  profile: {
-    title: 'Edit profile',
-    description: 'Update your display name and avatar.',
-    name_label: 'Display name',
-    avatar_label: 'Avatar URL',
-    given_name_label: 'Given name',
-    family_name_label: 'Family name',
-    saved: 'Profile updated successfully.',
+  sessions: {
+    page_title: 'Sessions',
+    page_description: 'Gérez vos sessions actives et les applications tierces autorisées.',
+    title: 'Sessions',
+    current_session: 'Session actuelle',
+    signed_in_at: 'Connecté le {{date}}',
+    revoke_session: 'Déconnecter',
+    revoke_session_title: 'Déconnecter la session',
+    revoke_session_description:
+      'Cela déconnectera la session et révoquera tous les accès associés. Êtes-vous sûr de vouloir continuer ?',
+    no_other_sessions: 'Aucune autre session active.',
+    loading: 'Chargement...',
+    third_party_apps_title: 'Applications tierces',
+    no_third_party_apps: 'Aucune application tierce autorisée.',
+    third_party_apps_load_failed:
+      'Impossible de charger les applications tierces. Veuillez réessayer.',
+    granted_at: 'Autorisé le {{date}}',
+    revoke_grant: 'Supprimer',
+    revoke_grant_title: "Supprimer l'accès de l'application tierce",
+    revoke_grant_description:
+      'Cela révoquera tous les accès accordés à cette application. Êtes-vous sûr de vouloir continuer ?',
+    revoke_grant_failed: 'Échec de la révocation de certaines autorisations. Veuillez réessayer.',
   },
 };
 

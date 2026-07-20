@@ -1,5 +1,33 @@
 # Change Log
 
+## 3.4.1
+
+### Patch Changes
+
+- 67b99bba85: add per-tenant username policy enforcement and mirror preferred_username from username by default
+
+  The sign-in experience now stores a per-tenant username policy (case sensitivity, length bounds, and allowed character types) that is enforced on end-user username writes: experience sign-up and profile fulfillment, the account API, and `/me`. Admin (Management API) writes keep the always-on baseline rules only.
+
+  Switching usernames to case-insensitive is guarded: `PATCH /api/sign-in-exp` is rejected with a 409 while usernames that differ only by case exist, and the new `GET /api/sign-in-exp/username-policy/case-sensitivity-conflicts` endpoint reports such conflicts.
+
+  For deployments using the legacy `CASE_SENSITIVE_USERNAME` environment variable: the effective case sensitivity is the per-tenant policy AND-combined with the env var, so usernames are treated case-insensitively if either is false. Existing `CASE_SENSITIVE_USERNAME=false` setups keep their behavior — the env var acts as a runtime override that forces case-insensitive handling for every tenant, and the per-tenant policy cannot re-enable case sensitivity while it is set. The env var is deprecated and slated for removal in the next major; migrate by unsetting it and configuring `usernamePolicy.caseSensitive` per tenant instead.
+
+  The OIDC `preferred_username` claim now falls back to the user's `username` when `profile.preferredUsername` is unset, so standards-compliant clients receive a usable value out of the box.
+
+## 3.4.0
+
+### Minor Changes
+
+- 3350b13ec8: add grace period support to private signing key rotation
+
+  This update adds support for a grace period during private signing key rotation, through the environment variable `PRIVATE_KEY_ROTATION_GRACE_PERIOD`, or CLI `--gracePeriod` option.
+
+  During the grace period, the new signing key is marked as "Next", and the existing signing key remains active. This allows for a smoother transition when rotating keys, as it provides a window of time for clients to refresh cached JWKS without experiencing downtime or authentication failures.
+
+  After the grace period ends, the new private signing key will transition to "Current" state, and the old signing key will be marked as "Previous".
+
+  Check out the [documentation](https://docs.logto.io/logto-oss/using-cli/rotate-signing-keys) for more details.
+
 ## 3.3.1
 
 ### Patch Changes

@@ -47,6 +47,7 @@ export const accountCenterSections: AccountCenterFieldSection[] = [
             key: 'mfa',
             title: 'sign_in_exp.account_center.fields.mfa',
           },
+          { key: 'passkey', title: 'sign_in_exp.account_center.fields.passkey' },
         ],
       },
       {

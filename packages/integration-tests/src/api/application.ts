@@ -3,6 +3,7 @@ import {
   type Application,
   type ApplicationSecret,
   type CreateApplication,
+  type ApplicationAccessControl,
   type CreateApplicationSecret,
   type OidcClientMetadata,
   type OrganizationWithRoles,
@@ -70,6 +71,21 @@ export const updateApplication = async (
     })
     .json<Application>();
 
+export const replaceApplicationAccessControl = async (
+  applicationId: string,
+  accessControl: ApplicationAccessControl
+) =>
+  authedAdminApi
+    .put(`applications/${applicationId}/access-control`, {
+      json: accessControl,
+    })
+    .json<ApplicationAccessControl>();
+
+export const getApplicationAccessControl = async (applicationId: string) =>
+  authedAdminApi
+    .get(`applications/${applicationId}/access-control`)
+    .json<ApplicationAccessControl>();
+
 export const deleteApplication = async (applicationId: string) =>
   authedAdminApi.delete(`applications/${applicationId}`);
 
@@ -86,9 +102,11 @@ export const getApplicationRoles = async (applicationId: string, keyword?: strin
 };
 
 export const assignRolesToApplication = async (applicationId: string, roleIds: string[]) =>
-  authedAdminApi.post(`applications/${applicationId}/roles`, {
-    json: { roleIds },
-  });
+  authedAdminApi
+    .post(`applications/${applicationId}/roles`, {
+      json: { roleIds },
+    })
+    .json<{ roleIds: string[]; addedRoleIds: string[] }>();
 
 export const putRolesToApplication = async (applicationId: string, roleIds: string[]) =>
   authedAdminApi.put(`applications/${applicationId}/roles`, {

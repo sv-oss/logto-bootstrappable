@@ -15,6 +15,7 @@ import IconButton from '@/ds-components/IconButton';
 import Spacer from '@/ds-components/Spacer';
 import Tag from '@/ds-components/Tag';
 import useTheme from '@/hooks/use-theme';
+import { openCloudUpsell, ossUpsellEntries } from '@/utils/oss-upsell';
 
 import styles from './index.module.scss';
 
@@ -22,8 +23,6 @@ type Props = {
   readonly isBannerVisible: boolean;
   readonly onDismissBanner: () => void;
 };
-
-const logtoCloudConsoleUrl = 'https://cloud.logto.io';
 
 const icons = {
   [Theme.Light]: CloudIcon,
@@ -52,16 +51,21 @@ function OssCloudUpsell({ isBannerVisible, onDismissBanner }: Props) {
                     {t('get_started.oss_cloud.try.badge')}
                   </Tag>
                 </div>
-                <div className={styles.bodyText}>{t('get_started.oss_cloud.try.description')}</div>
+                <div className={styles.ossCloudBannerDescription}>
+                  {t('get_started.oss_cloud.try.description')}
+                </div>
               </div>
             </div>
             <div className={styles.ossCloudBannerActions}>
               <Button
                 type="primary"
+                size="large"
                 title="get_started.oss_cloud.try.action"
                 trailingIcon={<ExternalLinkIcon className={styles.bannerActionIcon} />}
                 onClick={() => {
-                  window.open(logtoCloudConsoleUrl, '_blank', 'noopener,noreferrer');
+                  openCloudUpsell({
+                    entry: ossUpsellEntries.getStartedOssCloudBanner,
+                  });
                 }}
               />
             </div>
@@ -70,6 +74,7 @@ function OssCloudUpsell({ isBannerVisible, onDismissBanner }: Props) {
             size="small"
             aria-label={t('general.close')}
             className={styles.dismissButton}
+            iconClassName={styles.dismissButtonIcon}
             onClick={onDismissBanner}
           >
             <CloseIcon className={styles.dismissIcon} />

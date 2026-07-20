@@ -186,3 +186,10 @@ button {
     height: 30px;
   }
 }
+
+:global(body.mobile) {
+  .header {
+    padding: _.unit(4) _.unit(5);
+    background: var(--color-bg-float-base);
+  }
+}

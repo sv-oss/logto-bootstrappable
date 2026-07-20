@@ -11,7 +11,7 @@ import Profile from '@/assets/icons/profile.svg?react';
 import SignOut from '@/assets/icons/sign-out.svg?react';
 import UserAvatar from '@/components/UserAvatar';
 import UserInfoCard from '@/components/UserInfoCard';
-import { isCloud } from '@/consts/env';
+import { adminTenantEndpoint } from '@/consts';
 import Divider from '@/ds-components/Divider';
 import Dropdown, { DropdownItem } from '@/ds-components/Dropdown';
 import FlipOnRtl from '@/ds-components/FlipOnRtl';
@@ -20,7 +20,6 @@ import { Ring as Spinner } from '@/ds-components/Spinner';
 import useCurrentUser from '@/hooks/use-current-user';
 import useRedirectUri from '@/hooks/use-redirect-uri';
 import useSignOut from '@/hooks/use-sign-out';
-import useTenantPathname from '@/hooks/use-tenant-pathname';
 import useUserPreferences from '@/hooks/use-user-preferences';
 import { DynamicAppearanceMode } from '@/types/appearance-mode';
 import { onKeyDownHandler } from '@/utils/a11y';
@@ -31,7 +30,6 @@ import styles from './index.module.scss';
 
 function UserInfo() {
   const { signOut } = useSignOut();
-  const { getUrl } = useTenantPathname();
   const { t } = useTranslation(undefined, { keyPrefix: 'admin_console' });
   const { user, isLoading: isLoadingUser } = useCurrentUser();
   const anchorRef = useRef<HTMLDivElement>(null);
@@ -80,12 +78,8 @@ function UserInfo() {
           className={classNames(styles.dropdownItem, isLoading && styles.loading)}
           icon={<Profile className={styles.icon} />}
           onClick={() => {
-            // In OSS version, there will be a `/console` context path in the URL.
-            const profileRouteWithConsoleContext = getUrl('/profile');
-
-            // Open the profile page in a new tab. In Logto Cloud, the profile page is not nested in the tenant independent,
-            // whereas in OSS version, it is under the `/console` context path.
-            window.open(isCloud ? '/profile' : profileRouteWithConsoleContext, '_blank');
+            const accountUrl = new URL('/account/profile', adminTenantEndpoint.href);
+            window.open(accountUrl.toString(), '_blank', 'noopener,noreferrer');
           }}
         >
           {t('menu.profile')}

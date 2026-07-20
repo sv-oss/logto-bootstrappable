@@ -1,4 +1,5 @@
-import type { UserProfile, UserProfileResponse } from '@logto/schemas';
+import type { JsonObject, UserProfile } from '@logto/schemas';
+import { conditional, type Nullable } from '@silverhand/essentials';
 
 import { createAuthenticatedKy } from './base-ky';
 
@@ -37,33 +38,58 @@ export const updateUsername = async (
   });
 };
 
-export const updatePassword = async (
-  accessToken: string,
-  verificationRecordId: string,
-  payload: { password: string }
-) => {
-  await createAuthenticatedKy(accessToken).post('/api/my-account/password', {
-    json: payload,
+export const deleteUsername = async (accessToken: string, verificationRecordId: string) => {
+  await createAuthenticatedKy(accessToken).patch('/api/my-account', {
+    json: { username: null },
     headers: { [verificationRecordIdHeader]: verificationRecordId },
   });
 };
 
-export const updateProfile = async (
-  accessToken: string,
-  payload: Pick<Partial<UserProfileResponse>, 'name' | 'avatar'>
-): Promise<Partial<UserProfileResponse>> => {
-  return createAuthenticatedKy(accessToken)
-    .patch('/api/my-account', {
-      json: payload,
-    })
-    .json<Partial<UserProfileResponse>>();
+export const updateName = async (accessToken: string, payload: { name: Nullable<string> }) => {
+  await createAuthenticatedKy(accessToken).patch('/api/my-account', {
+    json: payload,
+  });
 };
 
-export const updateProfileFields = async (
+export const updateAvatar = async (accessToken: string, payload: { avatar: Nullable<string> }) => {
+  await createAuthenticatedKy(accessToken).patch('/api/my-account', {
+    json: payload,
+  });
+};
+
+export const updateProfile = async (accessToken: string, payload: UserProfile) => {
+  await createAuthenticatedKy(accessToken).patch('/api/my-account/profile', {
+    json: payload,
+  });
+};
+
+export const updateCustomData = async (accessToken: string, payload: JsonObject) => {
+  await createAuthenticatedKy(accessToken).patch('/api/my-account', {
+    json: { customData: payload },
+  });
+};
+
+export const deletePrimaryEmail = async (accessToken: string, verificationRecordId: string) => {
+  await createAuthenticatedKy(accessToken).delete('/api/my-account/primary-email', {
+    headers: { [verificationRecordIdHeader]: verificationRecordId },
+  });
+};
+
+export const deletePrimaryPhone = async (accessToken: string, verificationRecordId: string) => {
+  await createAuthenticatedKy(accessToken).delete('/api/my-account/primary-phone', {
+    headers: { [verificationRecordIdHeader]: verificationRecordId },
+  });
+};
+
+export const updatePassword = async (
   accessToken: string,
-  payload: Pick<UserProfile, 'givenName' | 'familyName'>
-): Promise<Pick<UserProfile, 'givenName' | 'familyName'>> => {
-  return createAuthenticatedKy(accessToken)
-    .patch('/api/my-account/profile', { json: payload })
-    .json<Pick<UserProfile, 'givenName' | 'familyName'>>();
+  verificationRecordId: string | undefined,
+  payload: { password: string }
+) => {
+  await createAuthenticatedKy(accessToken).post('/api/my-account/password', {
+    json: payload,
+    ...conditional(
+      verificationRecordId && { headers: { [verificationRecordIdHeader]: verificationRecordId } }
+    ),
+  });
 };

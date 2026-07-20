@@ -1,3 +1,4 @@
+import { type UsernamePolicy, validateUsernameAgainstPolicy } from '@logto/core-kit';
 import {
   MfaFactor,
   Users,
@@ -14,6 +15,18 @@ import { type z } from 'zod';
 
 import RequestError from '#src/errors/RequestError/index.js';
 import assertThat from '#src/utils/assert-that.js';
+
+/**
+ * Enforce the tenant's username policy on a write. Throws `user.username_<violation>` (422) on the
+ * first violation. The hard floor (non-empty, no leading digit, allowed charset) always applies;
+ * length and character-class rules come from the per-tenant policy.
+ */
+export const assertUsernameAllowed = (policy: UsernamePolicy, username: string): void => {
+  const violation = validateUsernameAgainstPolicy(username, policy);
+  if (violation) {
+    throw new RequestError({ code: `user.username_${violation}`, status: 422 });
+  }
+};
 
 export const adminUserProfileResponseGuard = userProfileResponseGuard.extend({
   passwordDigest: Users.guard.shape.passwordEncrypted.optional(),
@@ -113,13 +126,27 @@ export const getUserIdentifierCount = (user: User, ssoIdentityCount = 0): number
   );
 };
 
+type UserIdentifierUpdate = Partial<
+  Pick<User, 'username' | 'primaryEmail' | 'primaryPhone' | 'identities'>
+>;
+
+export const assertUserHasRemainingIdentifier = (
+  user: User,
+  identifierUpdate: UserIdentifierUpdate,
+  ssoIdentityCount = 0
+) => {
+  assertThat(
+    getUserIdentifierCount({ ...user, ...identifierUpdate }, ssoIdentityCount) > 0,
+    new RequestError('user.last_sign_in_method_required')
+  );
+};
+
 export const assertCanDeleteSocialIdentity = (user: User, target: string, ssoIdentityCount = 0) => {
   assertThat(
     user.identities[target],
     new RequestError({ code: 'user.identity_not_exist', status: 404 })
   );
-  assertThat(
-    getUserIdentifierCount(user, ssoIdentityCount) > 1,
-    new RequestError('user.last_sign_in_method_required')
-  );
+
+  const { [target]: _deletedIdentity, ...identities } = user.identities;
+  assertUserHasRemainingIdentifier(user, { identities }, ssoIdentityCount);
 };

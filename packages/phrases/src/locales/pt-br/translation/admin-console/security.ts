@@ -88,7 +88,45 @@ const security = {
     custom_words_description:
       'Personalize palavras específicas do contexto, sem diferenciação de maiúsculas e minúsculas, e uma por linha.',
     custom_words_placeholder: 'Nome do seu serviço, nome da empresa, etc.',
+    password_expiration: 'Expiração de senha',
+    password_expiration_description:
+      'Exigir que os usuários redefinam sua senha após um número definido de dias. Usuários que entram via SSO ou passkey não são afetados.',
+    enable_password_expiration: 'Ativar expiração de senha',
+    enable_password_expiration_description:
+      'Exigir que os usuários redefinam periodicamente sua senha. Usuários existentes sem uma data de alteração de senha registrada serão avaliados a partir da data em que esta política foi ativada.',
+    enable_password_expiration_tip:
+      'Você só pode ativar a expiração de senha depois de configurar ao menos um método de recuperação de senha com um conector válido na experiência de login.',
+    expiration_period: 'Período de validade da senha (dias)',
+    expiration_period_description:
+      'Número de dias que uma senha permanece válida antes de expirar.',
+    expiration_period_error:
+      'O período de validade da senha deve estar entre {{min}} e {{max}} dias.',
+    password_expiration_recovery_reminder:
+      'Alguns usuários podem não ter um endereço de e-mail ou número de telefone para receber um código de recuperação de senha, portanto não poderão redefinir uma senha expirada. Exija um endereço de e-mail ou número de telefone no cadastro para garantir que todos os usuários possam recuperar sua senha.',
   },
+  verification_code_policy: {
+    card_title: 'Código de verificação',
+    card_description:
+      'Configure a duração da expiração e o número máximo de novas tentativas para códigos de verificação usados nos fluxos de entrada, cadastro e redefinição de senha.',
+    enable: {
+      title: 'Personalizar configurações do código de verificação',
+      description:
+        'Permitir a personalização da duração da expiração do código de verificação e do número máximo de novas tentativas.',
+    },
+    expiration_duration: {
+      title: 'Duração da expiração (segundos)',
+      description:
+        'A duração em segundos pela qual um código de verificação permanece válido após ser enviado.',
+      error_message: 'A duração da expiração deve estar entre 60 e 3600 segundos.',
+    },
+    max_retry_attempts: {
+      title: 'Número máximo de novas tentativas',
+      description:
+        'Número máximo de tentativas de verificação com falha permitido antes que o código seja invalidado.',
+      error_message: 'O número máximo de novas tentativas deve estar entre 1 e 100.',
+    },
+  },
+
   sentinel_policy: {
     card_title: 'Bloqueio de identificador',
     card_description:

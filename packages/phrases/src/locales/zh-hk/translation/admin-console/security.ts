@@ -80,7 +80,39 @@ const security = {
     custom_words: '自定義詞彙',
     custom_words_description: '個性化上下文特定的詞彙，不區分大小寫，每行一個詞。',
     custom_words_placeholder: '你的服務名稱、公司名稱等等。',
+    password_expiration: '密碼過期',
+    password_expiration_description:
+      '要求用戶在設定的天數後重置密碼。通過 SSO 或通行密鑰登錄的用戶不受影響。',
+    enable_password_expiration: '啟用密碼過期',
+    enable_password_expiration_description:
+      '要求用戶定期重置密碼。對於沒有記錄密碼更改日期的現有用戶，將從此政策啟用之日起進行評估。',
+    enable_password_expiration_tip:
+      '只有在登入體驗中配置至少一種帶有有效連接器的忘記密碼方式後，才能啟用密碼過期。',
+    expiration_period: '密碼有效期限（天）',
+    expiration_period_description: '密碼在過期前保持有效的天數。',
+    expiration_period_error: '密碼有效期限必須在 {{min}} 到 {{max}} 天之間。',
+    password_expiration_recovery_reminder:
+      '部分用戶可能沒有電郵地址或電話號碼來接收密碼復原驗證碼，因此無法重設已過期的密碼。請在註冊時要求提供電郵地址或電話號碼，以確保每位用戶都能復原其密碼。',
   },
+  verification_code_policy: {
+    card_title: '驗證碼',
+    card_description: '配置登入、註冊和密碼重設流程中驗證碼的過期時長和最大重試次數。',
+    enable: {
+      title: '自定義驗證碼設定',
+      description: '允許自定義驗證碼的過期時長和最大重試次數。',
+    },
+    expiration_duration: {
+      title: '過期時長（秒）',
+      description: '驗證碼發送後保持有效的時長（秒）。',
+      error_message: '過期時長必須在 60 到 3600 秒之間。',
+    },
+    max_retry_attempts: {
+      title: '最大重試次數',
+      description: '驗證碼失效前允許的最大驗證失敗次數。',
+      error_message: '最大重試次數必須在 1 到 100 之間。',
+    },
+  },
+
   sentinel_policy: {
     card_title: '識別鎖定',
     card_description:
