@@ -127,4 +127,20 @@ describe('SMTP SMS config guard', () => {
     const result = smtpSmsConfigGuard.safeParse(rest);
     expect(result.success).toBe(false);
   });
+
+  it('should reject a recipient template without a phone placeholder', () => {
+    const result = smtpSmsConfigGuard.safeParse({
+      ...mockedConfig,
+      toEmailTemplate: 'codes@example.com',
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('should reject a recipient template with multiple phone placeholders', () => {
+    const result = smtpSmsConfigGuard.safeParse({
+      ...mockedConfig,
+      toEmailTemplate: '{{phone}}-{{phoneNumberOnly}}@sms.example.com',
+    });
+    expect(result.success).toBe(false);
+  });
 });

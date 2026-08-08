@@ -42,8 +42,9 @@ runtime defaults, and SMTP-based connectors.
 - **Database upgrades:** this reconciliation deployed alterations for `1.41.0`. The current
   `v1.42.0` deployment instruction appears above.
 - **SMTP and dependency security:** bootstrap supports upstream-style source-authorized SMTP relays
-  without credentials. Nodemailer, tunnel proxy, and ZIP dependencies are pinned to patched
-  releases; the production dependency audit reports no known vulnerabilities.
+  without credentials. The SMTP-to-SMS recipient template must contain exactly one phone
+  placeholder, which prevents verification codes from going to a fixed mailbox. Nodemailer, tunnel
+  proxy, ZIP, and Nanoid dependencies are pinned to patched releases.
 
 
 ---
