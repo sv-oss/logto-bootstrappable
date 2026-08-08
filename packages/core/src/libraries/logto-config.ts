@@ -3,7 +3,7 @@ import crypto from 'node:crypto';
 import type {
   CloudConnectionData,
   IdTokenConfig,
-  InlineHookType,
+  ActionType,
   JwtCustomizerType,
   LogtoOidcConfigType,
   OidcConfigKey,
@@ -12,7 +12,7 @@ import type {
 } from '@logto/schemas';
 import {
   LogtoConfigs,
-  LogtoInlineHookKey,
+  LogtoActionKey,
   LogtoJwtTokenKey,
   LogtoOidcConfigKey,
   OidcSigningKeyStatus,
@@ -22,7 +22,7 @@ import {
   oidcConfigKeysResponseGuard,
   rotateOidcPrivateKeyStatuses,
   idTokenConfigGuard,
-  inlineHookConfigGuard,
+  actionConfigGuard,
   jwtCustomizerConfigGuard,
   logtoOidcConfigGuard,
 } from '@logto/schemas';
@@ -42,7 +42,7 @@ export const createLogtoConfigLibrary = ({
     getRowsByKeys,
     getCloudConnectionData: queryCloudConnectionData,
     upsertJwtCustomizer: queryUpsertJwtCustomizer,
-    upsertInlineHook: queryUpsertInlineHook,
+    upsertAction: queryUpsertAction,
     upsertIdTokenConfig: queryUpsertIdTokenConfig,
     getSigningKeyRotationState,
   },
@@ -160,19 +160,16 @@ export const createLogtoConfigLibrary = ({
     return updatedRow.value;
   };
 
-  const upsertInlineHook = async <T extends LogtoInlineHookKey>(
-    key: T,
-    value: InlineHookType[T]
-  ) => {
-    const { value: rawValue } = await queryUpsertInlineHook(key, value);
+  const upsertAction = async <T extends LogtoActionKey>(key: T, value: ActionType[T]) => {
+    const { value: rawValue } = await queryUpsertAction(key, value);
 
     return {
       key,
-      value: inlineHookConfigGuard[key].parse(rawValue),
+      value: actionConfigGuard[key].parse(rawValue),
     };
   };
 
-  const getInlineHook = async <T extends LogtoInlineHookKey>(key: T) => {
+  const getAction = async <T extends LogtoActionKey>(key: T) => {
     const { rows } = await getRowsByKeys([key]);
 
     if (rows.length === 0) {
@@ -184,15 +181,15 @@ export const createLogtoConfigLibrary = ({
       });
     }
 
-    return z.object({ value: inlineHookConfigGuard[key] }).parse(rows[0]).value;
+    return z.object({ value: actionConfigGuard[key] }).parse(rows[0]).value;
   };
 
-  const getInlineHooks = async (consoleLog: ConsoleLog): Promise<Partial<InlineHookType>> => {
+  const getActions = async (consoleLog: ConsoleLog): Promise<Partial<ActionType>> => {
     try {
-      const { rows } = await getRowsByKeys(Object.values(LogtoInlineHookKey));
+      const { rows } = await getRowsByKeys(Object.values(LogtoActionKey));
 
       return z
-        .object(inlineHookConfigGuard)
+        .object(actionConfigGuard)
         .partial()
         .parse(Object.fromEntries(rows.map(({ key, value }) => [key, value])));
     } catch (error: unknown) {
@@ -206,17 +203,17 @@ export const createLogtoConfigLibrary = ({
         consoleLog.error(error);
       }
 
-      throw new Error('Failed to get inline hooks');
+      throw new Error('Failed to get actions');
     }
   };
 
-  const updateInlineHook = async <T extends LogtoInlineHookKey>(
+  const updateAction = async <T extends LogtoActionKey>(
     key: T,
-    value: Partial<InlineHookType[T]>
-  ): Promise<InlineHookType[T]> => {
-    const originValue = await getInlineHook(key);
-    const result = inlineHookConfigGuard[key].parse({ ...originValue, ...value });
-    const updatedRow = await upsertInlineHook(key, result);
+    value: Partial<ActionType[T]>
+  ): Promise<ActionType[T]> => {
+    const originValue = await getAction(key);
+    const result = actionConfigGuard[key].parse({ ...originValue, ...value });
+    const updatedRow = await upsertAction(key, result);
     return updatedRow.value;
   };
 
@@ -270,6 +267,18 @@ export const createLogtoConfigLibrary = ({
    * This function is intended to be called before accessing OIDC configs to ensure the key statuses are up-to-date.
    */
   const promoteScheduledSigningKeyRotation = async () => {
+    // Lock-free pre-check so the common bootstrap path skips the `FOR UPDATE` transaction below.
+    // Safe because staged rotations are always scheduled in the future, and the authoritative
+    // check + mutation still runs under the lock.
+    const scheduledRotationState = await getSigningKeyRotationState();
+
+    if (
+      !scheduledRotationState?.signingKeyRotationAt ||
+      scheduledRotationState.signingKeyRotationAt > Date.now()
+    ) {
+      return;
+    }
+
     await pool.transaction(async (connection) => {
       const transactionalQueries = createLogtoConfigQueries(connection, wellKnownCache);
       await transactionalQueries.lockPrivateSigningKeysAndRotationState();
@@ -299,10 +308,10 @@ export const createLogtoConfigLibrary = ({
     getJwtCustomizer,
     getJwtCustomizers,
     updateJwtCustomizer,
-    upsertInlineHook,
-    getInlineHook,
-    getInlineHooks,
-    updateInlineHook,
+    upsertAction,
+    getAction,
+    getActions,
+    updateAction,
     upsertIdTokenConfig,
     getRedactedOidcKeyResponse,
     promoteScheduledSigningKeyRotation,

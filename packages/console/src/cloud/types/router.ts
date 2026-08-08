@@ -7,8 +7,6 @@ type GetTenantAuthRoutes = RouterRoutes<typeof tenantAuthRouter>['get'];
 
 export type GetArrayElementType<T> = T extends Array<infer U> ? U : never;
 
-type CloudLogtoSkuResponse = GetArrayElementType<GuardedResponse<GetRoutes['/api/skus']>>;
-
 export type Subscription = GuardedResponse<GetRoutes['/api/tenants/:tenantId/subscription']>;
 
 export type TenantUsageAddOnSkus = GuardedResponse<
@@ -21,27 +19,32 @@ export type SubscriptionUsageResponse = GuardedResponse<
   GetRoutes['/api/tenants/:tenantId/subscription-usage']
 >;
 
-type InlineHookSubscriptionQuota = {
-  inlineHooksEnabled: boolean;
-};
-
 export type SubscriptionQuota = Omit<
   SubscriptionUsageResponse['quota'],
+  // Drop once `@logto/cloud` no longer declares the legacy Actions quota key.
+  | 'inlineHooksEnabled'
   // Since we are deprecating the `organizationsEnabled` key soon (use `organizationsLimit` instead), we exclude it from the quota keys for now to avoid confusion.
-  'organizationsEnabled'
-> &
-  InlineHookSubscriptionQuota;
+  | 'organizationsEnabled'
+>;
 
-export type LogtoSkuResponse = Omit<CloudLogtoSkuResponse, 'quota'> & {
-  quota: CloudLogtoSkuResponse['quota'] & Partial<InlineHookSubscriptionQuota>;
+export type LogtoSkuResponse = Omit<
+  GetArrayElementType<GuardedResponse<GetRoutes['/api/skus']>>,
+  'quota'
+> & {
+  // Drop the legacy key once `@logto/cloud` stops declaring it on SKU quotas.
+  quota: Omit<
+    GetArrayElementType<GuardedResponse<GetRoutes['/api/skus']>>['quota'],
+    'inlineHooksEnabled'
+  >;
 };
 
 export type SubscriptionCountBasedUsage = Omit<
   SubscriptionUsageResponse['usage'],
+  // Drop once `@logto/cloud` no longer declares the legacy Actions quota key.
+  | 'inlineHooksEnabled'
   // Since we are deprecating the `organizationsEnabled` key soon (use `organizationsLimit` instead), we exclude it from the usage keys for now to avoid confusion.
-  'organizationsEnabled'
-> &
-  InlineHookSubscriptionQuota;
+  | 'organizationsEnabled'
+>;
 export type SubscriptionResourceScopeUsage = SubscriptionUsageResponse['resources'];
 export type SubscriptionRoleScopeUsage = Omit<
   SubscriptionUsageResponse['roles'],

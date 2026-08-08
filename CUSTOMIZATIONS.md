@@ -4,10 +4,24 @@ This document describes all changes made to the upstream [Logto](https://github.
 
 ## Overview
 
-This fork tracks upstream Logto `v1.41.0`. Its primary purpose is environment-driven,
+This fork tracks upstream Logto `v1.42.0`. Its primary purpose is environment-driven,
 transactional bootstrap for ephemeral deployments. The remaining product customizations are a
 BDM-oriented Account Center landing page, structured operational logging, custom identity claims,
 runtime defaults, and SMTP-based connectors.
+
+### v1.42.0 upstream reconciliation
+
+- **OIDC provider:** upstream now uses `oidc-provider` v9. Its outbound request SSRF protection is
+  enabled by default. Set `OIDC_PROVIDER_SSRF_PROTECTION_DISABLED=true` only for trusted private
+  relying-party endpoints.
+- **Schema and deployment:** upstream adds domain verification files, a service-log timestamp index,
+  and SAML SSO connector signing keys. Deploy alterations for `1.42.0` after the bootstrap seed.
+- **Audit logging:** upstream now projects Action audit data before it reaches the audit middleware.
+  The fork retains its structured console audit output after this projection.
+- **Sign-in phone input:** upstream parses pasted international phone numbers. The fork retains its
+  default-country behavior and ISO country validation.
+- **Database upgrades:** upgrades remain supported from fork release `v0.4.0`, whose schema package
+  version is `1.38.0`.
 
 ### v1.41.0 upstream reconciliation
 
@@ -25,9 +39,8 @@ runtime defaults, and SMTP-based connectors.
   `LOGTO_OIDC_SIGNING_KEY_TYPE`, while persisted keys use upstream's rotation-aware key status
   model and grace-period support.
 - **Sign-in appearance:** the fork enables dark mode for the default sign-in experience.
-- **Database upgrades:** deployments run `db seed --swe`, deploy alterations for `1.41.0`, then
-  start the server. This supports fresh ephemeral databases and upgrades from the `v0.4.0` fork
-  release, whose schema package version is `1.38.0`.
+- **Database upgrades:** this reconciliation deployed alterations for `1.41.0`. The current
+  `v1.42.0` deployment instruction appears above.
 - **SMTP and dependency security:** bootstrap supports upstream-style source-authorized SMTP relays
   without credentials. Nodemailer, tunnel proxy, and ZIP dependencies are pinned to patched
   releases; the production dependency audit reports no known vulnerabilities.

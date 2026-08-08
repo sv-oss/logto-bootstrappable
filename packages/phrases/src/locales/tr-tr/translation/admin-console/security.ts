@@ -164,6 +164,27 @@ const security = {
     card_title: 'E-posta engelleme listesi',
     card_description:
       'Yüksek riskli veya istenmeyen e-posta adreslerini engelleyerek kullanıcı tabanınızı kontrol edin.',
+    custom_email_allowlist: {
+      title: 'Özel e-posta adreslerine izin ver',
+      description:
+        'Yeni kayıtlar ve yeni bağlanan e-postalar için yalnızca eşleşen e-posta adreslerine, alan adlarına veya joker karakterli e-posta kalıplarına izin ver.',
+      placeholder:
+        'İzin verilen e-posta adresini, alan adını veya joker karakterli e-posta kalıbını girin (örn. bar@example.com, @example.com, foo*@example.com, *@example.com)',
+      duplicate_error:
+        'E-posta adresi, alan adı veya joker karakterli e-posta kalıbı zaten eklendi',
+      invalid_format_error:
+        'Geçerli bir e-posta adresi (bar@example.com), alan adı (@example.com) veya joker karakterli e-posta kalıbı (foo*@example.com, *@example.com) olmalıdır',
+      warnings: {
+        identical_entries:
+          'Bazı izin listesi girdileri engelleme kurallarında da bulunuyor. Eşleşen e-postalar yine de engellenebilir.',
+        blocked_exact_email:
+          'Bazı tam izin listesi e-postaları bir engelleme kuralıyla eşleşiyor. Eşleşen e-postalar yine de engellenebilir.',
+        blocked_subaddressing:
+          'Bazı izin listesi girdileri artı işareti (+) içeriyor, ancak e-posta alt adresleme engellenmiş durumda.',
+        effectively_unusable:
+          'Bu kontrollere göre mevcut izin listesi hiçbir yeni e-postanın geçmesine izin vermeyebilir.',
+      },
+    },
     disposable_email: {
       title: 'Geçici e-posta adreslerini engelle',
       description:
@@ -177,12 +198,13 @@ const security = {
     custom_email_address: {
       title: 'Özel e-posta adreslerini engelle',
       description:
-        'Belirli e-posta alan adlarını veya kullanıcı arayüzü aracılığıyla kaydolamayacak veya bağlantı kuramayacak e-posta adreslerini ekleyin.',
+        'Belirli e-posta alan adlarının, e-posta adreslerinin veya joker karakterli e-posta adresi kalıplarının kullanıcı arayüzü aracılığıyla kaydolmasını veya bağlantı kurmasını engelleyen kurallar ekleyin.',
       placeholder:
-        'Engellenen e-posta adresini veya alan adını girin (örn., bar@example.com, @example.com)',
-      duplicate_error: 'E-posta adresi veya alan adı zaten eklendi',
+        'Engellenen e-posta adresini, alan adını veya joker karakterli e-posta adresi kalıbını girin (örn., bar@example.com, @example.com, foo*@example.com, *@example.com)',
+      duplicate_error:
+        'E-posta adresi, alan adı veya joker karakterli e-posta adresi kalıbı zaten eklendi',
       invalid_format_error:
-        'Geçerli bir e-posta adresi (bar@example.com) veya alan adı (@example.com) olmalıdır',
+        'Geçerli bir e-posta adresi (bar@example.com), alan adı (@example.com) veya joker karakterli e-posta adresi kalıbı (foo*@example.com, *@example.com) olmalıdır',
     },
   },
 };

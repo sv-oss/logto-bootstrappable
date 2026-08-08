@@ -148,6 +148,22 @@ const security = {
   blocklist: {
     card_title: '電子郵件封鎖清單',
     card_description: '通過封鎖高風險或不需要的電子郵件地址來控制你的用戶群。',
+    custom_email_allowlist: {
+      title: '允許自訂電子郵件地址',
+      description:
+        '只允許相符的電子郵件地址、網域或萬用字元電子郵件地址模式用於新註冊和新綁定的電子郵件。',
+      placeholder:
+        '輸入允許的電子郵件地址、網域或萬用字元電子郵件地址模式（例如，bar@example.com，@example.com，foo*@example.com，*@example.com）',
+      duplicate_error: '電子郵件地址、網域或萬用字元電子郵件地址模式已新增',
+      invalid_format_error:
+        '必須是有效的電子郵件地址（bar@example.com）、網域（@example.com）或萬用字元電子郵件地址模式（foo*@example.com，*@example.com）',
+      warnings: {
+        identical_entries: '部分允許清單項目也存在於阻止規則中。相符的電子郵件仍可能被阻止。',
+        blocked_exact_email: '部分精確電子郵件允許項目符合阻止規則。相符的電子郵件仍可能被阻止。',
+        blocked_subaddressing: '部分允許清單項目包含加號（+），但電子郵件子地址已被阻止。',
+        effectively_unusable: '根據這些檢查，目前允許清單可能無法讓任何新的電子郵件通過。',
+      },
+    },
     disposable_email: {
       title: '封鎖一次性電子郵件地址',
       description:
@@ -160,10 +176,13 @@ const security = {
     },
     custom_email_address: {
       title: '封鎖自定義電子郵件地址',
-      description: '添加不能通過 UI 註冊或連結的特定電子郵件域或地址。',
-      placeholder: '輸入被封鎖的電子郵件地址或域（例如 bar@example.com, @example.com）',
-      duplicate_error: '電子郵件地址或域已添加',
-      invalid_format_error: '必須是有效的電子郵件地址(bar@example.com)或域(@example.com)',
+      description:
+        '添加規則，以封鎖特定電子郵件域、電子郵件地址或通配符電子郵件地址模式通過 UI 註冊或連結。',
+      placeholder:
+        '輸入被封鎖的電子郵件地址、域或通配符電子郵件地址模式（例如 bar@example.com, @example.com, foo*@example.com, *@example.com）',
+      duplicate_error: '電子郵件地址、域或通配符電子郵件地址模式已添加',
+      invalid_format_error:
+        '必須是有效的電子郵件地址（bar@example.com）、域（@example.com）或通配符電子郵件地址模式（foo*@example.com, *@example.com）',
     },
   },
 };

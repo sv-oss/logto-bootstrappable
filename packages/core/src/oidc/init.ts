@@ -14,6 +14,7 @@ import {
   inSeconds,
   logtoCookieKey,
   ExtraParamsKey,
+  type Json,
 } from '@logto/schemas';
 import { trySafe, tryThat } from '@silverhand/essentials';
 import { type i18n } from 'i18next';
@@ -28,6 +29,9 @@ import koaAppSecretTranspilation from '#src/middleware/koa-app-secret-transpilat
 import koaAuditLog, { type WithLogContext } from '#src/middleware/koa-audit-log.js';
 import koaBodyEtag from '#src/middleware/koa-body-etag.js';
 import koaJwksCacheControl from '#src/middleware/koa-jwks-cache-control.js';
+import koaOidcCookies from '#src/middleware/koa-oidc-cookies.js';
+import koaOidcPostToGet from '#src/middleware/koa-oidc-post-to-get.js';
+import koaOidcUnrecognizedRoute from '#src/middleware/koa-oidc-unrecognized-route.js';
 import koaResourceParam from '#src/middleware/koa-resource-param.js';
 import postgresAdapter from '#src/oidc/adapter.js';
 import {
@@ -58,6 +62,7 @@ import {
   getExtraTokenClaimsForOrganizationApiResource,
   getExtraTokenClaimsForTokenExchange,
 } from './extra-token-claims.js';
+import { getProviderFetchConfig } from './fetch.js';
 import { registerGrants } from './grants/index.js';
 import {
   findResource,
@@ -67,6 +72,7 @@ import {
   filterResourceScopesForTheThirdPartyApplication,
 } from './resource.js';
 import { getAcceptedUserClaims, getUserClaimsData } from './scope.js';
+import { installWildcardRedirectUriMatching } from './wildcard-redirect-uri.js';
 
 // Temporarily removed 'EdDSA' since it's not supported by browser yet
 const supportedSigningAlgs = Object.freeze(['RS256', 'PS256', 'ES256', 'ES384', 'ES512'] as const);
@@ -169,13 +175,18 @@ export default function initOidc(
       introspectionSigningAlgValues: [...supportedSigningAlgs],
     },
     conformIdTokenClaims: false,
-    allowWildcardRedirectUris: true,
+    ...getProviderFetchConfig(),
     features: {
       userinfo: { enabled: true },
       revocation: { enabled: true },
       introspection: { enabled: true },
       devInteractions: { enabled: false },
       clientCredentials: { enabled: true },
+      /**
+       * The upstream enables DPoP by default since v9. Keep it off to preserve the behavior of
+       * the previous oidc-provider version until Logto officially supports DPoP.
+       */
+      dPoP: { enabled: false },
       backchannelLogout: { enabled: true },
       deviceFlow: deviceFlowConfig,
       rpInitiatedLogout: {
@@ -344,9 +355,13 @@ export default function initOidc(
       },
     },
     // https://github.com/panva/node-oidc-provider/blob/main/recipes/client_based_origins.md
+    /**
+     * Use `ctx.URL.origin` (`protocol://host`) instead of `ctx.request.origin` — in Koa 3 the
+     * latter returns the request's `Origin` header, which would degenerate this check into
+     * allow-all. `ctx.URL.origin` behaves identically on both Koa majors.
+     */
     clientBasedCORS: (ctx, origin, client) =>
-      ctx.request.origin === origin ||
-      isOriginAllowed(origin, client.metadata(), client.redirectUris),
+      ctx.URL.origin === origin || isOriginAllowed(origin, client.metadata(), client.redirectUris),
     // https://github.com/panva/node-oidc-provider/blob/main/recipes/claim_configuration.md
     // Note node-provider will append `claims` here to the default claims instead of overriding
     claims: userClaims,
@@ -456,21 +471,18 @@ export default function initOidc(
       required: (ctx, client) => {
         return client.clientAuthMethod !== 'client_secret_basic';
       },
-      methods: ['S256'],
     },
   });
 
-  addOidcEventListeners(tenantId, oidc, queries);
+  installWildcardRedirectUriMatching(oidc);
+  addOidcEventListeners(tenantId, oidc, queries, libraries.hooks.triggerEvent);
   registerGrants(oidc, envSet, queries, libraries);
+
+  // Register first so all downstream cookie operations go through the rebound instance
+  oidc.use(koaOidcCookies(oidc));
 
   // Provide audit log context for event listeners
   oidc.use(koaAuditLog(queries));
-  /**
-   * Check if the request URL contains comma separated `resource` query parameter. If yes, split the values and
-   * reconstruct the URL with multiple `resource` query parameters.
-   * E.g. `?resource=foo,bar` => `?resource=foo&resource=bar`
-   */
-  oidc.use(koaResourceParam());
   /**
    * `oidc-provider` [strictly checks](https://github.com/panva/node-oidc-provider/blob/6a0bcbcd35ed3e6179e81f0ab97a45f5e4e58f48/lib/shared/selective_body.js#L11)
    * the `content-type` header for further processing.
@@ -510,22 +522,44 @@ export default function initOidc(
       if (ctx.is(jsonContentType)) {
         ctx.headers['content-type'] = formUrlEncodedContentType;
         // eslint-disable-next-line no-restricted-syntax
-        ctx.request.body = trySafe(() => JSON.parse(body) as unknown);
+        ctx.request.body = trySafe(() => JSON.parse(body) as Json);
       } else if (ctx.is(formUrlEncodedContentType)) {
-        ctx.request.body = querystring.parse(body);
+        /**
+         * `querystring.parse()` only produces string/string[] values at runtime — its
+         * `ParsedUrlQuery` return type marks values as possibly `undefined` merely by the
+         * index-signature convention. Narrow that away so the JSON-typed `Request.body`
+         * (from koa-body) accepts the assignment.
+         */
+        // eslint-disable-next-line no-restricted-syntax
+        ctx.request.body = querystring.parse(body) as Record<string, string | string[]>;
       }
     }
 
     return next();
   });
 
+  /**
+   * Register before `koaOidcPostToGet()` so it observes the restored POST method and keeps
+   * ETag/304 semantics off forwarded POST requests — they only apply to real GET requests.
+   */
+  oidc.use(koaBodyEtag());
+  oidc.use(koaOidcPostToGet());
+  /**
+   * Check if the request URL contains comma separated `resource` query parameter. If yes, split the values and
+   * reconstruct the URL with multiple `resource` query parameters.
+   * E.g. `?resource=foo,bar` => `?resource=foo&resource=bar`
+   */
+  oidc.use(koaResourceParam());
+
   oidc.use(koaAppSecretTranspilation(queries));
   oidc.use(koaJwksCacheControl());
-  oidc.use(koaBodyEtag());
 
   if (EnvSet.values.isCloud) {
     oidc.use(koaTokenUsageGuard(subscription));
   }
+
+  // Register last so it splices directly around the provider's internal router
+  oidc.use(koaOidcUnrecognizedRoute());
 
   return oidc;
 }

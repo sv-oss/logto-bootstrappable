@@ -170,6 +170,26 @@ const security = {
     card_title: "Liste de blocage d'email",
     card_description:
       "Prenez le contrôle de votre base d'utilisateurs en bloquant les adresses e-mail à haut risque ou indésirables.",
+    custom_email_allowlist: {
+      title: 'Autoriser des adresses e-mail personnalisées',
+      description:
+        'Autorisez uniquement les adresses e-mail, domaines ou modèles avec joker correspondants pour les nouvelles inscriptions et les e-mails récemment liés.',
+      placeholder:
+        'Saisissez l’adresse e-mail, le domaine ou le modèle avec joker autorisé (par ex. bar@example.com, @example.com, foo*@example.com, *@example.com)',
+      duplicate_error: 'L’adresse e-mail, le domaine ou le modèle avec joker a déjà été ajouté',
+      invalid_format_error:
+        'Doit être une adresse e-mail valide (bar@example.com), un domaine (@example.com) ou un modèle avec joker (foo*@example.com, *@example.com)',
+      warnings: {
+        identical_entries:
+          'Certaines entrées de la liste d’autorisation existent aussi dans les règles de blocage. Les e-mails correspondants peuvent toujours être bloqués.',
+        blocked_exact_email:
+          'Certains e-mails exacts de la liste d’autorisation correspondent à une règle de blocage. Les e-mails correspondants peuvent toujours être bloqués.',
+        blocked_subaddressing:
+          'Certaines entrées de la liste d’autorisation contiennent un signe plus (+), mais le sous-adressage e-mail est bloqué.',
+        effectively_unusable:
+          'D’après ces vérifications, la liste d’autorisation actuelle peut ne laisser passer aucun nouvel e-mail.',
+      },
+    },
     disposable_email: {
       title: 'Bloquer les adresses e-mail temporaires',
       description:
@@ -183,12 +203,13 @@ const security = {
     custom_email_address: {
       title: 'Bloquer les adresses e-mail personnalisées',
       description:
-        "Ajoutez des domaines ou des adresses e-mail spécifiques qui ne peuvent pas s'inscrire ou se lier via l'interface utilisateur.",
+        "Ajoutez des règles pour bloquer des domaines d'e-mail, des adresses e-mail ou des modèles d'adresse e-mail avec joker spécifiques afin qu'ils ne puissent pas s'inscrire ou se lier via l'interface utilisateur.",
       placeholder:
-        "Entrez l'adresse email ou le domaine bloqué (ex. : bar@example.com, @example.com)",
-      duplicate_error: 'Adresse e-mail ou domaine déjà ajouté',
+        "Entrez l'adresse e-mail, le domaine ou le modèle d'adresse e-mail avec joker bloqué (ex. : bar@example.com, @example.com, foo*@example.com, *@example.com)",
+      duplicate_error:
+        "L'adresse e-mail, le domaine ou le modèle d'adresse e-mail avec joker a déjà été ajouté",
       invalid_format_error:
-        'Doit être une adresse e-mail valide (bar@example.com) ou un domaine (@example.com)',
+        "Doit être une adresse e-mail valide (bar@example.com), un domaine (@example.com) ou un modèle d'adresse e-mail avec joker (foo*@example.com, *@example.com)",
     },
   },
 };

@@ -10,6 +10,8 @@ import {
   type Json,
   type IdTokenConfig,
   type OidcSessionConfig,
+  type LogtoActionKey,
+  type LogtoAction,
 } from '@logto/schemas';
 
 import { waitFor } from '#src/utils.js';
@@ -94,6 +96,15 @@ export const testJwtCustomizer = async (payload: JwtCustomizerTestRequestBody) =
       json: payload,
     })
     .json<Json>();
+
+export const upsertAction = async (key: LogtoActionKey, value: LogtoAction) =>
+  authedAdminApi.put(`configs/actions/${key}`, { json: value }).json<LogtoAction>();
+
+export const updateAction = async (key: LogtoActionKey, value: Partial<LogtoAction>) =>
+  authedAdminApi.patch(`configs/actions/${key}`, { json: value }).json<LogtoAction>();
+
+export const deleteAction = async (key: LogtoActionKey) =>
+  authedAdminApi.delete(`configs/actions/${key}`);
 
 export const getIdTokenConfig = async () =>
   authedAdminApi.get('configs/id-token').json<IdTokenConfig>();
