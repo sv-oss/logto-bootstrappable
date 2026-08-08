@@ -34,7 +34,7 @@ const config: UserConfig = {
     'type-enum': [2, 'always', [...conventional.rules['type-enum'][2], 'api', 'release']],
     'scope-case': [2, 'always', ['pascal-case', 'lower-case', 'kebab-case', 'upper-case']],
     // Preserve the PascalCase scopes used by the historical fork commits.
-    'scope-enum': [2, 'always', [...upstreamScopes, 'AC', 'Core', 'UI']],
+    'scope-enum': [2, 'always', [...upstreamScopes, 'AC', 'Core', 'UI', 'master']],
     ...(isCi && { 'header-max-length': [2, 'always', 110] }),
     ...(isCi && { 'footer-max-line-length': [2, 'always', 110] }),
     'body-max-line-length': [2, 'always', 110],
