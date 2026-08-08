@@ -197,7 +197,6 @@ A zero-click setup system that runs during `pnpm cli db seed --swe` (skip-when-e
 | Sign-in | `LOGTO_BOOTSTRAP_SIGNIN_EXPERIENCE` | `true` to auto-configure dark mode + name collection |
 | MFA | `LOGTO_MFA_FACTORS` | Comma-separated: `totp`, `webauthn`, `backupCode`, `emailVerificationCode`, `phoneVerificationCode` |
 | Users | `LOGTO_SEED_USERS_FILE` | Absolute path to `.json` or `.csv` |
-| Phone | `LOGTO_DEFAULT_PHONE_COUNTRY_CODE` | e.g. `AU` |
 
 When adding new bootstrap env vars, follow the pattern in `bootstrap-config.ts`:
 

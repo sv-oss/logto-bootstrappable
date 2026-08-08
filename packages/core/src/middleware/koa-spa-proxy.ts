@@ -5,7 +5,7 @@ import type { MiddlewareType } from 'koa';
 import proxy from 'koa-proxies';
 import type { IRouterParamContext } from 'koa-router';
 
-import { EnvSet, UserApps } from '#src/env-set/index.js';
+import { EnvSet } from '#src/env-set/index.js';
 import serveStatic from '#src/middleware/koa-serve-static.js';
 import type Queries from '#src/tenants/Queries.js';
 import { getConsoleLogFromContext } from '#src/utils/console.js';
@@ -20,23 +20,12 @@ type Properties = {
   readonly prefix?: string;
 };
 
-/**
- * The path (relative to the mount prefix) at which the account center runtime config is served.
- * The account center's index.html loads this script so that `window.__logtoConfig__` is
- * populated before any React code runs — in both development (proxy) and production (static) mode.
- */
-const runtimeConfigPath = '/runtime-config.js';
-
 const shouldSkipForMountedApp = (
   prefix: string,
   mountedApps: string[],
   requestPath: string
 ): boolean =>
   !prefix && mountedApps.some((app) => app !== prefix && requestPath.startsWith(`/${app}`));
-
-const shouldServeRuntimeConfig = (packagePath: string, requestPath: string): boolean =>
-  (packagePath === UserApps.AccountCenter || packagePath === 'experience') &&
-  requestPath === runtimeConfigPath;
 
 const isStaticRequest = (requestPath: unknown): boolean =>
   typeof requestPath === 'string' && path.basename(requestPath).includes('.');
@@ -92,18 +81,6 @@ export default function koaSpaProxy<StateT, ContextT extends IRouterParamContext
     // Skip if the request is for another app
     if (shouldSkipForMountedApp(prefix, mountedApps, requestPath)) {
       return next();
-    }
-
-    // Serve the runtime config as a JS file for account center and experience SPA. Intercepted
-    // before the proxy or static file server so it works in both development and production.
-    // The script sets `window.__logtoConfig__` with server-side env vars at request time.
-    if (shouldServeRuntimeConfig(packagePath, requestPath)) {
-      const defaultPhoneCountryCode = process.env.LOGTO_DEFAULT_PHONE_COUNTRY_CODE;
-      const config = defaultPhoneCountryCode ? { defaultPhoneCountryCode } : {};
-      ctx.type = 'application/javascript';
-      ctx.response.body = `window.__logtoConfig__=${JSON.stringify(config)};`;
-      ctx.set('Cache-Control', 'no-cache, no-store, must-revalidate');
-      return;
     }
 
     const { customUiAssets } = await queries.signInExperiences.findDefaultSignInExperience();

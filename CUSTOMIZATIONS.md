@@ -18,8 +18,8 @@ runtime defaults, and SMTP-based connectors.
   and SAML SSO connector signing keys. Deploy alterations for `1.42.0` after the bootstrap seed.
 - **Audit logging:** upstream now projects Action audit data before it reaches the audit middleware.
   The fork retains its structured console audit output after this projection.
-- **Sign-in phone input:** upstream parses pasted international phone numbers. The fork retains its
-  default-country behavior and ISO country validation.
+- **Sign-in phone input:** upstream parses pasted international phone numbers. The fork retired its
+  incomplete `LOGTO_DEFAULT_PHONE_COUNTRY_CODE` override and now uses upstream country selection.
 - **Database upgrades:** upgrades remain supported from fork release `v0.4.0`, whose schema package
   version is `1.38.0`.
 

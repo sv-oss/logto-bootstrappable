@@ -1,9 +1,8 @@
 import { SignInIdentifier } from '@logto/schemas';
-import { getCountryCallingCode } from 'libphonenumber-js/mobile';
 import { useState, useCallback, useMemo } from 'react';
 import type { ChangeEventHandler } from 'react';
 
-import { getDefaultCountryCallingCode, isValidCountryCode } from '@/utils/country-code';
+import { getDefaultCountryCallingCode } from '@/utils/country-code';
 import { parseIdentifierValue, parsePhoneIdentifier } from '@/utils/form';
 
 import { detectIdentifierType } from './utils';
@@ -28,10 +27,9 @@ export type IdentifierInputValue = {
 type Props = {
   defaultValue?: string;
   enabledTypes: IdentifierInputType[];
-  defaultCountryCode?: string;
 };
 
-const useSmartInputField = ({ defaultValue, enabledTypes, defaultCountryCode }: Props) => {
+const useSmartInputField = ({ defaultValue, enabledTypes }: Props) => {
   const enabledTypeSet = useMemo(() => new Set(enabledTypes), [enabledTypes]);
 
   // Parse default type from enabled types and default value
@@ -48,17 +46,8 @@ const useSmartInputField = ({ defaultValue, enabledTypes, defaultCountryCode }: 
 
   const [currentType, setCurrentType] = useState(defaultType);
 
-  // Convert the ISO 3166-1 alpha-2 country code prop (e.g. "AU") to a calling code (e.g. "61")
-  const defaultCallingCode = useMemo(() => {
-    if (!defaultCountryCode) {
-      return;
-    }
-    const upperCode = defaultCountryCode.toUpperCase();
-    return isValidCountryCode(upperCode) ? getCountryCallingCode(upperCode) : undefined;
-  }, [defaultCountryCode]);
-
   const [countryCode, setCountryCode] = useState<string>(
-    parsedCountryCode ?? defaultCallingCode ?? getDefaultCountryCallingCode()
+    parsedCountryCode ?? getDefaultCountryCallingCode()
   );
 
   const [inputValue, setInputValue] = useState<string>(defaultInputValue ?? '');

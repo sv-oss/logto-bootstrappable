@@ -66,9 +66,6 @@ services:
       - LOGTO_SMTP_SMS_TO_EMAIL_TEMPLATE=sms+{{phoneNumberOnly}}@txt.telstra.com.au
       - LOGTO_SMTP_SMS_IGNORE_SSL=true
 
-      # Make AU (+61) the default Phone Code
-      - LOGTO_DEFAULT_PHONE_COUNTRY_CODE=AU
-
       # Bootstrap: Sign-in identifier (email-primary)
       - LOGTO_BOOTSTRAP_SIGNIN_EXPERIENCE=true
       - LOGTO_SIGN_IN_IDENTIFIER=email
