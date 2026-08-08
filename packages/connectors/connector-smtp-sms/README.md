@@ -49,6 +49,9 @@ Configure the same SMTP settings you would use for email:
 | `{{phone}}`         | Phone number as received (e.g. +12025551234) | `+12025551234` |
 | `{{phoneNumberOnly}}` | Digits only (non-numeric chars stripped) | `12025551234`  |
 
+The template must contain exactly one placeholder. This prevents a configuration error from
+sending verification codes to a fixed email address.
+
 **Example for AT&T (USA):**
 
 ```

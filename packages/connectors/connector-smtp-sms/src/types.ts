@@ -5,6 +5,7 @@ import { z } from 'zod';
  * 'Register', 'SignIn', 'ForgotPassword', 'Generic'.
  */
 const requiredTemplateUsageTypes = ['Register', 'SignIn', 'ForgotPassword', 'Generic'];
+const recipientPlaceholders = ['{{phone}}', '{{phoneNumberOnly}}'];
 
 const templateGuard = z.object({
   usageType: z.string(),
@@ -41,6 +42,17 @@ const oauth2AuthWithTokenGuard = z.object({
 
 const authGuard = loginAuthGuard.or(oauth2AuthWithKeyGuard).or(oauth2AuthWithTokenGuard);
 
+const toEmailTemplateGuard = z
+  .string()
+  .refine(
+    (template) =>
+      recipientPlaceholders.reduce(
+        (count, placeholder) => count + template.split(placeholder).length - 1,
+        0
+      ) === 1,
+    'toEmailTemplate must contain exactly one {{phone}} or {{phoneNumberOnly}} placeholder'
+  );
+
 export const smtpSmsConfigGuard = z.object({
   /** SMTP server hostname */
   host: z.string(),
@@ -58,7 +70,7 @@ export const smtpSmsConfigGuard = z.object({
    * Example for AT&T (USA): "{{phoneNumberOnly}}@txt.att.net"
    * Example for Verizon (USA): "{{phoneNumberOnly}}@vtext.com"
    */
-  toEmailTemplate: z.string(),
+  toEmailTemplate: toEmailTemplateGuard,
   /** SMS message templates per usage type */
   templates: z.array(templateGuard).refine(
     (templates) =>
