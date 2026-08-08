@@ -14,17 +14,16 @@ type RouteRequestBodyType<T extends { search?: unknown; body?: ZodType; response
 type CompleteSubscription = RouteResponseType<GetRoutes['/api/tenants/my/subscription']>;
 type CompleteSubscriptionUsage = RouteResponseType<GetRoutes['/api/tenants/my/subscription-usage']>;
 
-type InlineHookSubscriptionQuota = {
-  inlineHooksEnabled: boolean;
-};
+export const actionQuotaKey = 'actionsEnabled' satisfies keyof CompleteSubscription['quota'];
 
 export type SubscriptionQuota = Omit<
   CompleteSubscriptionUsage['quota'],
   | 'auditLogsRetentionDays'
+  // Drop once `@logto/cloud` no longer declares the legacy Actions quota key.
+  | 'inlineHooksEnabled'
   // Since we are deprecating the `organizationsEnabled` key soon (use `organizationsLimit` instead), we exclude it from the usage keys for now to avoid confusion.
   | 'organizationsEnabled'
-> &
-  InlineHookSubscriptionQuota;
+>;
 
 /**
  * The subscription data is fetched from the Cloud API.
@@ -49,10 +48,11 @@ export type Subscription = Omit<
 
 export type SubscriptionUsage = Omit<
   CompleteSubscriptionUsage['usage'],
+  // Drop once `@logto/cloud` no longer declares the legacy Actions quota key.
+  | 'inlineHooksEnabled'
   // Since we are deprecating the `organizationsEnabled` key soon (use `organizationsLimit` instead), we exclude it from the usage keys for now to avoid confusion.
-  'organizationsEnabled'
-> &
-  InlineHookSubscriptionQuota;
+  | 'organizationsEnabled'
+>;
 
 export type ReportSubscriptionUpdatesUsageKey = Exclude<
   RouteRequestBodyType<PostRoutes['/api/tenants/my/subscription/item-updates']>['usageKey'],
@@ -107,12 +107,14 @@ const logtoSkuQuotaGuard = z.object({
   hooksLimit: z.number().nullable(),
   auditLogsRetentionDays: z.number().nullable(),
   customJwtEnabled: z.boolean(),
-  inlineHooksEnabled: z.boolean(),
+  actionsEnabled: z.boolean(),
   subjectTokenEnabled: z.boolean(),
   bringYourUiEnabled: z.boolean(),
   collectUserProfileEnabled: z.boolean(),
   passkeySignInEnabled: z.boolean(),
   tokenLimit: z.number().nullable(),
+  hostedEmailLimit: z.number().nullable(),
+  hostedEmailDailyLimit: z.number().nullable(),
   machineToMachineLimit: z.number().nullable(),
   resourcesLimit: z.number().nullable(),
   enterpriseSsoLimit: z.number().nullable(),
@@ -164,6 +166,9 @@ export const subscriptionCacheGuard = z.object({
   currentPeriodStart: z.string(),
   currentPeriodEnd: z.string(),
   isEnterprisePlan: z.boolean(),
+  // Optional so cache entries written before Cloud started returning `isDevPlan` still parse; the
+  // field is otherwise always present. Kept so a cached read preserves it for the hosted-email guard.
+  isDevPlan: z.boolean().optional(),
   status: subscriptionStatusGuard,
   upcomingInvoice: upcomingInvoiceGuard.nullable().optional(),
   quota: logtoSkuQuotaGuard,

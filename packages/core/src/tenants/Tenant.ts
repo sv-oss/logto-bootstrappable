@@ -27,6 +27,7 @@ import koaOidcErrorHandler from '#src/middleware/koa-oidc-error-handler.js';
 import koaSecurityHeaders, {
   koaExperienceSecurityHeaders,
 } from '#src/middleware/koa-security-headers.js';
+import koaServeDomainVerificationFiles from '#src/middleware/koa-serve-domain-verification-files.js';
 import koaSlonikErrorHandler from '#src/middleware/koa-slonik-error-handler.js';
 import koaSpaProxy from '#src/middleware/koa-spa-proxy.js';
 import koaSpaSessionGuard from '#src/middleware/koa-spa-session-guard.js';
@@ -75,7 +76,7 @@ export default class Tenant implements TenantContext {
       // Custom endpoint is used for building OIDC issuer URL when the request is a custom domain
       await envSet.load(customDomain);
 
-      return new Tenant(envSet, id, new WellKnownCache(id, redisCache));
+      return new Tenant(envSet, id, customDomain, new WellKnownCache(id, redisCache));
     } catch (error) {
       consoleLog.error('Failed to create tenant:', id, error);
       throw error;
@@ -100,6 +101,7 @@ export default class Tenant implements TenantContext {
   private constructor(
     public readonly envSet: EnvSet,
     public readonly id: string,
+    private readonly customDomain: string | undefined,
     public readonly wellKnownCache: WellKnownCache,
     public readonly queries = new Queries(envSet.pool, wellKnownCache),
     public readonly logtoConfigs = createLogtoConfigLibrary(queries),
@@ -144,7 +146,7 @@ export default class Tenant implements TenantContext {
     const provider = initOidc(id, envSet, queries, libraries, logtoConfigs, subscription);
 
     app.use(koaDeviceFlowShortcut());
-    app.use(mount('/oidc', provider.app));
+    app.use(mount('/oidc', provider));
 
     const tenantContext: TenantContext = {
       id,
@@ -169,6 +171,11 @@ export default class Tenant implements TenantContext {
 
     // Mount APIs
     app.use(mount('/api', initApis(tenantContext)));
+
+    // Serve custom domain verification files when the request is on a custom domain.
+    if (this.customDomain) {
+      app.use(koaServeDomainVerificationFiles(this.customDomain, queries));
+    }
 
     const { isMultiTenancy } = EnvSet.values;
 

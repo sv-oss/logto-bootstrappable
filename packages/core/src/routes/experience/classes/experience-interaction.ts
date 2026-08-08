@@ -4,7 +4,9 @@ import { appInsights } from '@logto/app-insights/node';
 import {
   InteractionEvent,
   InteractionHookEvent,
+  LogtoActionKey,
   MfaFactor,
+  type PostSignInEvent,
   VerificationType,
   type User,
 } from '@logto/schemas';
@@ -33,12 +35,14 @@ import {
   mergeUserMfaVerifications,
   parseMfaPropertiesToUserConfig,
 } from './helpers.js';
+import { validatePostSignInActionResult } from './libraries/action-result-validation.js';
 import { AdaptiveMfaValidator } from './libraries/adaptive-mfa-validator/index.js';
 import { type AdaptiveMfaResult } from './libraries/adaptive-mfa-validator/types.js';
 import { CaptchaValidator } from './libraries/captcha-validator.js';
 import { MfaValidator } from './libraries/mfa-validator.js';
 import { ProvisionLibrary } from './libraries/provision-library.js';
 import { SignInExperienceValidator } from './libraries/sign-in-experience-validator.js';
+import { UserUpdateLibrary } from './libraries/user-update-library.js';
 import { Mfa } from './mfa.js';
 import { Profile } from './profile.js';
 import { toUserSocialIdentityData } from './utils.js';
@@ -58,6 +62,7 @@ import { VerificationRecordsMap } from './verifications/verification-records-map
 export default class ExperienceInteraction {
   public readonly signInExperienceValidator: SignInExperienceValidator;
   public readonly provisionLibrary: ProvisionLibrary;
+  public readonly userUpdateLibrary: UserUpdateLibrary;
   /** The user provided profile data in the current interaction that needs to be stored to database. */
   readonly profile: Profile;
   /** The user linked MFA data in the current interaction that needs to be stored to database. */
@@ -100,6 +105,7 @@ export default class ExperienceInteraction {
 
     this.signInExperienceValidator = new SignInExperienceValidator(libraries, queries);
     this.provisionLibrary = new ProvisionLibrary(tenant, ctx);
+    this.userUpdateLibrary = new UserUpdateLibrary(tenant, ctx);
 
     const interactionContext: InteractionContext = {
       getInteractionEvent: () => this.#interactionEvent,
@@ -626,6 +632,8 @@ export default class ExperienceInteraction {
       });
     }
 
+    await this.triggerPostSignInAction(user.id);
+
     const { provider } = this.tenant;
 
     const redirectTo = await provider.interactionResult(this.ctx.req, this.ctx.res, {
@@ -695,6 +703,42 @@ export default class ExperienceInteraction {
       payload: { adaptiveMfaResult },
       userId,
     });
+  }
+
+  private async triggerPostSignInAction(userId: string) {
+    if (this.#interactionEvent !== InteractionEvent.SignIn) {
+      return;
+    }
+
+    const {
+      libraries: { actions, jwtCustomizers },
+    } = this.tenant;
+    const actionResult = validatePostSignInActionResult({
+      userId,
+      result: await actions.runAction({
+        key: LogtoActionKey.PostSignIn,
+        auditContext: {
+          createLog: this.ctx.createLog,
+          sessionId: this.ctx.interactionDetails.jti,
+          applicationId: conditional(
+            typeof this.ctx.interactionDetails.params.client_id === 'string' &&
+              this.ctx.interactionDetails.params.client_id
+          ),
+          userId,
+        },
+        getEvent: async (): Promise<PostSignInEvent> => ({
+          key: LogtoActionKey.PostSignIn,
+          interactionEvent: InteractionEvent.SignIn,
+          user: await jwtCustomizers.getUserContext(userId),
+        }),
+      }),
+    });
+
+    if (actionResult.action === 'updateUser') {
+      await this.provisionLibrary.updateUser(actionResult.userId, actionResult.user, {
+        mergeCustomData: true,
+      });
+    }
   }
 
   private get verificationRecordsArray() {

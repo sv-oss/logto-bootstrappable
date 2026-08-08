@@ -1,5 +1,6 @@
 import {
   Logs,
+  action,
   interaction,
   token,
   LogKeyUnknown,
@@ -53,6 +54,7 @@ export default function logRoutes<T extends ManagementApiRouter>(
         interaction.prefix,
         jwtCustomizer.prefix,
         saml.prefix,
+        action.prefix,
         LogKeyUnknown,
       ];
 

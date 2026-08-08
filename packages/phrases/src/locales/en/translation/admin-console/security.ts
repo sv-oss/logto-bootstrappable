@@ -165,6 +165,26 @@ const security = {
     card_title: 'Email blocklist',
     card_description:
       'Take control of your user base by blocking high-risk or unwanted email addresses.',
+    custom_email_allowlist: {
+      title: 'Allow custom email addresses',
+      description:
+        'Allow only matching email addresses, domains, or wildcard email address patterns for new sign-ups and newly linked emails.',
+      placeholder:
+        'Enter the allowed email address, domain, or wildcard email address pattern (e.g., bar@example.com, @example.com, foo*@example.com, *@example.com)',
+      duplicate_error: 'Email address, domain, or wildcard email address pattern already added',
+      invalid_format_error:
+        'Must be a valid email address (bar@example.com), domain (@example.com), or wildcard email address pattern (foo*@example.com, *@example.com)',
+      warnings: {
+        identical_entries:
+          'Some allowlist entries also exist in the block rules. Matching emails may still be blocked.',
+        blocked_exact_email:
+          'Some exact allowlist emails match a block rule. Matching emails may still be blocked.',
+        blocked_subaddressing:
+          'Some allowlist entries contain a plus sign (+), but email subaddressing is blocked.',
+        effectively_unusable:
+          'Based on these checks, the current allowlist may not allow any new emails to pass.',
+      },
+    },
     disposable_email: {
       title: 'Block disposable email addresses',
       description:
@@ -178,12 +198,12 @@ const security = {
     custom_email_address: {
       title: 'Block custom email addresses',
       description:
-        'Add specific email domains or email address which cannot register or link via the UI.',
+        'Add rules to block specific email domains, email addresses, or wildcard email address patterns from registering or linking via the UI.',
       placeholder:
-        'Enter the blocked email address or domain (e.g., bar@example.com, @example.com)',
-      duplicate_error: 'Email address or domain already added',
+        'Enter the blocked email address, domain, or wildcard email address pattern (e.g., bar@example.com, @example.com, foo*@example.com, *@example.com)',
+      duplicate_error: 'Email address, domain, or wildcard email address pattern already added',
       invalid_format_error:
-        'Must be a valid email address(bar@example.com) or domain(@example.com)',
+        'Must be a valid email address (bar@example.com), domain (@example.com), or wildcard email address pattern (foo*@example.com, *@example.com)',
     },
   },
 };

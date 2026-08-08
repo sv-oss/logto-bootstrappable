@@ -4,7 +4,7 @@ import { useState, useCallback, useMemo } from 'react';
 import type { ChangeEventHandler } from 'react';
 
 import { getDefaultCountryCallingCode, isValidCountryCode } from '@/utils/country-code';
-import { parseIdentifierValue } from '@/utils/form';
+import { parseIdentifierValue, parsePhoneIdentifier } from '@/utils/form';
 
 import { detectIdentifierType } from './utils';
 
@@ -81,12 +81,30 @@ const useSmartInputField = ({ defaultValue, enabledTypes, defaultCountryCode }: 
   const onInputValueChange = useCallback<ChangeEventHandler<HTMLInputElement>>(
     ({ target: { value } }) => {
       const trimValue = value.trim();
+
+      if (enabledTypeSet.has(SignInIdentifier.Phone) && trimValue.startsWith('+')) {
+        const phoneIdentifier = parsePhoneIdentifier(trimValue);
+
+        if (phoneIdentifier) {
+          setCountryCode(phoneIdentifier.countryCode);
+          setInputValue(phoneIdentifier.inputValue);
+          setCurrentType(SignInIdentifier.Phone);
+          return;
+        }
+
+        if (enabledTypeSet.size === 1) {
+          setInputValue(trimValue.slice(1));
+          setCurrentType(SignInIdentifier.Phone);
+          return;
+        }
+      }
+
       setInputValue(trimValue);
 
       const type = detectInputType(trimValue);
       setCurrentType(type);
     },
-    [detectInputType]
+    [detectInputType, enabledTypeSet]
   );
 
   const onInputValueClear = useCallback(() => {

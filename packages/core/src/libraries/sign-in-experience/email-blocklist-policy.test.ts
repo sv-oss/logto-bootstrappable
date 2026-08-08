@@ -9,29 +9,49 @@ import {
   isEmailBlocklistPolicyEnabled,
 } from './email-blocklist-policy.js';
 
-const invalidCustomBlockList = ['bar', 'bar@foo', '@foo', '@foo.', 'bar@foo.'];
-const validCustomBlockList = ['bar@foo.com', '@foo.com', 'abc.bar@foo.xyz', 'bar@foo.com'];
+const customListKeys = ['customAllowlist', 'customBlocklist'] as const;
+const invalidCustomEmailList = ['bar', 'bar@foo', '@foo', '@foo.', 'bar@foo.'];
+const validCustomEmailList = ['bar@foo.com', '@foo.com', 'abc.bar@foo.xyz', 'bar@foo.com'];
+
+const buildPolicyWithCustomList = (
+  key: (typeof customListKeys)[number],
+  list: string[]
+): EmailBlocklistPolicy => ({
+  [key]: list,
+});
 
 describe('parseEmailBlocklistPolicy', () => {
-  it.each(invalidCustomBlockList)(
-    'should throw error for invalid custom block list item: %s',
-    (item) => {
-      const emailBlocklistPolicy = { customBlocklist: [item] };
-      expect(() => {
-        parseEmailBlocklistPolicy(emailBlocklistPolicy);
-      }).toMatchError(
-        new RequestError({
-          code: 'sign_in_experiences.invalid_custom_email_blocklist_format',
-          items: Array.from([item]),
-          status: 400,
-        })
+  it.each(customListKeys)('should throw error for invalid %s item', (key) => {
+    const emailBlocklistPolicy = buildPolicyWithCustomList(key, invalidCustomEmailList);
+
+    expect(() => {
+      parseEmailBlocklistPolicy(emailBlocklistPolicy);
+    }).toMatchError(
+      new RequestError({
+        code: 'sign_in_experiences.invalid_custom_email_blocklist_format',
+        items: invalidCustomEmailList,
+        status: 400,
+      })
+    );
+  });
+
+  it.each(customListKeys)(
+    'should pass the validation with valid %s format and deduplicate items',
+    (key) => {
+      const parsed = parseEmailBlocklistPolicy(
+        buildPolicyWithCustomList(key, validCustomEmailList)
       );
+
+      expect(parsed).toEqual({ [key]: deduplicate(validCustomEmailList) });
     }
   );
 
-  it('should pass the validation with valid format and deduplicate items', () => {
-    const parsed = parseEmailBlocklistPolicy({ customBlocklist: validCustomBlockList });
-    expect(parsed).toEqual({ customBlocklist: deduplicate(validCustomBlockList) });
+  it('should allow wildcard items', () => {
+    const customAllowlist = ['foo*@bar.com', '*@example.com', '@foo.*', '@*.example.com'];
+    const customBlocklist = ['foo*@bar.com', '@*.example.com'];
+    const parsed = parseEmailBlocklistPolicy({ customAllowlist, customBlocklist });
+
+    expect(parsed).toEqual({ customAllowlist, customBlocklist });
   });
 });
 
@@ -71,10 +91,10 @@ describe('validateEmailAgainstBlocklistPolicy', () => {
   });
 
   it('should throw if the email domain is in the custom blocklist', async () => {
-    const emails = ['test@foo.com', 'bar@foo.com'];
+    const emails = ['test@foo.com', 'bar@Foo.com'];
 
     for (const email of emails) {
-      // eslint-disable-next-line no-await-in-loop
+      // eslint-disable-next-line no-await-in-loop -- each assertion needs the current email in the expected error
       await expect(
         validateEmailAgainstBlocklistPolicy(emailBlocklistPolicy, email)
       ).rejects.toMatchError(
@@ -88,10 +108,72 @@ describe('validateEmailAgainstBlocklistPolicy', () => {
   });
 
   it('should throw if the email address is in the custom blocklist', async () => {
-    const email = 'foo@bar.com';
+    const email = 'Foo@Bar.com';
     await expect(
       validateEmailAgainstBlocklistPolicy(emailBlocklistPolicy, email)
     ).rejects.toMatchError(
+      new RequestError({
+        code: 'session.email_blocklist.email_not_allowed',
+        status: 422,
+        email,
+      })
+    );
+  });
+
+  it('should throw if the email address matches a wildcard custom blocklist item', async () => {
+    const policy: EmailBlocklistPolicy = {
+      customBlocklist: ['foo*@bar.com', '@*.example.com'],
+    };
+    const emails = ['FooBar@bar.com', 'test@Foo.example.com'];
+
+    for (const email of emails) {
+      // eslint-disable-next-line no-await-in-loop -- each assertion needs the current email in the expected error
+      await expect(validateEmailAgainstBlocklistPolicy(policy, email)).rejects.toMatchError(
+        new RequestError({
+          code: 'session.email_blocklist.email_not_allowed',
+          status: 422,
+          email,
+        })
+      );
+    }
+  });
+
+  it('should throw if the email address does not match a non-empty custom allowlist', async () => {
+    const email = 'test@foo.com';
+    const policy: EmailBlocklistPolicy = {
+      customAllowlist: ['@bar.com'],
+    };
+
+    await expect(validateEmailAgainstBlocklistPolicy(policy, email)).rejects.toMatchError(
+      new RequestError({
+        code: 'session.email_blocklist.email_not_allowed',
+        status: 422,
+        email,
+      })
+    );
+  });
+
+  it.each([
+    ['exact address', 'foo@bar.com'],
+    ['domain item', 'test@foo.com'],
+    ['wildcard local part', 'foobar@example.com'],
+    ['wildcard domain', 'test@foo.example.com'],
+  ])('should pass if the email address matches a custom allowlist %s', async (_type, email) => {
+    const policy: EmailBlocklistPolicy = {
+      customAllowlist: ['foo@bar.com', '@foo.com', 'foo*@example.com', '@*.example.com'],
+    };
+
+    await expect(validateEmailAgainstBlocklistPolicy(policy, email)).resolves.not.toThrow();
+  });
+
+  it('should still throw if the email address matches both custom allowlist and blocklist', async () => {
+    const email = 'foo@bar.com';
+    const policy: EmailBlocklistPolicy = {
+      customAllowlist: ['@bar.com'],
+      customBlocklist: [email],
+    };
+
+    await expect(validateEmailAgainstBlocklistPolicy(policy, email)).rejects.toMatchError(
       new RequestError({
         code: 'session.email_blocklist.email_not_allowed',
         status: 422,
@@ -132,6 +214,13 @@ describe('isEmailBlocklistPolicyEnabled', () => {
     expect(
       isEmailBlocklistPolicyEnabled({
         ...emailBlocklistPolicy,
+        customAllowlist: ['@bar.com'],
+      })
+    ).toBe(true);
+
+    expect(
+      isEmailBlocklistPolicyEnabled({
+        ...emailBlocklistPolicy,
         customBlocklist: ['@bar.com'],
       })
     ).toBe(true);
@@ -141,9 +230,14 @@ describe('isEmailBlocklistPolicyEnabled', () => {
     const emailBlocklistPolicy: EmailBlocklistPolicy = {
       blockDisposableAddresses: false,
       blockSubaddressing: false,
+      customAllowlist: [],
       customBlocklist: [],
     };
 
     expect(isEmailBlocklistPolicyEnabled(emailBlocklistPolicy)).toBe(false);
+  });
+
+  it('isEmailBlocklistPolicyEnabled should return false for an empty policy', () => {
+    expect(isEmailBlocklistPolicyEnabled({})).toBe(false);
   });
 });

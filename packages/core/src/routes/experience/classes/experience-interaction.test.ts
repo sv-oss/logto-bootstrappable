@@ -1,9 +1,12 @@
+/* eslint-disable max-lines */
 import { TemplateType } from '@logto/connector-kit';
 import {
   adminConsoleApplicationId,
   adminTenantId,
   type CreateUser,
   InteractionEvent,
+  LogtoActionKey,
+  type JwtCustomizerUserContext,
   type SignInExperience,
   SignInIdentifier,
   SignInMode,
@@ -15,6 +18,7 @@ import { createMockUtils, pickDefault } from '@logto/shared/esm';
 import { mockSignInExperience } from '#src/__mocks__/sign-in-experience.js';
 import { mockUser, mockUserWithMfaVerifications } from '#src/__mocks__/user.js';
 import { EnvSet } from '#src/env-set/index.js';
+import RequestError from '#src/errors/RequestError/index.js';
 import { type InsertUserResult } from '#src/libraries/user.js';
 import { createMockLogContext } from '#src/test-utils/koa-audit-log.js';
 import { createMockProvider } from '#src/test-utils/oidc-provider.js';
@@ -43,6 +47,7 @@ const userQueries = {
   updateUserById: jest.fn().mockResolvedValue(mockUser),
 };
 const userLibraries = {
+  checkIdentifierCollision: jest.fn().mockResolvedValue(null),
   generateUserId: jest.fn().mockResolvedValue('uid'),
   insertUser: jest.fn(async (user: CreateUser): Promise<InsertUserResult> => [user as User]),
   provisionOrganizations: jest.fn().mockResolvedValue([]),
@@ -65,6 +70,28 @@ const signInExperiences = {
 const mockProviderInteractionDetails = jest
   .fn()
   .mockResolvedValue({ params: { client_id: adminConsoleApplicationId } });
+const mockJwtCustomizerUserContext: JwtCustomizerUserContext = {
+  id: mockUser.id,
+  username: mockUser.username,
+  primaryEmail: mockUser.primaryEmail,
+  primaryPhone: mockUser.primaryPhone,
+  name: mockUser.name,
+  avatar: mockUser.avatar,
+  customData: mockUser.customData,
+  identities: mockUser.identities,
+  lastSignInAt: mockUser.lastSignInAt,
+  createdAt: mockUser.createdAt,
+  updatedAt: mockUser.updatedAt,
+  profile: mockUser.profile,
+  applicationId: mockUser.applicationId,
+  isSuspended: mockUser.isSuspended,
+  hasPassword: true,
+  ssoIdentities: [],
+  mfaVerificationFactors: [],
+  roles: [],
+  organizations: [],
+  organizationRoles: [],
+};
 
 const ExperienceInteraction = await pickDefault(import('./experience-interaction.js'));
 
@@ -105,8 +132,24 @@ const createSignInInteraction = ({
     findUserById: jest.fn().mockResolvedValue(user),
     updateUserById: jest.fn().mockResolvedValue(user),
   };
+  const runActionHandler = jest.fn(
+    async (_input: { event: unknown; key: LogtoActionKey }): Promise<unknown> => undefined
+  );
+  const runAction = jest.fn(
+    async <Event>(
+      input: { key: LogtoActionKey; auditContext: unknown } & (
+        | { event: Event }
+        | { getEvent: () => Promise<Event> }
+      )
+    ): Promise<unknown> => {
+      const event = 'getEvent' in input ? await input.getEvent() : input.event;
+      return runActionHandler({ key: input.key, event });
+    }
+  );
+  const getUserContext = jest.fn().mockResolvedValue(mockJwtCustomizerUserContext);
+  const provider = createMockProvider();
   const signInTenant = new MockTenant(
-    createMockProvider(),
+    provider,
     {
       users: signInUserQueries,
       signInExperiences: signInExperiencesWithAdaptiveMfa,
@@ -114,7 +157,12 @@ const createSignInInteraction = ({
       userSignInCountries,
     },
     undefined,
-    { users: userLibraries, ssoConnectors }
+    {
+      users: userLibraries,
+      ssoConnectors,
+      actions: { runAction },
+      jwtCustomizers: { getUserContext },
+    }
   );
   const logContext = createMockLogContext();
   const baseContext = createContextWithRouteParameters(
@@ -128,7 +176,17 @@ const createSignInInteraction = ({
           },
         }
   );
-  // @ts-expect-error --mock test context
+  const interactionDetails = {
+    jti: 'session-id',
+    params: {
+      client_id: adminConsoleApplicationId,
+    },
+    result: {
+      interactionEvent,
+      userId: user.id,
+      ...interactionResult,
+    },
+  } as unknown as Interaction;
   const signInContext: WithHooksAndLogsContext = {
     assignReleaseOnSuccessInteractionHookResult: jest.fn(),
     assignReleaseAnywayInteractionHookResult: jest.fn(),
@@ -136,14 +194,8 @@ const createSignInInteraction = ({
     appendExceptionHookContext: jest.fn(),
     ...baseContext,
     ...logContext,
+    interactionDetails,
   };
-  const interactionDetails = {
-    result: {
-      interactionEvent,
-      userId: user.id,
-      ...interactionResult,
-    },
-  } as unknown as Interaction;
 
   const experienceInteraction = new ExperienceInteraction(
     signInContext,
@@ -153,6 +205,11 @@ const createSignInInteraction = ({
 
   return {
     experienceInteraction,
+    provider,
+    runAction,
+    runActionHandler,
+    getUserContext,
+    signInUserQueries,
     userGeoLocations,
     userSignInCountries,
     createLog: logContext.createLog,
@@ -240,6 +297,171 @@ describe('ExperienceInteraction class', () => {
   });
 
   describe('sign-in submission', () => {
+    it('runs PostSignIn action before provider interaction result', async () => {
+      const { experienceInteraction, provider, runAction, runActionHandler, getUserContext } =
+        createSignInInteraction();
+
+      await experienceInteraction.submit();
+
+      expect(getUserContext).toHaveBeenCalledWith(mockUser.id);
+      const [runActionInput] = runAction.mock.calls[0]!;
+      expect(runActionInput).toMatchObject({
+        key: LogtoActionKey.PostSignIn,
+        auditContext: {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- Jest asymmetric matcher is typed as `any`.
+          createLog: expect.any(Function),
+          sessionId: 'session-id',
+          applicationId: adminConsoleApplicationId,
+          userId: mockUser.id,
+        },
+      });
+      expect('getEvent' in runActionInput && typeof runActionInput.getEvent).toBe('function');
+      expect(runActionHandler).toHaveBeenCalledWith({
+        key: LogtoActionKey.PostSignIn,
+        event: {
+          key: LogtoActionKey.PostSignIn,
+          interactionEvent: InteractionEvent.SignIn,
+          user: mockJwtCustomizerUserContext,
+        },
+      });
+      expect(runActionHandler.mock.invocationCallOrder[0]).toBeLessThan(
+        (provider.interactionResult as jest.Mock).mock.invocationCallOrder[0]!
+      );
+    });
+
+    it('does not include password in the PostSignIn action event', async () => {
+      const { experienceInteraction, runActionHandler } = createSignInInteraction();
+
+      await experienceInteraction.submit();
+
+      const [{ event }] = runActionHandler.mock.calls[0]!;
+
+      expect(event).not.toHaveProperty('password');
+      expect(JSON.stringify(event)).not.toContain(mockUser.passwordEncrypted);
+    });
+
+    it('does not run PostSignIn action for register interactions', async () => {
+      const { experienceInteraction, runAction, getUserContext } = createSignInInteraction({
+        interactionEvent: InteractionEvent.Register,
+      });
+
+      await experienceInteraction.submit();
+
+      expect(getUserContext).not.toHaveBeenCalled();
+      expect(runAction).not.toHaveBeenCalled();
+    });
+
+    it('updates user when PostSignIn action returns updateUser', async () => {
+      const { experienceInteraction, runActionHandler } = createSignInInteraction();
+      const updateUser = jest.spyOn(experienceInteraction.provisionLibrary, 'updateUser');
+
+      runActionHandler.mockResolvedValueOnce({
+        action: 'updateUser',
+        user: {
+          name: 'Jane Doe',
+        },
+      });
+
+      await experienceInteraction.submit();
+
+      expect(updateUser).toHaveBeenCalledWith(
+        mockUser.id,
+        { name: 'Jane Doe' },
+        { mergeCustomData: true }
+      );
+    });
+
+    it('preserves existing customData when PostSignIn action writes customData', async () => {
+      const user = {
+        ...mockUser,
+        customData: {
+          p1Synced: true,
+          source: 'p1',
+        },
+      };
+      const { experienceInteraction, runActionHandler, signInUserQueries } =
+        createSignInInteraction({
+          user,
+        });
+
+      runActionHandler.mockResolvedValueOnce({
+        action: 'updateUser',
+        user: {
+          customData: {
+            p2Synced: true,
+          },
+        },
+      });
+
+      await experienceInteraction.submit();
+
+      expect(signInUserQueries.updateUserById).toHaveBeenCalledWith(
+        mockUser.id,
+        expect.objectContaining({
+          customData: {
+            p1Synced: true,
+            p2Synced: true,
+            source: 'p1',
+          },
+        }),
+        'replace'
+      );
+    });
+
+    it.each([undefined, null, {}, { action: 'updateUser' }])(
+      'does not update user and proceeds when PostSignIn action returns no-op result %#',
+      async (result) => {
+        const { experienceInteraction, provider, runActionHandler } = createSignInInteraction();
+        const updateUser = jest.spyOn(experienceInteraction.provisionLibrary, 'updateUser');
+
+        runActionHandler.mockResolvedValueOnce(result);
+
+        await experienceInteraction.submit();
+
+        expect(updateUser).not.toHaveBeenCalled();
+        expect(provider.interactionResult).toHaveBeenCalledWith(
+          expect.anything(),
+          expect.anything(),
+          expect.objectContaining({
+            login: { accountId: mockUser.id },
+          })
+        );
+      }
+    );
+
+    it.each([
+      { action: 'createUser', user: { name: 'Jane Doe' } },
+      { action: 'rejectInvalidCredentials' },
+      { action: 'denyAccess', user: { name: 'Jane Doe' } },
+      { action: 'continue' },
+      { ignored: true },
+      { user: { name: 'Jane Doe' } },
+    ])('blocks sign-in when PostSignIn action returns invalid result %#', async (result) => {
+      const { experienceInteraction, provider, runActionHandler } = createSignInInteraction();
+
+      runActionHandler.mockResolvedValueOnce(result);
+
+      await expect(experienceInteraction.submit()).rejects.toMatchError(
+        new RequestError({ code: 'session.verification_failed', status: 400 })
+      );
+
+      expect(provider.interactionResult).not.toHaveBeenCalled();
+    });
+
+    it('blocks sign-in when PostSignIn action execution fails in block mode', async () => {
+      const { experienceInteraction, provider, runActionHandler } = createSignInInteraction();
+
+      runActionHandler.mockRejectedValueOnce(
+        new RequestError({ code: 'session.verification_failed', status: 400 })
+      );
+
+      await expect(experienceInteraction.submit()).rejects.toMatchError(
+        new RequestError({ code: 'session.verification_failed', status: 400 })
+      );
+
+      expect(provider.interactionResult).not.toHaveBeenCalled();
+    });
+
     it('should record geo context when dev features are disabled', async () => {
       setDevFeaturesEnabled(false);
       const { experienceInteraction, userGeoLocations, userSignInCountries } =
@@ -451,3 +673,5 @@ describe('ExperienceInteraction class', () => {
     });
   });
 });
+
+/* eslint-enable max-lines */

@@ -10,75 +10,36 @@ import RequestError from '#src/errors/RequestError/index.js';
 import type Queries from '#src/tenants/Queries.js';
 import { getConsoleLogFromContext } from '#src/utils/console.js';
 import { getInjectedHeaderValues } from '#src/utils/injected-header-mapping.js';
-
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' && value !== null && !Array.isArray(value);
-
-const sensitiveDataKeys = Object.freeze(['password', 'secret']);
-
-const sanitise = (value: unknown): unknown => {
-  if (Array.isArray(value)) {
-    return value.map((element) => sanitise(element));
-  }
-
-  if (isRecord(value)) {
-    return Object.fromEntries(
-      Object.entries(value).map(([key, element]) => {
-        return [key, sensitiveDataKeys.includes(key) ? '******' : sanitise(element)];
-      })
-    );
-  }
-
-  return value;
-};
-
-/**
- * Recursively strip null characters (U+0000) from every string in the value. PostgreSQL rejects
- * null bytes in `jsonb` (error code `22P05`), so leaving them in would make `insertLog` throw. Since
- * logs are inserted in a `finally` block, that throw would replace the original response with a 500.
- */
-const nullCharacter = String.fromCodePoint(0);
-
-const stripFromString = (value: string): string =>
-  value.includes(nullCharacter) ? value.replaceAll(nullCharacter, '') : value;
-
-const stripNullCharacters = (value: unknown): unknown => {
-  if (typeof value === 'string') {
-    return stripFromString(value);
-  }
-
-  if (Array.isArray(value)) {
-    return value.map((element) => stripNullCharacters(element));
-  }
-
-  if (isRecord(value)) {
-    // Strip from keys as well: PostgreSQL rejects null bytes anywhere in `jsonb`, keys included.
-    return Object.fromEntries(
-      Object.entries(value).map(([key, element]) => [
-        stripFromString(key),
-        stripNullCharacters(element),
-      ])
-    );
-  }
-
-  return value;
-};
-
-const filterSensitiveData = (data: Record<string, unknown>): Record<string, unknown> => {
-  return Object.fromEntries(
-    Object.entries(data).map(([key, value]) => {
-      return [key, sensitiveDataKeys.includes(key) ? '******' : sanitise(value)];
-    })
-  );
-};
+import {
+  isRecord,
+  sanitizeSensitiveDataRecord,
+  stripNullCharactersFromString,
+} from '#src/utils/sensitive-data.js';
 
 const removeUndefinedKeys = (object: Record<string, unknown>) =>
   Object.fromEntries(Object.entries(object).filter(([, value]) => value !== undefined));
 
+/**
+ * Reapply reserved fields after canonicalizing catch-all keys, so inputs such as `\0key` cannot
+ * collide with the fields that define the log entry.
+ */
+const sanitizeLogContextPayload = ({
+  key,
+  result,
+  ...payload
+}: LogContextPayload): LogContextPayload => ({
+  ...sanitizeSensitiveDataRecord(payload),
+  key: stripNullCharactersFromString(key),
+  result,
+});
+
 export class LogEntry {
   payload: LogContextPayload;
 
-  constructor(public readonly key: LogKey) {
+  constructor(
+    public readonly key: LogKey,
+    public readonly independent = false
+  ) {
     this.payload = {
       key,
       result: LogResult.Success,
@@ -87,30 +48,60 @@ export class LogEntry {
 
   /** Update payload by spreading `data` first, then spreading `this.payload`. */
   prepend(data: Readonly<LogPayload>) {
-    this.payload = {
+    this.payload = sanitizeLogContextPayload({
       ...removeUndefinedKeys(data),
       ...this.payload,
-    };
+    });
   }
 
   /** Update payload by spreading `this.payload` first, then spreading `data`. */
   append(data: Readonly<LogPayload>) {
-    this.payload = {
+    this.payload = sanitizeLogContextPayload({
       ...this.payload,
-      ...filterSensitiveData(removeUndefinedKeys(data)),
-    };
+      ...removeUndefinedKeys(data),
+    });
   }
 }
 
 export type LogPayload = Partial<LogContextPayload>;
 
+export type CreateLogOptions = {
+  /** Keep this entry's own result when the remainder of the request fails. */
+  independent?: boolean;
+};
+
 export type LogContext = {
-  createLog: (key: LogKey) => LogEntry;
+  createLog: (key: LogKey, options?: CreateLogOptions) => LogEntry;
   prependAllLogEntries: (payload: LogPayload) => void;
 };
 
 export type WithLogContext<ContextT extends IRouterParamContext = IRouterParamContext & Context> =
   ContextT & LogContext;
+
+/**
+ * Runtime `typeof` expectation for every {@link LogContext} member. The `satisfies` constraint is
+ * exhaustive over `keyof LogContext`, so extending {@link LogContext} fails compilation here until
+ * the new member is covered by {@link assertLogContext} as well.
+ */
+const logContextShape = Object.freeze({
+  createLog: 'function',
+  prependAllLogEntries: 'function',
+} as const satisfies Record<keyof LogContext, 'function'>);
+
+/**
+ * Assert that the context has been enriched with {@link LogContext} by the audit log middleware.
+ * Useful where a context is statically typed without {@link LogContext} but is known to run
+ * downstream of the middleware, e.g. `oidc-provider` event listeners, whose contexts are emitted
+ * from within the middleware chain.
+ */
+export function assertLogContext<ContextT>(ctx: ContextT): asserts ctx is ContextT & LogContext {
+  if (
+    !isRecord(ctx) ||
+    Object.entries(logContextShape).some(([key, expectedType]) => typeof ctx[key] !== expectedType)
+  ) {
+    throw new TypeError('The context has not been enriched by the audit log middleware.');
+  }
+}
 
 /**
  * The factory to create a new audit log middleware function.
@@ -164,8 +155,8 @@ export default function koaAuditLog<StateT, ContextT extends IRouterParamContext
   return async (ctx, next) => {
     const entries: LogEntry[] = [];
 
-    ctx.createLog = (key: LogKey) => {
-      const entry = new LogEntry(key);
+    ctx.createLog = (key: LogKey, { independent = false } = {}) => {
+      const entry = new LogEntry(key, independent);
       // eslint-disable-next-line @silverhand/fp/no-mutating-methods
       entries.push(entry);
 
@@ -182,6 +173,10 @@ export default function koaAuditLog<StateT, ContextT extends IRouterParamContext
       await next();
     } catch (error: unknown) {
       for (const entry of entries) {
+        if (entry.independent) {
+          continue;
+        }
+
         entry.append({
           result: LogResult.Error,
           error:
@@ -220,14 +215,15 @@ export default function koaAuditLog<StateT, ContextT extends IRouterParamContext
 
       await Promise.all(
         entries.map(async ({ payload }) => {
-          const fullPayload = { ...basePayload, ...payload };
+          // Apply the recursive filter at the final insertion boundary too, so common context
+          // added through `prependAllLogEntries()` can never bypass sensitive-key masking.
+          const fullPayload = sanitizeLogContextPayload({ ...basePayload, ...payload });
           getConsoleLogFromContext(ctx).audit(payload.key, fullPayload);
 
           return insertLog({
             id: generateStandardId(),
             key: payload.key,
-            // eslint-disable-next-line no-restricted-syntax -- structural identity transform preserves the payload shape
-            payload: stripNullCharacters(fullPayload) as typeof fullPayload,
+            payload: fullPayload,
           });
         })
       );

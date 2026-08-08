@@ -14,8 +14,15 @@ await mockEsmWithActual('#src/sso/OidcConnector/utils.js', () => ({
 }));
 
 const { ssoConnectorFactories } = await import('#src/sso/index.js');
-const { parseFactoryDetail, fetchConnectorProviderDetails, validateConnectorDomains } =
-  await import('./utils.js');
+const {
+  parseFactoryDetail,
+  fetchConnectorProviderDetails,
+  validateConnectorDomains,
+  parseConnectorConfig,
+  isSignAuthnRequestEnabled,
+  stripGatedSigningConfigFields,
+  assertActiveSigningKeyForSignAuthnRequest,
+} = await import('./utils.js');
 
 const mockTenantId = 'mock_tenant_id';
 
@@ -157,5 +164,84 @@ describe('validateConnectorDomains', () => {
         }
       )
     );
+  });
+});
+
+describe('signed AuthnRequest config helpers', () => {
+  const originalIsDevFeaturesEnabled = EnvSet.values.isDevFeaturesEnabled;
+  const setDevFeaturesEnabled = (enabled: boolean) => {
+    Reflect.set(EnvSet.values, 'isDevFeaturesEnabled', enabled);
+  };
+
+  const samlSigningConfig = {
+    metadata: 'mock-metadata',
+    signAuthnRequest: true,
+    requestSignatureAlgorithm: 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256',
+  };
+
+  afterAll(() => {
+    setDevFeaturesEnabled(originalIsDevFeaturesEnabled);
+  });
+
+  describe('isSignAuthnRequestEnabled', () => {
+    it('is true only when the config explicitly enables it', () => {
+      expect(
+        isSignAuthnRequestEnabled(parseConnectorConfig(SsoProviderName.SAML, samlSigningConfig))
+      ).toBe(true);
+      expect(
+        isSignAuthnRequestEnabled(
+          parseConnectorConfig(SsoProviderName.SAML, { metadata: 'mock-metadata' })
+        )
+      ).toBe(false);
+      expect(isSignAuthnRequestEnabled()).toBe(false);
+    });
+  });
+
+  describe('stripGatedSigningConfigFields', () => {
+    it('passes the config through when dev features are on', () => {
+      setDevFeaturesEnabled(true);
+      const parsed = parseConnectorConfig(SsoProviderName.SAML, samlSigningConfig);
+      expect(stripGatedSigningConfigFields(parsed)).toEqual(parsed);
+    });
+
+    it('strips the signing fields when dev features are off', () => {
+      setDevFeaturesEnabled(false);
+      const parsed = parseConnectorConfig(SsoProviderName.SAML, samlSigningConfig);
+      expect(stripGatedSigningConfigFields(parsed)).toEqual({ metadata: 'mock-metadata' });
+    });
+  });
+
+  describe('assertActiveSigningKeyForSignAuthnRequest', () => {
+    it('is a no-op when the config does not enable signing', async () => {
+      const findActiveSigningKey = jest.fn();
+      await assertActiveSigningKeyForSignAuthnRequest(undefined, findActiveSigningKey);
+      await assertActiveSigningKeyForSignAuthnRequest(
+        parseConnectorConfig(SsoProviderName.SAML, { metadata: 'mock-metadata' }),
+        findActiveSigningKey
+      );
+      expect(findActiveSigningKey).not.toBeCalled();
+    });
+
+    it('rejects enabling on creation (no finder) or without an active key', async () => {
+      setDevFeaturesEnabled(true);
+      const enabledConfig = parseConnectorConfig(SsoProviderName.SAML, samlSigningConfig);
+
+      await expect(assertActiveSigningKeyForSignAuthnRequest(enabledConfig)).rejects.toMatchObject({
+        code: 'single_sign_on.active_signing_key_required',
+        status: 400,
+      });
+      await expect(
+        assertActiveSigningKeyForSignAuthnRequest(enabledConfig, async () => null)
+      ).rejects.toMatchObject({ code: 'single_sign_on.active_signing_key_required', status: 400 });
+    });
+
+    it('passes when an active key exists', async () => {
+      setDevFeaturesEnabled(true);
+      const enabledConfig = parseConnectorConfig(SsoProviderName.SAML, samlSigningConfig);
+
+      await expect(
+        assertActiveSigningKeyForSignAuthnRequest(enabledConfig, async () => ({ id: 'key-1' }))
+      ).resolves.toBeUndefined();
+    });
   });
 });

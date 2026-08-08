@@ -168,6 +168,27 @@ const security = {
     card_title: 'E-Mail-Blockliste',
     card_description:
       'Kontrollieren Sie Ihre Benutzerdatenbank, indem Sie risikoreiche oder unerwünschte E-Mail-Adressen blockieren.',
+    custom_email_allowlist: {
+      title: 'Benutzerdefinierte E-Mail-Adressen zulassen',
+      description:
+        'Erlaube nur passende E-Mail-Adressen, Domains oder Wildcard-E-Mail-Muster für neue Registrierungen und neu verknüpfte E-Mails.',
+      placeholder:
+        'Gib die erlaubte E-Mail-Adresse, Domain oder das Wildcard-E-Mail-Muster ein (z. B. bar@example.com, @example.com, foo*@example.com, *@example.com)',
+      duplicate_error:
+        'E-Mail-Adresse, Domain oder Wildcard-E-Mail-Muster wurde bereits hinzugefügt',
+      invalid_format_error:
+        'Muss eine gültige E-Mail-Adresse (bar@example.com), Domain (@example.com) oder ein Wildcard-E-Mail-Muster (foo*@example.com, *@example.com) sein',
+      warnings: {
+        identical_entries:
+          'Einige Allowlist-Einträge sind auch in den Blockierregeln vorhanden. Passende E-Mails können weiterhin blockiert werden.',
+        blocked_exact_email:
+          'Einige exakte Allowlist-E-Mails passen zu einer Blockierregel. Passende E-Mails können weiterhin blockiert werden.',
+        blocked_subaddressing:
+          'Einige Allowlist-Einträge enthalten ein Pluszeichen (+), aber E-Mail-Subaddressing ist blockiert.',
+        effectively_unusable:
+          'Basierend auf diesen Prüfungen lässt die aktuelle Allowlist möglicherweise keine neue E-Mail durch.',
+      },
+    },
     disposable_email: {
       title: 'Blockieren temporärer E-Mail-Adressen',
       description:
@@ -181,12 +202,13 @@ const security = {
     custom_email_address: {
       title: 'Benutzerdefinierte E-Mail-Adressen blockieren',
       description:
-        'Fügen Sie spezifische E-Mail-Domains oder E-Mail-Adressen hinzu, die nicht registrieren oder über die Benutzeroberfläche verknüpfen können.',
+        'Fügen Sie Regeln hinzu, um spezifische E-Mail-Domains, E-Mail-Adressen oder E-Mail-Adressmuster mit Platzhaltern an der Registrierung oder Verknüpfung über die Benutzeroberfläche zu hindern.',
       placeholder:
-        'Geben Sie die blockierte E-Mail-Adresse oder Domain ein (zum Beispiel, bar@example.com, @example.com)',
-      duplicate_error: 'E-Mail-Adresse oder Domain bereits hinzugefügt',
+        'Geben Sie die blockierte E-Mail-Adresse, Domain oder das E-Mail-Adressmuster mit Platzhalter ein (zum Beispiel, bar@example.com, @example.com, foo*@example.com, *@example.com)',
+      duplicate_error:
+        'E-Mail-Adresse, Domain oder E-Mail-Adressmuster mit Platzhalter bereits hinzugefügt',
       invalid_format_error:
-        'Muss eine gültige E-Mail-Adresse (bar@example.com) oder Domain (@example.com) sein',
+        'Muss eine gültige E-Mail-Adresse (bar@example.com), Domain (@example.com) oder ein E-Mail-Adressmuster mit Platzhalter (foo*@example.com, *@example.com) sein',
     },
   },
 };
