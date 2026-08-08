@@ -11,7 +11,7 @@ services:
       [
         "sh",
         "-c",
-        "npm run cli db seed -- --swe && npm run cli db alteration deploy 1.41.0 && npm start",
+        "npm run cli db seed -- --swe && npm run cli db alteration deploy 1.42.0 && npm start",
       ]
     ports:
       - 3001:3001
