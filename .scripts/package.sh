@@ -49,4 +49,5 @@ fi
 
 echo Tar the package
 cd ..
+
 tar -czf /tmp/logto.tar.gz logto

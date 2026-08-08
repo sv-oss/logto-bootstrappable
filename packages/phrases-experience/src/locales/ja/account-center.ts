@@ -1,40 +1,13 @@
 const account_center = {
-  home: {
-    title: 'ページが見つかりません',
-    description: 'このページは利用できません。',
-    personal_info_section: 'Personal information',
-    security_section: 'Security',
-    not_set: 'Not set',
-    action_edit: 'Edit',
-    action_add: 'Add',
-    action_view: 'View',
-    manage: 'Manage',
-    field_name: 'Display name',
-    field_avatar: 'Avatar',
-    field_username: 'Username',
-    field_email: 'Email address',
-    field_phone: 'Phone number',
-    field_given_name: 'Given name',
-    field_family_name: 'Family name',
-    field_password: 'Password',
-    field_2fa: 'Two-factor authentication',
-    field_authenticator_app: 'Authenticator app',
-    field_passkeys: 'Passkeys',
-    field_backup_codes: 'Backup codes',
-    password_set: 'Set',
-    password_not_set: 'Not set',
-    totp_active: 'Active',
-    passkeys_count: '{{count}} passkey registered',
-    passkeys_count_plural: '{{count}} passkeys registered',
-    return_to_account: 'Back to account',
-    sign_out: 'Sign out',
-    no_fields_available:
-      'No user attributes are available for editing, please contact your administrator.',
-  },
   page: {
     title: 'アカウント',
     security_title: 'セキュリティ',
     security_description: 'アカウントの安全を確保するために、ここでアカウント設定を変更できます。',
+    profile_title: '個人情報',
+    profile_description: 'ここで個人情報を変更できます。',
+    sidebar_personal_info: '個人情報',
+    sidebar_security: 'セキュリティ',
+    sidebar_sessions: 'セッション',
     support: 'サポート',
   },
   verification: {
@@ -46,6 +19,9 @@ const account_center = {
     error_verify_failed: '認証に失敗しました。もう一度コードを入力してください。',
     verification_required: '認証の有効期限が切れました。もう一度本人確認を行ってください。',
     try_another_method: '別の方法で確認する',
+    no_available_methods_title: '利用可能な認証方法がありません',
+    no_available_methods_description:
+      '認証方法が設定されていません。まずアカウントにパスワード、メールアドレス、または電話番号を追加してください。',
   },
   password_verification: {
     title: 'パスワードを確認',
@@ -85,6 +61,7 @@ const account_center = {
   username: {
     title: 'ユーザー名を設定',
     description: 'ユーザー名は英数字とアンダースコアのみ使用できます。',
+    policy_description: '{{requirements}}',
     success: 'ユーザー名を更新しました。',
   },
   security: {
@@ -112,6 +89,32 @@ const account_center = {
     backup_codes_count_other: '{{count}} 個のコード',
     view: '表示',
     manage: '管理',
+    turn_on_2_step_verification_description:
+      'セキュリティを強化します。サインイン時に2段階目の認証が求められます。',
+    turn_off_2_step_verification: '2段階認証を無効にする',
+    turn_off_2_step_verification_description:
+      '2段階認証を無効にすると、サインイン時の追加の保護レイヤーが削除されます。続行してもよろしいですか？',
+    disable_2_step_verification: '無効にする',
+    no_verification_method_warning:
+      '2つ目の認証方法が追加されていません。サインイン時の2段階認証を有効にするには、少なくとも1つ追加してください。',
+    passkey_sign_in_prompt: 'パスキーの設定を促す',
+    passkey_sign_in_prompt_description:
+      'オンにすると、より速く安全なサインインのためにパスキーの設定を求められます。',
+    account_removal: 'アカウント削除',
+    delete_your_account: 'アカウントを削除',
+    delete_account: 'アカウントを削除',
+    remove_username_confirmation_title: 'ユーザー名を削除',
+    remove_username_confirmation_description:
+      '削除すると、このユーザー名でサインインできなくなります。続行しますか？',
+    remove_email_confirmation_title: 'メールアドレスを削除',
+    remove_email_confirmation_description:
+      '削除すると、このメールアドレスでサインインできなくなります。続行しますか？',
+    remove_phone_confirmation_title: '電話番号を削除',
+    remove_phone_confirmation_description:
+      '削除すると、この電話番号でサインインできなくなります。続行しますか？',
+    email_removed: 'メールアドレスが正常に削除されました。',
+    phone_removed: '電話番号が正常に削除されました。',
+    username_removed: 'ユーザー名が正常に削除されました。',
   },
   social: {
     linked: '{{connector}}の連携に成功しました。',
@@ -171,13 +174,6 @@ const account_center = {
     backup_code_requires_other_mfa:
       'バックアップコードを使用するには、まず他の MFA メソッドを設定する必要があります。',
     passkey_not_enabled: 'パスキーが有効になっていません。管理者にお問い合わせください。',
-    totp_manage_title: 'Manage authenticator app',
-    totp_manage_description:
-      'Your authenticator app is currently active. Remove it to disable OTP two-factor authentication.',
-    totp_remove: 'Remove authenticator app',
-    totp_removed: 'Authenticator app removed.',
-    totp_remove_confirm_description:
-      'Are you sure you want to remove your authenticator app? You will no longer be able to use it for two-factor authentication.',
     passkey_already_registered:
       'このパスキーはすでにアカウントに登録されています。別の認証器をご使用ください。',
   },
@@ -252,14 +248,29 @@ const account_center = {
       'このデバイスの2段階認証の確認が完了しました。複数のキーがある場合に識別できるよう名前をカスタマイズしてください。',
     name_input_label: '名前',
   },
-  profile: {
-    title: 'Edit profile',
-    description: 'Update your display name and avatar.',
-    name_label: 'Display name',
-    avatar_label: 'Avatar URL',
-    given_name_label: 'Given name',
-    family_name_label: 'Family name',
-    saved: 'Profile updated successfully.',
+  sessions: {
+    page_title: 'セッション',
+    page_description:
+      'アクティブなセッションと認可済みサードパーティアプリケーションを管理します。',
+    title: 'セッション',
+    current_session: '現在のセッション',
+    signed_in_at: '{{date}} にサインイン',
+    revoke_session: 'サインアウト',
+    revoke_session_title: 'セッションからサインアウト',
+    revoke_session_description:
+      'このセッションからサインアウトし、関連するすべてのアクセスを取り消します。続行しますか？',
+    no_other_sessions: '他にアクティブなセッションはありません。',
+    loading: '読み込み中...',
+    third_party_apps_title: 'サードパーティアプリ',
+    no_third_party_apps: '認可済みのサードパーティアプリケーションはありません。',
+    third_party_apps_load_failed:
+      'サードパーティアプリを読み込めませんでした。もう一度お試しください。',
+    granted_at: '{{date}} に認可',
+    revoke_grant: '削除',
+    revoke_grant_title: 'サードパーティアプリのアクセスを削除',
+    revoke_grant_description:
+      'このアプリケーションに付与されたすべてのアクセスを取り消します。続行しますか？',
+    revoke_grant_failed: '一部の認可の取り消しに失敗しました。もう一度お試しください。',
   },
 };
 

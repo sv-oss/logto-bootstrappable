@@ -1,12 +1,12 @@
 import assert from 'node:assert';
 
-import { generateStandardId } from '@logto/shared';
 import { isKeyInObject } from '@silverhand/essentials';
 import { HTTPError } from 'ky';
 
 import { OrganizationScopeApiTest } from '#src/helpers/organization.js';
+import { generateTestName } from '#src/utils.js';
 
-const randomId = () => generateStandardId(4);
+const randomId = () => generateTestName();
 
 describe('organization scope APIs', () => {
   const scopeApi = new OrganizationScopeApiTest();

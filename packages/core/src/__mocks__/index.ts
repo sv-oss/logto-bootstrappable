@@ -3,6 +3,7 @@ import type {
   AdminConsoleData,
   Application,
   ApplicationsRole,
+  InlineHook,
   LogtoConfig,
   OidcConfigKey,
   Passcode,
@@ -14,6 +15,7 @@ import type {
 import {
   ApplicationType,
   DomainStatus,
+  LogtoInlineHookKey,
   internalPrefix,
   LogtoJwtTokenKey,
   LogtoOidcConfigKey,
@@ -51,6 +53,7 @@ export const mockApplication: Application = {
   },
   protectedAppMetadata: null,
   isThirdParty: false,
+  appLevelAccessControlEnabled: false,
   createdAt: 1_645_334_775_356,
   customData: {},
 };
@@ -78,8 +81,10 @@ export const mockProtectedApplication: Omit<Application, 'protectedAppMetadata'>
     origin: 'https://my-blog.com',
     sessionDuration: 1_209_600,
     pageRules: [],
+    additionalScopes: [],
   },
   isThirdParty: false,
+  appLevelAccessControlEnabled: false,
   createdAt: 1_645_334_775_356,
   customData: {},
 };
@@ -247,4 +252,33 @@ export const mockJwtCustomizerConfigForClientCredentials = {
       API_KEY: '<api-key>',
     },
   },
+};
+
+export const mockInlineHookConfigForPostSignIn = {
+  tenantId: 'fake_tenant',
+  key: LogtoInlineHookKey.PostSignIn,
+  value: {
+    script: 'const runInlineHook = ({ event }) => ({ action: "updateUser", user: event.user });',
+    environmentVariables: {
+      API_KEY: '<api-key>',
+    },
+    contextSample: {
+      user: {
+        username: 'user',
+      },
+    },
+    enabled: true,
+    onExecutionError: 'block',
+  } satisfies InlineHook,
+};
+
+export const mockInlineHookConfigForPostFirstFactorVerification = {
+  tenantId: 'fake_tenant',
+  key: LogtoInlineHookKey.PostFirstFactorVerification,
+  value: {
+    script:
+      'const runInlineHook = ({ event }) => ({ action: "updateUser", user: {}, passwordVerified: true });',
+    enabled: false,
+    onExecutionError: 'allow',
+  } satisfies InlineHook,
 };

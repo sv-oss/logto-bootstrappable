@@ -1,41 +1,14 @@
 const account_center = {
-  home: {
-    title: 'Nie znaleziono strony',
-    description: 'Ta strona jest niedostępna.',
-    personal_info_section: 'Personal information',
-    security_section: 'Security',
-    not_set: 'Not set',
-    action_edit: 'Edit',
-    action_add: 'Add',
-    action_view: 'View',
-    manage: 'Manage',
-    field_name: 'Display name',
-    field_avatar: 'Avatar',
-    field_username: 'Username',
-    field_email: 'Email address',
-    field_phone: 'Phone number',
-    field_given_name: 'Given name',
-    field_family_name: 'Family name',
-    field_password: 'Password',
-    field_2fa: 'Two-factor authentication',
-    field_authenticator_app: 'Authenticator app',
-    field_passkeys: 'Passkeys',
-    field_backup_codes: 'Backup codes',
-    password_set: 'Set',
-    password_not_set: 'Not set',
-    totp_active: 'Active',
-    passkeys_count: '{{count}} passkey registered',
-    passkeys_count_plural: '{{count}} passkeys registered',
-    return_to_account: 'Back to account',
-    sign_out: 'Sign out',
-    no_fields_available:
-      'No user attributes are available for editing, please contact your administrator.',
-  },
   page: {
     title: 'Konto',
     security_title: 'Bezpieczeństwo',
     security_description:
       'Tutaj możesz zmienić ustawienia konta, aby zadbać o jego bezpieczeństwo.',
+    profile_title: 'Informacje osobiste',
+    profile_description: 'Zmień swoje dane osobowe tutaj.',
+    sidebar_personal_info: 'Informacje osobiste',
+    sidebar_security: 'Bezpieczeństwo',
+    sidebar_sessions: 'Sesje',
     support: 'Pomoc',
   },
   verification: {
@@ -47,6 +20,9 @@ const account_center = {
     error_verify_failed: 'Weryfikacja nie powiodła się. Wprowadź kod ponownie.',
     verification_required: 'Weryfikacja wygasła. Zweryfikuj swoją tożsamość ponownie.',
     try_another_method: 'Wypróbuj inny sposób weryfikacji',
+    no_available_methods_title: 'Brak dostępnych metod weryfikacji',
+    no_available_methods_description:
+      'Nie masz skonfigurowanych żadnych metod weryfikacji. Najpierw dodaj do swojego konta hasło, adres e-mail lub numer telefonu.',
   },
   password_verification: {
     title: 'Zweryfikuj hasło',
@@ -86,6 +62,7 @@ const account_center = {
   username: {
     title: 'Ustaw nazwę użytkownika',
     description: 'Nazwa użytkownika może zawierać tylko litery, cyfry i podkreślenia.',
+    policy_description: '{{requirements}}',
     success: 'Nazwa użytkownika została pomyślnie zaktualizowana.',
   },
   security: {
@@ -113,6 +90,32 @@ const account_center = {
     backup_codes_count_other: '{{count}} kody pozostałe',
     view: 'Wyświetl',
     manage: 'Zarządzaj',
+    turn_on_2_step_verification_description:
+      'Dodaj dodatkową warstwę bezpieczeństwa. Podczas logowania zostaniesz poproszony o drugi krok weryfikacji.',
+    turn_off_2_step_verification: 'Wyłącz weryfikację dwuetapową',
+    turn_off_2_step_verification_description:
+      'Wyłączenie weryfikacji dwuetapowej usunie dodatkową warstwę ochrony z Twojego konta podczas logowania. Czy na pewno chcesz kontynuować?',
+    disable_2_step_verification: 'Wyłącz',
+    no_verification_method_warning:
+      'Nie dodałeś drugiej metody weryfikacji. Dodaj co najmniej jedną, aby włączyć weryfikację dwuetapową podczas logowania.',
+    passkey_sign_in_prompt: 'Monituj o skonfigurowanie passkey',
+    passkey_sign_in_prompt_description:
+      'Gdy włączone, zostaniesz poproszony o skonfigurowanie passkey w celu szybszego i bezpieczniejszego logowania.',
+    account_removal: 'Usunięcie konta',
+    delete_your_account: 'Usuń swoje konto',
+    delete_account: 'Usuń konto',
+    remove_username_confirmation_title: 'Usuń nazwę użytkownika',
+    remove_username_confirmation_description:
+      'Po usunięciu nie będziesz mógł logować się za pomocą tej nazwy użytkownika. Czy na pewno chcesz kontynuować?',
+    remove_email_confirmation_title: 'Usuń adres e-mail',
+    remove_email_confirmation_description:
+      'Po usunięciu nie będziesz mógł logować się za pomocą tego adresu e-mail. Czy na pewno chcesz kontynuować?',
+    remove_phone_confirmation_title: 'Usuń numer telefonu',
+    remove_phone_confirmation_description:
+      'Po usunięciu nie będziesz mógł logować się za pomocą tego numeru telefonu. Czy na pewno chcesz kontynuować?',
+    email_removed: 'Adres e-mail został pomyślnie usunięty.',
+    phone_removed: 'Numer telefonu został pomyślnie usunięty.',
+    username_removed: 'Nazwa użytkownika została pomyślnie usunięta.',
   },
   social: {
     linked: '{{connector}} połączono pomyślnie.',
@@ -175,13 +178,6 @@ const account_center = {
       'Kody zapasowe wymagają wcześniejszego skonfigurowania innej metody MFA.',
     passkey_not_enabled:
       'Passkey nie jest włączony. Skontaktuj się z administratorem, aby uzyskać pomoc.',
-    totp_manage_title: 'Manage authenticator app',
-    totp_manage_description:
-      'Your authenticator app is currently active. Remove it to disable OTP two-factor authentication.',
-    totp_remove: 'Remove authenticator app',
-    totp_removed: 'Authenticator app removed.',
-    totp_remove_confirm_description:
-      'Are you sure you want to remove your authenticator app? You will no longer be able to use it for two-factor authentication.',
     passkey_already_registered:
       'Ten passkey jest już zarejestrowany na twoim koncie. Użyj innego uwierzytelniania.',
   },
@@ -257,14 +253,29 @@ const account_center = {
       'Pomyślnie zweryfikowano to urządzenie do uwierzytelniania dwuetapowego. Dostosuj nazwę, aby rozpoznać go, jeśli masz wiele kluczy.',
     name_input_label: 'Nazwa',
   },
-  profile: {
-    title: 'Edit profile',
-    description: 'Update your display name and avatar.',
-    name_label: 'Display name',
-    avatar_label: 'Avatar URL',
-    given_name_label: 'Given name',
-    family_name_label: 'Family name',
-    saved: 'Profile updated successfully.',
+  sessions: {
+    page_title: 'Sesje',
+    page_description:
+      'Zarządzaj swoimi aktywnymi sesjami i autoryzowanymi aplikacjami firm trzecich.',
+    title: 'Sesje',
+    current_session: 'Bieżąca sesja',
+    signed_in_at: 'Zalogowano {{date}}',
+    revoke_session: 'Wyloguj',
+    revoke_session_title: 'Wyloguj sesję',
+    revoke_session_description:
+      'Spowoduje to wylogowanie sesji i cofnięcie wszystkich powiązanych uprawnień. Czy na pewno chcesz kontynuować?',
+    no_other_sessions: 'Brak innych aktywnych sesji.',
+    loading: 'Ładowanie...',
+    third_party_apps_title: 'Aplikacje firm trzecich',
+    no_third_party_apps: 'Brak autoryzowanych aplikacji firm trzecich.',
+    third_party_apps_load_failed:
+      'Nie udało się załadować aplikacji firm trzecich. Spróbuj ponownie.',
+    granted_at: 'Autoryzowano {{date}}',
+    revoke_grant: 'Usuń',
+    revoke_grant_title: 'Usuń dostęp aplikacji firmy trzeciej',
+    revoke_grant_description:
+      'Spowoduje to cofnięcie wszystkich uprawnień przyznanych tej aplikacji. Czy na pewno chcesz kontynuować?',
+    revoke_grant_failed: 'Nie udało się cofnąć niektórych uprawnień. Spróbuj ponownie.',
   },
 };
 

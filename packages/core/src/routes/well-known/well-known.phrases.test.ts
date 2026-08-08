@@ -1,4 +1,4 @@
-import zhCN from '@logto/phrases-experience/lib/locales/zh-cn/index.js';
+import en from '@logto/phrases-experience/lib/locales/en/index.js';
 import { type CustomPhrase, type SignInExperience } from '@logto/schemas';
 import { pickDefault, createMockUtils } from '@logto/shared/esm';
 
@@ -49,7 +49,7 @@ const customPhrases = {
   ),
 } satisfies Partial<Queries['customPhrases']>;
 
-const getPhrases = jest.fn(async () => zhCN);
+const getPhrases = jest.fn(async () => en);
 
 const tenantContext = new MockTenant(
   createMockProvider(),

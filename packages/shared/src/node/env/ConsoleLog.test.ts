@@ -3,6 +3,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import ConsoleLog, { type HttpLogEntry } from './ConsoleLog.js';
 
+afterEach(() => {
+  vi.restoreAllMocks();
+});
+
 describe('ConsoleLog', () => {
   it('logs the plain message as is', () => {
     const logSpy = vi.spyOn(console, 'log').mockImplementation(noop);

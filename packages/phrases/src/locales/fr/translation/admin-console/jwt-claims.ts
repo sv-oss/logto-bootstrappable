@@ -37,6 +37,7 @@ const jwt_claims = {
   restore: 'Restaurer les paramètres par défaut',
   restored: 'Restauré',
   data_source_tab: 'Source de données',
+  error_handling_tab: 'Gestion des erreurs',
   test_tab: 'Contexte de test',
   jwt_claims_description:
     'Les revendications par défaut sont automatiquement incluses dans le JWT et ne peuvent pas être remplacées.',
@@ -60,6 +61,11 @@ const jwt_claims = {
     subtitle:
       "Utilisez le paramètre d'entrée `context.application` pour fournir les informations d'application associées au jeton.",
   },
+  organization_data: {
+    title: "Contexte de l'organisation",
+    subtitle:
+      "Utilisez le paramètre d'entrée `context.organization` pour fournir les informations de l'organisation cible, disponible uniquement pour les jetons d'organisation.",
+  },
   token_data: {
     title: 'Données du jeton',
     subtitle: "Utilisez le paramètre d'entrée `token` pour le payload du jeton d'accès actuel. ",
@@ -67,6 +73,18 @@ const jwt_claims = {
   api_context: {
     title: "Contexte API : contrôle d'accès",
     subtitle: 'Utilisez la méthode `api.denyAccess` pour rejeter la demande de jeton.',
+  },
+  error_handling: {
+    title: 'Gestion des erreurs',
+    subtitle: "Définissez si l'émission du jeton doit être bloquée lorsque le script échoue.",
+    input_field_title: "Comportement d'émission du jeton en cas d'erreur du script",
+    block_issuance_switch: "Bloquer l'émission du jeton lorsque le script génère une erreur",
+    default_hint_create:
+      "Les nouveaux scripts de claims personnalisés bloquent par défaut l'émission du jeton lorsque le script échoue. Si l'API fournit déjà une valeur, la valeur enregistrée est utilisée à la place.",
+    default_hint_edit:
+      "Les scripts de claims personnalisés existants sans ce paramètre conservent le comportement historique avec cette option désactivée tant que vous n'enregistrez pas explicitement une valeur.",
+    warning:
+      "Lorsqu'elle est activée, les erreurs d'exécution du script rejettent la demande de jeton avec `invalid_request` (400) et un `error_description` localisé. Les appels à `api.denyAccess` continuent de renvoyer `access_denied`.",
   },
   fetch_external_data: {
     title: 'Récupérer des données externes',

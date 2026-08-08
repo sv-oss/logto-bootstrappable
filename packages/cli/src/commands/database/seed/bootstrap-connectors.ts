@@ -90,7 +90,7 @@ export const bootstrapSmtpConnector = async (
         config: {
           host: config.host,
           port: config.port,
-          auth: config.auth,
+          ...(config.auth ? { auth: config.auth } : {}),
           fromEmail: config.fromEmail,
           ...(config.replyTo ? { replyTo: config.replyTo } : {}),
           secure: config.secure,
@@ -129,7 +129,7 @@ export const bootstrapSmtpSmsConnector = async (
         config: {
           host: config.host,
           port: config.port,
-          auth: config.auth,
+          ...(config.auth ? { auth: config.auth } : {}),
           fromEmail: config.fromEmail,
           toEmailTemplate: config.toEmailTemplate,
           ...(config.subject ? { subject: config.subject } : {}),

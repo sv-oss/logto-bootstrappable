@@ -1,7 +1,6 @@
 import { useLogto } from '@logto/react';
 import { Theme } from '@logto/schemas';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { isMobile } from 'react-device-detect';
 
 import { getAccountCenterSettings } from '@ac/apis/account-center';
 import { getSignInExperienceSettings } from '@ac/apis/sign-in-experience';
@@ -23,11 +22,22 @@ type Props = {
   readonly children: React.ReactNode;
 };
 
+const getInitialTheme = () => {
+  if (document.documentElement.dataset.theme === Theme.Dark) {
+    return Theme.Dark;
+  }
+
+  return Theme.Light;
+};
+
+const getInitialPlatform = (): PageContextType['platform'] =>
+  document.body.classList.contains('mobile') ? 'mobile' : 'web';
+
 const PageContextProvider = ({ children }: Props) => {
   const appearanceModeStorageKey = 'logto:account-center:appearance-mode';
   const { isAuthenticated } = useLogto();
   const getUserInfoRequest = useApi(getUserInfo, { silent: true });
-  const [theme, setTheme] = useState(Theme.Light);
+  const [theme, setTheme] = useState(getInitialTheme);
   const [appearanceMode, setAppearanceMode] = useState<PageContextType['appearanceMode']>(() => {
     const stored = window.localStorage.getItem(appearanceModeStorageKey);
 
@@ -169,7 +179,11 @@ const PageContextProvider = ({ children }: Props) => {
   }, [appearanceMode]);
 
   useEffect(() => {
-    if (!experienceSettings?.color.isDarkModeEnabled) {
+    if (!experienceSettings) {
+      return;
+    }
+
+    if (!experienceSettings.color.isDarkModeEnabled) {
       setTheme(Theme.Light);
       return;
     }
@@ -191,7 +205,7 @@ const PageContextProvider = ({ children }: Props) => {
     };
   }, [appearanceMode, experienceSettings]);
 
-  const platform = isMobile ? 'mobile' : 'web';
+  const platform = getInitialPlatform();
 
   const value = useMemo<PageContextType>(
     () => ({

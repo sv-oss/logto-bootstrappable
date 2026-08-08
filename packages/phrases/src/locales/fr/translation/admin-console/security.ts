@@ -89,7 +89,45 @@ const security = {
     custom_words_description:
       'Personnalisez les mots spécifiques au contexte, sans distinction de casse, un par ligne.',
     custom_words_placeholder: 'Nom de votre service, nom de votre entreprise, etc.',
+    password_expiration: 'Expiration du mot de passe',
+    password_expiration_description:
+      "Exiger des utilisateurs qu'ils réinitialisent leur mot de passe après un nombre de jours défini. Les utilisateurs se connectant via SSO ou passkey ne sont pas affectés.",
+    enable_password_expiration: "Activer l'expiration du mot de passe",
+    enable_password_expiration_description:
+      "Exiger des utilisateurs qu'ils réinitialisent périodiquement leur mot de passe. Les utilisateurs existants sans date de changement de mot de passe enregistrée seront évalués à partir de la date d'activation de cette politique.",
+    enable_password_expiration_tip:
+      'Vous ne pouvez activer l’expiration du mot de passe qu’après avoir configuré au moins une méthode de mot de passe oublié avec un connecteur valide dans l’expérience de connexion.',
+    expiration_period: 'Période de validité du mot de passe (jours)',
+    expiration_period_description:
+      "Nombre de jours pendant lesquels un mot de passe reste valide avant d'expirer.",
+    expiration_period_error:
+      'La période de validité du mot de passe doit être comprise entre {{min}} et {{max}} jours.',
+    password_expiration_recovery_reminder:
+      "Certains utilisateurs n'ont peut-être pas d'adresse e-mail ou de numéro de téléphone pour recevoir un code de récupération de mot de passe, et ne pourront donc pas réinitialiser un mot de passe expiré. Exigez une adresse e-mail ou un numéro de téléphone lors de l'inscription pour vous assurer que chaque utilisateur peut récupérer son mot de passe.",
   },
+  verification_code_policy: {
+    card_title: 'Code de vérification',
+    card_description:
+      "Configurez la durée d'expiration et le nombre maximal de nouvelles tentatives pour les codes de vérification utilisés dans les flux de connexion, d'inscription et de réinitialisation du mot de passe.",
+    enable: {
+      title: 'Personnaliser les paramètres du code de vérification',
+      description:
+        "Permettre la personnalisation de la durée d'expiration du code de vérification et du nombre maximal de nouvelles tentatives.",
+    },
+    expiration_duration: {
+      title: "Durée d'expiration (secondes)",
+      description:
+        "La durée en secondes pendant laquelle un code de vérification reste valide après l'envoi.",
+      error_message: "La durée d'expiration doit être comprise entre 60 et 3600 secondes.",
+    },
+    max_retry_attempts: {
+      title: 'Nombre maximal de nouvelles tentatives',
+      description:
+        "Nombre maximal de tentatives de vérification échouées autorisées avant l'invalidation du code.",
+      error_message: 'Le nombre maximal de nouvelles tentatives doit être compris entre 1 et 100.',
+    },
+  },
+
   sentinel_policy: {
     card_title: 'Verrouillage des identifiants',
     card_description:

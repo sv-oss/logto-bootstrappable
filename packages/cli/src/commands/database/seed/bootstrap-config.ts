@@ -41,14 +41,14 @@ export type AppConfig = {
   postLogoutRedirectUris: string[];
 };
 
-/** Connection details and credentials for the SMTP email connector registered during bootstrap. */
+/** Connection details and optional credentials for the SMTP email connector registered during bootstrap. */
 export type SmtpConfig = {
   /** SMTP server hostname, read from `LOGTO_SMTP_HOST`. */
   host: string;
   /** SMTP server port, read from `LOGTO_SMTP_PORT`. */
   port: number;
-  /** SMTP authentication credentials, read from `LOGTO_SMTP_USERNAME` and `LOGTO_SMTP_PASSWORD`. */
-  auth: { user: string; pass: string };
+  /** Optional SMTP authentication credentials, read from `LOGTO_SMTP_USERNAME` and `LOGTO_SMTP_PASSWORD`. */
+  auth?: { user: string; pass: string };
   /** The "From" email address for outgoing messages, read from `LOGTO_SMTP_FROM_EMAIL`. */
   fromEmail: string;
   /** Optional reply-to address, read from `LOGTO_SMTP_REPLY_TO`. */
@@ -67,8 +67,8 @@ export type SmtpSmsConfig = {
   host: string;
   /** SMTP server port, read from `LOGTO_SMTP_SMS_PORT`. */
   port: number;
-  /** SMTP authentication credentials, read from `LOGTO_SMTP_SMS_USERNAME` and `LOGTO_SMTP_SMS_PASSWORD`. */
-  auth: { user: string; pass: string };
+  /** Optional SMTP authentication credentials, read from `LOGTO_SMTP_SMS_USERNAME` and `LOGTO_SMTP_SMS_PASSWORD`. */
+  auth?: { user: string; pass: string };
   /** The "From" email address, read from `LOGTO_SMTP_SMS_FROM_EMAIL`. */
   fromEmail: string;
   /**
@@ -163,8 +163,9 @@ export const getAppConfig = (): AppConfig | undefined => {
 /**
  * Reads SMTP connector configuration from environment variables.
  *
- * @returns An {@link SmtpConfig} when `LOGTO_SMTP_HOST`, `LOGTO_SMTP_PORT`, `LOGTO_SMTP_USERNAME`,
- * `LOGTO_SMTP_PASSWORD`, and `LOGTO_SMTP_FROM_EMAIL` are all set, otherwise `undefined`.
+ * @returns An {@link SmtpConfig} when `LOGTO_SMTP_HOST`, `LOGTO_SMTP_PORT`, and
+ * `LOGTO_SMTP_FROM_EMAIL` are all set. Authentication is included only when both credential
+ * variables are set.
  */
 export const getSmtpConfig = (): SmtpConfig | undefined => {
   const host = getEnv('LOGTO_SMTP_HOST');
@@ -173,14 +174,20 @@ export const getSmtpConfig = (): SmtpConfig | undefined => {
   const password = getEnv('LOGTO_SMTP_PASSWORD');
   const fromEmail = getEnv('LOGTO_SMTP_FROM_EMAIL');
 
-  if (!host || !portRaw || !username || !password || !fromEmail) {
+  if (!host || !portRaw || !fromEmail) {
     return undefined;
+  }
+
+  if (Boolean(username) !== Boolean(password)) {
+    throw new Error(
+      'LOGTO_SMTP_USERNAME and LOGTO_SMTP_PASSWORD must either both be set or both be unset.'
+    );
   }
 
   return {
     host,
     port: Number(portRaw),
-    auth: { user: username, pass: password },
+    ...(username && password ? { auth: { user: username, pass: password } } : {}),
     fromEmail,
     replyTo: getEnv('LOGTO_SMTP_REPLY_TO') || undefined,
     secure: yes(getEnv('LOGTO_SMTP_SECURE')),
@@ -193,8 +200,8 @@ export const getSmtpConfig = (): SmtpConfig | undefined => {
  * Reads SMTP SMS connector configuration from environment variables.
  *
  * @returns An {@link SmtpSmsConfig} when `LOGTO_SMTP_SMS_HOST`, `LOGTO_SMTP_SMS_PORT`,
- * `LOGTO_SMTP_SMS_USERNAME`, `LOGTO_SMTP_SMS_PASSWORD`, `LOGTO_SMTP_SMS_FROM_EMAIL`, and
- * `LOGTO_SMTP_SMS_TO_EMAIL_TEMPLATE` are all set, otherwise `undefined`.
+ * `LOGTO_SMTP_SMS_FROM_EMAIL`, and `LOGTO_SMTP_SMS_TO_EMAIL_TEMPLATE` are all set.
+ * Authentication is included only when both credential variables are set.
  */
 export const getSmtpSmsConfig = (): SmtpSmsConfig | undefined => {
   const host = getEnv('LOGTO_SMTP_SMS_HOST');
@@ -204,14 +211,20 @@ export const getSmtpSmsConfig = (): SmtpSmsConfig | undefined => {
   const fromEmail = getEnv('LOGTO_SMTP_SMS_FROM_EMAIL');
   const toEmailTemplate = getEnv('LOGTO_SMTP_SMS_TO_EMAIL_TEMPLATE');
 
-  if (!host || !portRaw || !username || !password || !fromEmail || !toEmailTemplate) {
+  if (!host || !portRaw || !fromEmail || !toEmailTemplate) {
     return undefined;
+  }
+
+  if (Boolean(username) !== Boolean(password)) {
+    throw new Error(
+      'LOGTO_SMTP_SMS_USERNAME and LOGTO_SMTP_SMS_PASSWORD must either both be set or both be unset.'
+    );
   }
 
   return {
     host,
     port: Number(portRaw),
-    auth: { user: username, pass: password },
+    ...(username && password ? { auth: { user: username, pass: password } } : {}),
     fromEmail,
     toEmailTemplate,
     subject: getEnv('LOGTO_SMTP_SMS_SUBJECT') || undefined,

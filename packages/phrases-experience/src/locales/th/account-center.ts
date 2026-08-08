@@ -1,40 +1,13 @@
 const account_center = {
-  home: {
-    title: 'ไม่พบหน้าเว็บ',
-    description: 'ไม่สามารถใช้หน้านี้ได้',
-    personal_info_section: 'Personal information',
-    security_section: 'Security',
-    not_set: 'Not set',
-    action_edit: 'Edit',
-    action_add: 'Add',
-    action_view: 'View',
-    manage: 'Manage',
-    field_name: 'Display name',
-    field_avatar: 'Avatar',
-    field_username: 'Username',
-    field_email: 'Email address',
-    field_phone: 'Phone number',
-    field_given_name: 'Given name',
-    field_family_name: 'Family name',
-    field_password: 'Password',
-    field_2fa: 'Two-factor authentication',
-    field_authenticator_app: 'Authenticator app',
-    field_passkeys: 'Passkeys',
-    field_backup_codes: 'Backup codes',
-    password_set: 'Set',
-    password_not_set: 'Not set',
-    totp_active: 'Active',
-    passkeys_count: '{{count}} passkey registered',
-    passkeys_count_plural: '{{count}} passkeys registered',
-    return_to_account: 'Back to account',
-    sign_out: 'Sign out',
-    no_fields_available:
-      'No user attributes are available for editing, please contact your administrator.',
-  },
   page: {
     title: 'บัญชี',
     security_title: 'ความปลอดภัย',
     security_description: 'เปลี่ยนการตั้งค่าบัญชีของคุณที่นี่เพื่อให้บัญชีของคุณปลอดภัย',
+    profile_title: 'ข้อมูลส่วนบุคคล',
+    profile_description: 'เปลี่ยนข้อมูลส่วนบุคคลของคุณที่นี่',
+    sidebar_personal_info: 'ข้อมูลส่วนบุคคล',
+    sidebar_security: 'ความปลอดภัย',
+    sidebar_sessions: 'เซสชัน',
     support: 'ฝ่ายช่วยเหลือ',
   },
   verification: {
@@ -46,6 +19,9 @@ const account_center = {
     error_verify_failed: 'ยืนยันไม่สำเร็จ กรุณากรอกรหัสอีกครั้ง',
     verification_required: 'การยืนยันหมดอายุ โปรดยืนยันตัวตนอีกครั้ง',
     try_another_method: 'ลองใช้วิธีอื่นเพื่อยืนยันตัวตน',
+    no_available_methods_title: 'ไม่มีวิธีการยืนยันตัวตนที่พร้อมใช้งาน',
+    no_available_methods_description:
+      'คุณยังไม่ได้ตั้งค่าวิธีการยืนยันตัวตน กรุณาเพิ่มรหัสผ่าน อีเมล หรือหมายเลขโทรศัพท์ให้กับบัญชีของคุณก่อน',
   },
   password_verification: {
     title: 'ยืนยันรหัสผ่าน',
@@ -85,6 +61,7 @@ const account_center = {
   username: {
     title: 'ตั้งชื่อผู้ใช้',
     description: 'ชื่อผู้ใช้ต้องมีเฉพาะตัวอักษร ตัวเลข และขีดล่างเท่านั้น',
+    policy_description: '{{requirements}}',
     success: 'อัปเดตชื่อผู้ใช้เรียบร้อยแล้ว',
   },
   security: {
@@ -112,6 +89,32 @@ const account_center = {
     backup_codes_count_other: 'เหลือ {{count}} รหัส',
     view: 'ดู',
     manage: 'จัดการ',
+    turn_on_2_step_verification_description:
+      'เพิ่มชั้นความปลอดภัยเพิ่มเติม คุณจะถูกขอให้ทำการยืนยันขั้นตอนที่สองเมื่อลงชื่อเข้าใช้',
+    turn_off_2_step_verification: 'ปิดการยืนยันตัวตนสองขั้นตอน',
+    turn_off_2_step_verification_description:
+      'การปิดการยืนยันตัวตนสองขั้นตอนจะลบชั้นการป้องกันเพิ่มเติมออกจากบัญชีของคุณเมื่อลงชื่อเข้าใช้ คุณแน่ใจหรือไม่ว่าต้องการดำเนินการต่อ?',
+    disable_2_step_verification: 'ปิด',
+    no_verification_method_warning:
+      'คุณยังไม่ได้เพิ่มวิธีการยืนยันตัวตนที่สอง เพิ่มอย่างน้อยหนึ่งวิธีเพื่อเปิดใช้งานการยืนยันตัวตนสองขั้นตอนเมื่อลงชื่อเข้าใช้',
+    passkey_sign_in_prompt: 'แจ้งให้ตั้งค่า passkey',
+    passkey_sign_in_prompt_description:
+      'เมื่อเปิดใช้งาน คุณจะถูกขอให้ตั้งค่า passkey เพื่อการลงชื่อเข้าใช้ที่รวดเร็วและปลอดภัยยิ่งขึ้น',
+    account_removal: 'การลบบัญชี',
+    delete_your_account: 'ลบบัญชีของคุณ',
+    delete_account: 'ลบบัญชี',
+    remove_username_confirmation_title: 'ลบชื่อผู้ใช้',
+    remove_username_confirmation_description:
+      'เมื่อลบแล้ว คุณจะไม่สามารถลงชื่อเข้าใช้ด้วยชื่อผู้ใช้นี้ได้อีก คุณแน่ใจหรือไม่ว่าต้องการดำเนินการต่อ?',
+    remove_email_confirmation_title: 'ลบที่อยู่อีเมล',
+    remove_email_confirmation_description:
+      'เมื่อลบแล้ว คุณจะไม่สามารถลงชื่อเข้าใช้ด้วยที่อยู่อีเมลนี้ได้อีก คุณแน่ใจหรือไม่ว่าต้องการดำเนินการต่อ?',
+    remove_phone_confirmation_title: 'ลบหมายเลขโทรศัพท์',
+    remove_phone_confirmation_description:
+      'เมื่อลบแล้ว คุณจะไม่สามารถลงชื่อเข้าใช้ด้วยหมายเลขโทรศัพท์นี้ได้อีก คุณแน่ใจหรือไม่ว่าต้องการดำเนินการต่อ?',
+    email_removed: 'ลบที่อยู่อีเมลเรียบร้อยแล้ว',
+    phone_removed: 'ลบหมายเลขโทรศัพท์เรียบร้อยแล้ว',
+    username_removed: 'ลบชื่อผู้ใช้เรียบร้อยแล้ว',
   },
   social: {
     linked: 'เชื่อมโยง {{connector}} สำเร็จแล้ว',
@@ -168,13 +171,6 @@ const account_center = {
     backup_code_not_enabled: 'รหัสสำรองไม่ได้เปิดใช้งาน กรุณาติดต่อผู้ดูแลระบบเพื่อขอความช่วยเหลือ',
     backup_code_requires_other_mfa: 'รหัสสำรองต้องมีการตั้งค่าวิธี MFA อื่นก่อน',
     passkey_not_enabled: 'Passkey ไม่ได้เปิดใช้งาน กรุณาติดต่อผู้ดูแลระบบเพื่อขอความช่วยเหลือ',
-    totp_manage_title: 'Manage authenticator app',
-    totp_manage_description:
-      'Your authenticator app is currently active. Remove it to disable OTP two-factor authentication.',
-    totp_remove: 'Remove authenticator app',
-    totp_removed: 'Authenticator app removed.',
-    totp_remove_confirm_description:
-      'Are you sure you want to remove your authenticator app? You will no longer be able to use it for two-factor authentication.',
     passkey_already_registered: 'Passkey นี้ลงทะเบียนกับบัญชีของคุณแล้ว กรุณาใช้ตัวยืนยันตัวตนอื่น',
   },
   update_success: {
@@ -248,14 +244,27 @@ const account_center = {
       'คุณยืนยันอุปกรณ์นี้สำหรับการยืนยันตัวตนแบบ 2 ขั้นตอนสำเร็จแล้ว ปรับแต่งชื่อเพื่อให้จดจำได้หากคุณมีหลายคีย์',
     name_input_label: 'ชื่อ',
   },
-  profile: {
-    title: 'Edit profile',
-    description: 'Update your display name and avatar.',
-    name_label: 'Display name',
-    avatar_label: 'Avatar URL',
-    given_name_label: 'Given name',
-    family_name_label: 'Family name',
-    saved: 'Profile updated successfully.',
+  sessions: {
+    page_title: 'เซสชัน',
+    page_description: 'จัดการเซสชันที่ใช้งานอยู่และแอปพลิเคชันบุคคลที่สามที่ได้รับอนุญาต',
+    title: 'เซสชัน',
+    current_session: 'เซสชันปัจจุบัน',
+    signed_in_at: 'เข้าสู่ระบบเมื่อ {{date}}',
+    revoke_session: 'ออกจากระบบ',
+    revoke_session_title: 'ออกจากระบบเซสชัน',
+    revoke_session_description:
+      'การดำเนินการนี้จะออกจากระบบเซสชันและเพิกถอนการเข้าถึงที่เกี่ยวข้องทั้งหมด คุณแน่ใจหรือไม่ว่าต้องการดำเนินการต่อ?',
+    no_other_sessions: 'ไม่มีเซสชันที่ใช้งานอยู่อื่น',
+    loading: 'กำลังโหลด...',
+    third_party_apps_title: 'แอปบุคคลที่สาม',
+    no_third_party_apps: 'ไม่มีแอปพลิเคชันบุคคลที่สามที่ได้รับอนุญาต',
+    third_party_apps_load_failed: 'โหลดแอปบุคคลที่สามไม่สำเร็จ โปรดลองอีกครั้ง',
+    granted_at: 'อนุญาตเมื่อ {{date}}',
+    revoke_grant: 'ลบ',
+    revoke_grant_title: 'ลบการเข้าถึงแอปบุคคลที่สาม',
+    revoke_grant_description:
+      'การดำเนินการนี้จะเพิกถอนการเข้าถึงทั้งหมดที่มอบให้แอปพลิเคชันนี้ คุณแน่ใจหรือไม่ว่าต้องการดำเนินการต่อ?',
+    revoke_grant_failed: 'การเพิกถอนสิทธิ์บางรายการล้มเหลว กรุณาลองอีกครั้ง',
   },
 };
 

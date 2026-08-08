@@ -1,5 +1,10 @@
 import type { LanguageTag } from '@logto/language-kit';
-import { Theme, ConnectorType, ForgotPasswordMethod } from '@logto/schemas';
+import {
+  Theme,
+  ConnectorType,
+  ForgotPasswordMethod,
+  signInExperiencePreviewMessageSender,
+} from '@logto/schemas';
 import type { ConnectorMetadata, ConnectorResponse } from '@logto/schemas';
 import { conditional } from '@silverhand/essentials';
 import classNames from 'classnames';
@@ -119,7 +124,7 @@ function SignInExperiencePreview({
     }
 
     previewRef.current?.contentWindow?.postMessage(
-      { sender: 'ac_preview', config: configForUiPage },
+      { sender: signInExperiencePreviewMessageSender, config: configForUiPage },
       endpoint?.origin ?? ''
     );
   }, [endpoint?.origin, configForUiPage, customPhrases]);
@@ -177,7 +182,10 @@ function SignInExperiencePreview({
         </div>
       ) : (
         <div className={styles.deviceWrapper}>
-          <div className={classNames(styles.device, styles[String(mode)])}>
+          <div
+            data-testid={`sign-in-experience-preview-device-${mode}`}
+            className={classNames(styles.device, styles[String(mode)])}
+          >
             {platform !== PreviewPlatform.DesktopWeb && (
               <div className={styles.topBar}>
                 <div className={styles.time}>{format(Date.now(), 'HH:mm')}</div>

@@ -1,3 +1,4 @@
+import { customUiCspDirectives } from '@logto/core-kit';
 import {
   AlternativeSignUpIdentifier,
   SignInIdentifier,
@@ -14,6 +15,7 @@ import {
   type SignInExperiencePageManagedData,
   type SignInExperienceForm,
   type SignUpForm,
+  type CustomUiCspForm,
 } from '../../types';
 
 /**
@@ -111,11 +113,55 @@ export const signUpFormDataParser = {
   },
 };
 
+const normalizeSignUpProfileFields = (
+  signUpProfileFields: SignInExperience['signUpProfileFields']
+): NonNullable<SignInExperience['signUpProfileFields']> => signUpProfileFields ?? [];
+
+const createDefaultCustomUiCspForm = (): CustomUiCspForm => ({
+  scriptSrc: [],
+  connectSrc: [],
+});
+
+const normalizeCustomUiCspSources = (sources?: string[]): string[] =>
+  sources?.map((source) => source.trim()).filter(Boolean) ?? [];
+
+const normalizeCustomUiCspForForm = (
+  customUiCsp?: SignInExperience['customUiCsp']
+): CustomUiCspForm => ({
+  ...createDefaultCustomUiCspForm(),
+  ...Object.fromEntries(
+    customUiCspDirectives.map((directive) => [
+      directive,
+      normalizeCustomUiCspSources(customUiCsp?.[directive]),
+    ])
+  ),
+});
+
+const normalizeCustomUiCspForSubmit = (
+  customUiCsp?: SignInExperienceForm['customUiCsp']
+): SignInExperiencePageManagedData['customUiCsp'] =>
+  customUiCspDirectives.reduce<SignInExperiencePageManagedData['customUiCsp']>(
+    (normalizedCustomUiCsp, directive) => {
+      const sources = normalizeCustomUiCspSources(customUiCsp?.[directive]);
+
+      if (sources.length === 0) {
+        return normalizedCustomUiCsp;
+      }
+
+      return {
+        ...normalizedCustomUiCsp,
+        [directive]: sources,
+      };
+    },
+    {}
+  );
+
 export const sieFormDataParser = {
   fromSignInExperience: (data: SignInExperience): SignInExperienceForm => {
     const {
       signUp,
       customCss,
+      customUiCsp,
       branding,
       // Start: Remove the omitted fields from the data
       passwordPolicy,
@@ -124,6 +170,8 @@ export const sieFormDataParser = {
       captchaPolicy,
       sentinelPolicy,
       emailBlocklistPolicy,
+      passwordExpiration,
+      usernamePolicy,
       socialSignIn,
       // End: Remove the omitted fields from the data
       ...rest
@@ -132,8 +180,11 @@ export const sieFormDataParser = {
     return {
       ...rest,
       signUp: signUpFormDataParser.fromSignUp(signUp),
+      signUpProfileFields: normalizeSignUpProfileFields(rest.signUpProfileFields),
+      hasConfiguredSignUpProfileFields: rest.signUpProfileFields !== null,
       createAccountEnabled: rest.signInMode !== SignInMode.SignIn,
       customCss: customCss ?? undefined,
+      customUiCsp: normalizeCustomUiCspForForm(customUiCsp),
       socialSignIn: {
         automaticAccountLinking: false,
         skipRequiredIdentifiers: false,
@@ -151,16 +202,42 @@ export const sieFormDataParser = {
       },
     };
   },
-  toSignInExperience: (formData: SignInExperienceForm): SignInExperiencePageManagedData => {
-    const { branding, createAccountEnabled, signUp, customCss, socialSignIn } = formData;
+  toSignInExperience: (
+    formData: SignInExperienceForm,
+    {
+      isCloud = true,
+      isCustomUiCspEnabled = false,
+    }: { isCloud?: boolean; isCustomUiCspEnabled?: boolean } = {}
+  ): SignInExperiencePageManagedData => {
+    const {
+      branding,
+      createAccountEnabled,
+      signUp,
+      customCss,
+      customUiCsp,
+      hasConfiguredSignUpProfileFields,
+      socialSignIn,
+      hideLogtoBranding,
+      ...rest
+    } = formData;
 
     return {
-      ...formData,
+      ...rest,
       branding: removeFalsyValues(branding),
       signUp: signUpFormDataParser.toSignUp(signUp),
+      signUpProfileFields:
+        hasConfiguredSignUpProfileFields || rest.signUpProfileFields.length > 0
+          ? rest.signUpProfileFields
+          : null,
       socialSignIn,
       signInMode: createAccountEnabled ? SignInMode.SignInAndRegister : SignInMode.SignIn,
       customCss: customCss?.length ? customCss : null,
+      ...conditional(
+        isCustomUiCspEnabled && {
+          customUiCsp: normalizeCustomUiCspForSubmit(customUiCsp),
+        }
+      ),
+      ...conditional(isCloud && { hideLogtoBranding }),
     };
   },
 };
@@ -176,18 +253,27 @@ export const sieFormDataParser = {
  * Affected fields:
  * - `signUp.secondaryIdentifiers`: This field is optional in the data schema,
  *  but through the form, we always fill it with an empty array.
+ * - `signUpProfileFields`: nullable in the data schema, but `null` and `[]` carry different
+ *  runtime semantics and must stay distinct in compare payloads.
  * - `mfa`
  * - `adaptiveMfa`
  * - `passwordPolicy`
  * - `captchaPolicy`
  * - `sentinelPolicy`
  * - `emailBlocklistPolicy`
+ * - `passwordExpiration`
+ * - `usernamePolicy`
  */
 export const signInExperienceToUpdatedDataParser = (
-  data: SignInExperience
+  data: SignInExperience,
+  {
+    isCloud = true,
+    isCustomUiCspEnabled = false,
+  }: { isCloud?: boolean; isCustomUiCspEnabled?: boolean } = {}
 ): SignInExperiencePageManagedData => {
   const {
     signUp,
+    customUiCsp,
     // Start: Remove the omitted fields from the data
     mfa,
     adaptiveMfa,
@@ -195,6 +281,9 @@ export const signInExperienceToUpdatedDataParser = (
     captchaPolicy,
     sentinelPolicy,
     emailBlocklistPolicy,
+    hideLogtoBranding,
+    passwordExpiration,
+    usernamePolicy,
     // End: Remove the omitted fields from the data
     ...rest
   } = data;
@@ -205,5 +294,12 @@ export const signInExperienceToUpdatedDataParser = (
       ...signUp,
       secondaryIdentifiers: signUp.secondaryIdentifiers ?? [],
     },
+    signUpProfileFields: rest.signUpProfileFields,
+    ...conditional(
+      isCustomUiCspEnabled && {
+        customUiCsp: normalizeCustomUiCspForSubmit(normalizeCustomUiCspForForm(customUiCsp)),
+      }
+    ),
+    ...conditional(isCloud && { hideLogtoBranding }),
   };
 };

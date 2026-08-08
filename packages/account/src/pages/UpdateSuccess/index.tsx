@@ -1,6 +1,6 @@
 import { SignInIdentifier, Theme } from '@logto/schemas';
 import type { TFuncKey } from 'i18next';
-import { useContext, useEffect, useMemo, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import PageContext from '@ac/Providers/PageContextProvider/PageContext';
@@ -10,6 +10,7 @@ import ErrorPage from '@ac/components/ErrorPage';
 import {
   clearPendingReturn,
   clearShowSuccess,
+  getAccountCenterInternalRoute,
   getPendingReturn,
   getShowSuccess,
 } from '@ac/utils/account-center-route';
@@ -74,8 +75,8 @@ type Props = {
 };
 
 const UpdateSuccess = ({ identifierType }: Props) => {
-  const { theme } = useContext(PageContext);
   const navigate = useNavigate();
+  const { theme } = useContext(PageContext);
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [redirectUrl, setRedirectUrl] = useState<string>();
 
@@ -88,6 +89,23 @@ const UpdateSuccess = ({ identifierType }: Props) => {
 
     return translationMap[identifierType] ?? translationMap.default;
   }, [identifierType]);
+
+  const returnToUrl = useCallback(
+    (url: string) => {
+      setIsRedirecting(true);
+      clearPendingReturn();
+
+      const internalRoute = getAccountCenterInternalRoute(url);
+
+      if (internalRoute) {
+        navigate(internalRoute, { replace: true });
+        return;
+      }
+
+      window.location.assign(url);
+    },
+    [navigate]
+  );
 
   useEffect(() => {
     const storedPendingReturn = getPendingReturn();
@@ -105,18 +123,14 @@ const UpdateSuccess = ({ identifierType }: Props) => {
         return;
       }
 
-      setIsRedirecting(true);
-      clearPendingReturn();
-      window.location.assign(storedPendingReturn);
+      returnToUrl(storedPendingReturn);
     }
-  }, [identifierType]);
+  }, [identifierType, returnToUrl]);
 
   const handleDoneClick = () => {
     if (redirectUrl) {
-      setIsRedirecting(true);
-      clearPendingReturn();
       clearShowSuccess();
-      window.location.assign(redirectUrl);
+      returnToUrl(redirectUrl);
     }
   };
 

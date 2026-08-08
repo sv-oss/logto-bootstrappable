@@ -6,6 +6,7 @@ import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import PageContext from '@ac/Providers/PageContextProvider/PageContext';
+import { layoutClassNames } from '@ac/constants/layout';
 import { accountCenterBasePath } from '@ac/utils/account-center-route';
 import { getThemeBySystemPreference } from '@ac/utils/theme';
 
@@ -82,7 +83,7 @@ const PageHeader = () => {
   }, [showDropdown]);
 
   return (
-    <header className={styles.header}>
+    <header className={classNames(styles.header, layoutClassNames.pageHeader)}>
       <div className={styles.left}>
         {logoUrl && <img className={styles.logo} src={logoUrl} alt="Logto" />}
       </div>

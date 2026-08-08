@@ -1,40 +1,13 @@
 const account_center = {
-  home: {
-    title: '找不到頁面',
-    description: '此頁面無法使用。',
-    personal_info_section: 'Personal information',
-    security_section: 'Security',
-    not_set: 'Not set',
-    action_edit: 'Edit',
-    action_add: 'Add',
-    action_view: 'View',
-    manage: 'Manage',
-    field_name: 'Display name',
-    field_avatar: 'Avatar',
-    field_username: 'Username',
-    field_email: 'Email address',
-    field_phone: 'Phone number',
-    field_given_name: 'Given name',
-    field_family_name: 'Family name',
-    field_password: 'Password',
-    field_2fa: 'Two-factor authentication',
-    field_authenticator_app: 'Authenticator app',
-    field_passkeys: 'Passkeys',
-    field_backup_codes: 'Backup codes',
-    password_set: 'Set',
-    password_not_set: 'Not set',
-    totp_active: 'Active',
-    passkeys_count: '{{count}} passkey registered',
-    passkeys_count_plural: '{{count}} passkeys registered',
-    return_to_account: 'Back to account',
-    sign_out: 'Sign out',
-    no_fields_available:
-      'No user attributes are available for editing, please contact your administrator.',
-  },
   page: {
     title: '帳戶',
     security_title: '安全',
     security_description: '你可以在這裡變更帳戶設定，以確保帳戶安全。',
+    profile_title: '個人資料',
+    profile_description: '在這裡變更你的個人資訊。',
+    sidebar_personal_info: '個人資料',
+    sidebar_security: '安全',
+    sidebar_sessions: '工作階段',
     support: '支援',
   },
   verification: {
@@ -45,6 +18,9 @@ const account_center = {
     error_verify_failed: '驗證失敗，請重新輸入驗證碼。',
     verification_required: '驗證已失效，請再次驗證您的身分。',
     try_another_method: '嘗試其他驗證方式',
+    no_available_methods_title: '沒有可用的驗證方式',
+    no_available_methods_description:
+      '您尚未設定任何驗證方式。請先在您的帳戶中新增密碼、電子郵件或電話號碼。',
   },
   password_verification: {
     title: '驗證密碼',
@@ -84,6 +60,7 @@ const account_center = {
   username: {
     title: '設定使用者名稱',
     description: '使用者名稱只能包含字母、數字和底線。',
+    policy_description: '{{requirements}}',
     success: '使用者名稱已成功更新。',
   },
   security: {
@@ -111,6 +88,30 @@ const account_center = {
     backup_codes_count_other: '{{count}} 個備用碼',
     view: '檢視',
     manage: '管理',
+    turn_on_2_step_verification_description: '增加額外的安全保護。登入時將要求進行第二步驟驗證。',
+    turn_off_2_step_verification: '關閉兩步驟驗證',
+    turn_off_2_step_verification_description:
+      '關閉兩步驟驗證將移除登入時帳戶的額外保護層。確定要繼續嗎？',
+    disable_2_step_verification: '關閉',
+    no_verification_method_warning:
+      '你尚未新增第二種驗證方式。請至少新增一種以在登入時啟用兩步驟驗證。',
+    passkey_sign_in_prompt: '提示設定通行密鑰',
+    passkey_sign_in_prompt_description:
+      '開啟後，系統會提示你設定通行密鑰，以實現更快速、更安全的登入。',
+    account_removal: '帳戶刪除',
+    delete_your_account: '刪除你的帳戶',
+    delete_account: '刪除帳戶',
+    remove_username_confirmation_title: '移除使用者名稱',
+    remove_username_confirmation_description:
+      '移除後，你將無法再使用此使用者名稱登入。確定要繼續嗎？',
+    remove_email_confirmation_title: '移除電子郵件地址',
+    remove_email_confirmation_description:
+      '移除後，你將無法再使用此電子郵件地址登入。確定要繼續嗎？',
+    remove_phone_confirmation_title: '移除手機號碼',
+    remove_phone_confirmation_description: '移除後，你將無法再使用此手機號碼登入。確定要繼續嗎？',
+    email_removed: '電子郵件地址已成功移除。',
+    phone_removed: '手機號碼已成功移除。',
+    username_removed: '使用者名稱已成功移除。',
   },
   social: {
     linked: '已成功連結 {{connector}}。',
@@ -163,13 +164,6 @@ const account_center = {
     backup_code_not_enabled: '備份碼未啟用。請聯繫管理員尋求協助。',
     backup_code_requires_other_mfa: '備份碼需要先設定其他 MFA 方式。',
     passkey_not_enabled: '通行密鑰未啟用。請聯繫管理員尋求協助。',
-    totp_manage_title: 'Manage authenticator app',
-    totp_manage_description:
-      'Your authenticator app is currently active. Remove it to disable OTP two-factor authentication.',
-    totp_remove: 'Remove authenticator app',
-    totp_removed: 'Authenticator app removed.',
-    totp_remove_confirm_description:
-      'Are you sure you want to remove your authenticator app? You will no longer be able to use it for two-factor authentication.',
     passkey_already_registered: '此通行密鑰已綁定到您的帳戶，請使用其他認證器。',
   },
   update_success: {
@@ -243,14 +237,25 @@ const account_center = {
       '您已成功驗證此裝置用於兩步驗證。自訂名稱以便在擁有多個密鑰時進行識別。',
     name_input_label: '名稱',
   },
-  profile: {
-    title: 'Edit profile',
-    description: 'Update your display name and avatar.',
-    name_label: 'Display name',
-    avatar_label: 'Avatar URL',
-    given_name_label: 'Given name',
-    family_name_label: 'Family name',
-    saved: 'Profile updated successfully.',
+  sessions: {
+    page_title: '工作階段',
+    page_description: '管理你的活躍工作階段和已授權的第三方應用程式。',
+    title: '工作階段',
+    current_session: '目前工作階段',
+    signed_in_at: '登入於 {{date}}',
+    revoke_session: '登出',
+    revoke_session_title: '登出工作階段',
+    revoke_session_description: '這將登出該工作階段並撤銷所有相關的存取權限。確定要繼續嗎？',
+    no_other_sessions: '沒有其他活躍的工作階段。',
+    loading: '載入中...',
+    third_party_apps_title: '第三方應用程式',
+    no_third_party_apps: '沒有已授權的第三方應用程式。',
+    third_party_apps_load_failed: '無法載入第三方應用程式。請再試一次。',
+    granted_at: '授權於 {{date}}',
+    revoke_grant: '移除',
+    revoke_grant_title: '移除第三方應用程式存取權限',
+    revoke_grant_description: '這將撤銷授予該應用程式的所有存取權限。確定要繼續嗎？',
+    revoke_grant_failed: '部分授權撤銷失敗，請重試。',
   },
 };
 

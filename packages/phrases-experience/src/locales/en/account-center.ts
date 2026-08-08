@@ -1,49 +1,16 @@
+import { home, mfaForkKeys } from './account-center-fork-keys.js';
+
 const account_center = {
-  home: {
-    title: 'My Account',
-    description: 'Manage your profile and account security.',
-    personal_info_section: 'Personal information',
-    security_section: 'Security',
-    not_set: 'Not set',
-    action_edit: 'Edit',
-    action_add: 'Add',
-    action_view: 'View',
-    manage: 'Manage',
-    field_name: 'Display name',
-    field_avatar: 'Avatar',
-    field_username: 'Username',
-    field_email: 'Email address',
-    field_phone: 'Phone number',
-    field_given_name: 'Given name',
-    field_family_name: 'Family name',
-    field_password: 'Password',
-    field_2fa: 'Two-factor authentication',
-    field_authenticator_app: 'Authenticator app',
-    field_passkeys: 'Passkeys',
-    field_backup_codes: 'Backup codes',
-    password_set: 'Set',
-    password_not_set: 'Not set',
-    totp_active: 'Active',
-    passkeys_count: '{{count}} passkey registered',
-    passkeys_count_plural: '{{count}} passkeys registered',
-    no_fields_available:
-      'No user attributes are available for editing, please contact your administrator.',
-    return_to_account: 'Back to account',
-    sign_out: 'Sign out',
-  },
-  profile: {
-    title: 'Edit profile',
-    description: 'Update your display name and avatar.',
-    name_label: 'Display name',
-    avatar_label: 'Avatar URL',
-    given_name_label: 'Given name',
-    family_name_label: 'Family name',
-    saved: 'Profile updated successfully.',
-  },
+  home,
   page: {
     title: 'Account',
     security_title: 'Security',
     security_description: 'Change your account settings here to ensure your account security.',
+    profile_title: 'Personal info',
+    profile_description: 'Change your personal information here.',
+    sidebar_personal_info: 'Personal info',
+    sidebar_security: 'Security',
+    sidebar_sessions: 'Sessions',
     support: 'Support',
   },
   verification: {
@@ -55,6 +22,9 @@ const account_center = {
     error_verify_failed: 'Verification failed. Please enter the code again.',
     verification_required: 'Verification expired. Please verify your identity again.',
     try_another_method: 'Try another method to verify',
+    no_available_methods_title: 'No verification methods available',
+    no_available_methods_description:
+      "You don't have any verification methods set up. Please add a password, email, or phone number to your account first.",
   },
   password_verification: {
     title: 'Verify password',
@@ -95,6 +65,7 @@ const account_center = {
   username: {
     title: 'Set username',
     description: 'Username must contain only letters, numbers, and underscores.',
+    policy_description: '{{requirements}}',
     success: 'Username updated successfully.',
   },
   security: {
@@ -122,6 +93,32 @@ const account_center = {
     backup_codes_count_other: '{{count}} codes remaining',
     view: 'View',
     manage: 'Manage',
+    turn_on_2_step_verification_description:
+      "Add an extra layer of security. You'll be prompted for a second verification step at sign-in.",
+    turn_off_2_step_verification: 'Turn off 2-step verification',
+    turn_off_2_step_verification_description:
+      'Disabling 2-step verification will remove the extra layer of protection from your account at sign-in. Are you sure you want to continue?',
+    disable_2_step_verification: 'Disable',
+    no_verification_method_warning:
+      "You haven't added a second verification method. Add at least one to enable 2-step verification at sign-in.",
+    passkey_sign_in_prompt: 'Prompt to set up a passkey',
+    passkey_sign_in_prompt_description:
+      "When on, you'll be asked to set up a passkey for faster, more secure sign-in.",
+    account_removal: 'Account removal',
+    delete_your_account: 'Delete your account',
+    delete_account: 'Delete account',
+    remove_username_confirmation_title: 'Remove username',
+    remove_username_confirmation_description:
+      'Once removed, you will no longer be able to sign in with this username. Are you sure you want to continue?',
+    remove_email_confirmation_title: 'Remove email address',
+    remove_email_confirmation_description:
+      'Once removed, you will no longer be able to sign in with this email address. Are you sure you want to continue?',
+    remove_phone_confirmation_title: 'Remove phone number',
+    remove_phone_confirmation_description:
+      'Once removed, you will no longer be able to sign in with this phone number. Are you sure you want to continue?',
+    email_removed: 'Email address removed successfully.',
+    phone_removed: 'Phone number removed successfully.',
+    username_removed: 'Username removed successfully.',
   },
   social: {
     linked: '{{connector}} linked successfully.',
@@ -188,13 +185,7 @@ const account_center = {
       'Passkey is not enabled. Please contact your administrator for assistance.',
     passkey_already_registered:
       'This passkey is already registered to your account. Please use a different authenticator.',
-    totp_manage_title: 'Manage authenticator app',
-    totp_manage_description:
-      'Your authenticator app is currently active. Remove it to disable OTP two-factor authentication.',
-    totp_remove: 'Remove authenticator app',
-    totp_removed: 'Authenticator app removed.',
-    totp_remove_confirm_description:
-      'Are you sure you want to remove your authenticator app? You will no longer be able to use it for two-factor authentication.',
+    ...mfaForkKeys,
   },
   update_success: {
     default: {
@@ -267,6 +258,28 @@ const account_center = {
     name_passkey_description:
       'You have successfully verified this device for 2-step authentication. Customize the name to recognize if you have multiple keys.',
     name_input_label: 'Name',
+  },
+  sessions: {
+    page_title: 'Sessions',
+    page_description: 'Manage your active sessions and authorized third-party applications.',
+    title: 'Sessions',
+    current_session: 'Current session',
+    signed_in_at: 'Signed in {{date}}',
+    revoke_session: 'Sign out',
+    revoke_session_title: 'Sign out session',
+    revoke_session_description:
+      'This will sign out the session and revoke all associated access. Are you sure you want to continue?',
+    no_other_sessions: 'No other active sessions.',
+    loading: 'Loading...',
+    third_party_apps_title: 'Third-party apps',
+    no_third_party_apps: 'No authorized third-party applications.',
+    third_party_apps_load_failed: 'Failed to load third-party apps. Please try again.',
+    granted_at: 'Authorized {{date}}',
+    revoke_grant: 'Remove',
+    revoke_grant_title: 'Remove third-party app access',
+    revoke_grant_description:
+      'This will revoke all access granted to this application. Are you sure you want to continue?',
+    revoke_grant_failed: 'Failed to revoke some grants. Please try again.',
   },
 };
 

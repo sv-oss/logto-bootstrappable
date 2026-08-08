@@ -49,10 +49,12 @@ function LanguageDetails() {
   const isDefaultLanguage = signInExperience?.languageInfo.fallbackLanguage === selectedLanguage;
   const fetchApi = useApi({ hideErrorToast: ['entity.not_found'] });
   const fetcher = useSwrFetcher<CustomPhraseResponse>(fetchApi);
+  const sourceTranslation =
+    (isBuiltIn ? resource[selectedLanguage] : undefined)?.translation ?? en.translation;
 
   const translationData = useMemo(
     () =>
-      Object.entries((isBuiltIn ? resource[selectedLanguage] : en).translation)
+      Object.entries(sourceTranslation)
         .filter(
           // eslint-disable-next-line no-restricted-syntax
           ([groupKey]) => !hiddenLocalePhraseGroups.includes(groupKey as LocalePhraseGroupKey)
@@ -73,7 +75,7 @@ function LanguageDetails() {
               fieldKey: `${groupKey}.${phraseKey}`,
             })),
         })),
-    [isBuiltIn, selectedLanguage]
+    [sourceTranslation]
   );
 
   const { data: customPhrase, mutate } = useSWR<CustomPhraseResponse, RequestError>(

@@ -172,12 +172,12 @@
   overflow: hidden;
 
   :global(pre) {
-    padding: _.unit(4) _.unit(5) !important;
-    background: #34353f !important;
+    padding: _.unit(4) _.unit(5);
+    background: #34353f;
     border: 1px solid #3f4250;
-    font-family: 'Roboto Mono', monospace !important;
-    font-size: 14px !important;
-    line-height: 1.5 !important;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 14px;
+    line-height: 1.5;
   }
 
   :global(.token.property) {
@@ -244,6 +244,22 @@
   .mobileSignOut {
     display: flex;
     margin-top: _.unit(1);
+  }
+
+  .header {
+    margin-bottom: _.unit(4);
+  }
+
+  .title {
+    font: var(--font-title-1);
+  }
+
+  .description {
+    margin-top: _.unit(1.5);
+  }
+
+  .content {
+    gap: _.unit(4);
   }
 }
 

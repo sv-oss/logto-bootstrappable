@@ -88,8 +88,45 @@ const security = {
     custom_words: 'Parole personalizzate',
     custom_words_description:
       'Personalizza parole specifiche del contesto, non case-sensitive, una per riga.',
-    custom_words_placeholder: "Nome del tuo servizio, nome dell'azienda, ecc.",
+    custom_words_placeholder: "Nome del tuo servizio, nome dell'azienda, etc.",
+    password_expiration: 'Scadenza della password',
+    password_expiration_description:
+      'Richiedi agli utenti di reimpostare la password dopo un numero stabilito di giorni. Gli utenti che accedono tramite SSO o passkey non sono interessati.',
+    enable_password_expiration: 'Abilita la scadenza della password',
+    enable_password_expiration_description:
+      'Richiedi agli utenti di reimpostare periodicamente la password. Gli utenti esistenti senza una data di modifica della password registrata verranno valutati a partire dalla data di attivazione di questa politica.',
+    enable_password_expiration_tip:
+      'Puoi abilitare la scadenza della password solo dopo aver configurato almeno un metodo di recupero password con un connettore valido nell’esperienza di accesso.',
+    expiration_period: 'Periodo di validità della password (giorni)',
+    expiration_period_description:
+      'Numero di giorni in cui una password rimane valida prima di scadere.',
+    expiration_period_error:
+      'Il periodo di validità della password deve essere compreso tra {{min}} e {{max}} giorni.',
+    password_expiration_recovery_reminder:
+      'Alcuni utenti potrebbero non avere un indirizzo email o un numero di telefono per ricevere un codice di recupero della password e quindi non potranno reimpostare una password scaduta. Richiedi un indirizzo email o un numero di telefono durante la registrazione per assicurarti che ogni utente possa recuperare la propria password.',
   },
+  verification_code_policy: {
+    card_title: 'Codice di verifica',
+    card_description:
+      'Configura la durata di scadenza e il numero massimo di tentativi per i codici di verifica usati nei flussi di accesso, registrazione e reimpostazione della password.',
+    enable: {
+      title: 'Personalizza le impostazioni del codice di verifica',
+      description:
+        'Consenti la personalizzazione della durata di scadenza del codice di verifica e del numero massimo di tentativi.',
+    },
+    expiration_duration: {
+      title: 'Durata di scadenza (secondi)',
+      description: "La durata in secondi per cui un codice di verifica rimane valido dopo l'invio.",
+      error_message: 'La durata di scadenza deve essere compresa tra 60 e 3600 secondi.',
+    },
+    max_retry_attempts: {
+      title: 'Numero massimo di tentativi',
+      description:
+        'Numero massimo di tentativi di verifica non riusciti consentiti prima che il codice venga invalidato.',
+      error_message: 'Il numero massimo di tentativi deve essere compreso tra 1 e 100.',
+    },
+  },
+
   sentinel_policy: {
     card_title: 'Blocco identificatore',
     card_description:

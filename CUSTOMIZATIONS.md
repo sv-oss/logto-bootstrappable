@@ -4,26 +4,34 @@ This document describes all changes made to the upstream [Logto](https://github.
 
 ## Overview
 
-The primary addition is a **self-service management dashboard** built into the Account Center SPA (`packages/account`). This allows end-users to view and edit their own profile, security settings, and MFA options from a single page, gated by the existing `AccountCenterFieldControl` settings configured in the admin console.
+This fork tracks upstream Logto `v1.41.0`. Its primary purpose is environment-driven,
+transactional bootstrap for ephemeral deployments. The remaining product customizations are a
+BDM-oriented Account Center landing page, structured operational logging, custom identity claims,
+runtime defaults, and SMTP-based connectors.
 
-### Upstream catch-up notes
+### v1.41.0 upstream reconciliation
 
-- **v1.38.0 integration:** The account center routing now keeps fork-specific routes (`/profile`, `/authenticator-app/manage`) while also retaining upstream v1.38.0 additions (social account routes/callback flow and authenticator app replace flow). The fork behavior remains: users with existing TOTP are redirected to manage/remove instead of seeing an error screen.
-- **v1.38.0 reconciliation (customization-reconcile):**
-  - `packages/account` profile save now refreshes user info through `PageContext.refreshUserInfo()` to stay compatible with upstream `PageContext` shape while preserving given/family name updates.
-  - `ConsoleLog` JSON output remains aligned with fork contracts: `time` is ISO 8601, HTTP JSON uses `x-host`, and audit JSON message keys are emitted consistently as `[Audit] <key>`.
-  - `auto-custom-data-claims` keeps the `customer_id` auto-generation behavior with lint-compatible typing adjustments only (no runtime behavior change).
-- **security-safe-remediation:**
-  - Applied non-breaking dependency hardening through direct patch/minor updates and root `pnpm.overrides` for vulnerable transitive ranges (`vite`, `nodemailer`, `follow-redirects`, `axios`, `dompurify`, `@xmldom/xmldom`, `basic-ftp`), then refreshed the lockfile.
-  - Left advisories with no stable safe upgrade path (`lodash` / `lodash-es` advisories requiring non-existent `4.18.0`) deferred for upstream ecosystem resolution.
-- **repo-validation follow-up (chore/upstream-v1.38.0-catchup):**
-  - `packages/phrases-experience/src/index.ts` now mirrors upstream `@logto/phrases` resource typing by requiring full `LocalePhrase` only for the default locale (`en`) and allowing `DeepPartial<LocalePhrase>` for non-default locales. This resolves stricter TypeScript assignability regressions introduced during the upstream/security catch-up while preserving runtime fallback behavior.
-  - `packages/core/package.json` now ignores generated `build/**` and local Jest JS config files during ESLint runs so `pnpm ci:lint` remains stable after `pnpm ci:build` in this fork’s validation flow.
-  - `packages/core/package.json` now runs `build:test` before `test:only` in `test:ci`, aligning CI behavior with the existing `test` script so Jest can discover tests under `build/` after upstream catch-up.
-  - `packages/core/src/oidc/scope.test.ts` now expects the fork’s `customer_id` profile claim in accepted OIDC claims, keeping tests aligned with the auto custom data claim behavior retained in this fork.
-  - `packages/connectors/connector-smtp-sms/package.json` now uses `vitest run src` for `test` so recursive CI test runs exit deterministically instead of entering watch mode.
-  - Validation snapshot: `pnpm ci:build`, `pnpm ci:lint`, `pnpm --filter @logto/core test:ci`, `pnpm --filter @logto/shared test -- src/node/env/ConsoleLog.test.ts src/node/env/ConsoleLog.audit.test.ts --reporter=verbose`, and `pnpm --filter ./packages/connectors/connector-smtp-sms test` pass on this branch; `pnpm audit --prod` now reports only deferred `lodash` advisories in `packages/cli > inquirer`.
-- **upstream follow-up reminder:** If/when upstream Logto ships its planned account-center profile/dashboard UX (console-profile parity), prefer adopting upstream implementation in the next rebase/update and reconcile this fork’s Home/PageHeader customizations against that code instead of continuing to diverge.
+- **Adopted from upstream:** multi-page Account Center layout, custom profile fields, avatar upload,
+  sessions and grants, social linking, account deletion, independent passkey controls, verified
+  actions, SSR theme initialization, and current Account API shapes.
+- **Retired from the fork:** the old simple profile form, `updateProfileFields()`,
+  `profileSuccessRoute`, fork profile phrases, and development-only social route guards.
+- **Retained from the fork:** the dashboard landing page and read-only custom-data panel, rich user
+  menu and appearance selector, explicit sign-out action, TOTP manage redirect, and "Back to
+  account" success action.
+- **Bootstrap adaptation:** Account Center bootstrap now enables upstream `passkey` and `session`
+  controls alongside profile and MFA controls.
+- **Signing keys:** initial RSA/EC selection remains available through
+  `LOGTO_OIDC_SIGNING_KEY_TYPE`, while persisted keys use upstream's rotation-aware key status
+  model and grace-period support.
+- **Sign-in appearance:** the fork enables dark mode for the default sign-in experience.
+- **Database upgrades:** deployments run `db seed --swe`, deploy alterations for `1.41.0`, then
+  start the server. This supports fresh ephemeral databases and upgrades from the `v0.4.0` fork
+  release, whose schema package version is `1.38.0`.
+- **SMTP and dependency security:** bootstrap supports upstream-style source-authorized SMTP relays
+  without credentials. Nodemailer, tunnel proxy, and ZIP dependencies are pinned to patched
+  releases; the production dependency audit reports no known vulnerabilities.
+
 
 ---
 
@@ -31,43 +39,20 @@ The primary addition is a **self-service management dashboard** built into the A
 
 ### `packages/account`
 
-#### New pages
+#### Remaining fork additions
 
 | Path | Description |
 |------|-------------|
-| `src/pages/Home/` | Management dashboard — the root route (`/`). Shows personal info (name, given name, family name, avatar, username, email, phone) and security fields (password, TOTP, passkeys, backup codes) as read-only rows with contextual action buttons. Respects `AccountCenterControlValue` (Off / ReadOnly / Edit) for each field. Includes an empty state when all fields are `Off`. |
-| `src/pages/TotpManage/` | TOTP removal flow at `/authenticator-app/manage`. Requires a fresh verification, shows the current authenticator app status, and allows the user to remove it via a confirmation modal. |
-
-#### Modified pages
-
-| Path | Change |
-|------|--------|
-| `src/pages/Profile/index.tsx` | Extended to handle `profile.givenName` and `profile.familyName` in addition to the existing `name` and `avatar` fields. Submits two API calls when both are active: `PATCH /api/my-account` (name/avatar) and `PATCH /api/my-account/profile` (givenName/familyName). Visibility is controlled by `fields.profile` (`AccountCenterControlValue`). |
-| `src/pages/TotpBinding/index.tsx` | Now redirects to `/authenticator-app/manage` via `useEffect` when TOTP is already configured, instead of showing an error state. |
-| `src/pages/UpdateSuccess/index.tsx` | Conditionally shows a "Back to account" button (using React Router `navigate('/')`) when no external `redirectUrl` is present in session storage. External redirect flows (post-signin / onboarding) are unchanged. |
-| `src/pages/Home/index.tsx` | Added a **Sign out** button at the bottom of the dashboard using `useLogto().signOut()`. Redirects to the account center root (`accountCenterBasePath`) after sign-out. |
-| `src/pages/Home/*`, `src/components/PageHeader/*`, `src/App.tsx`, `src/App.module.scss`, `src/Providers/PageContextProvider/*`, `packages/core/src/routes/account/utils/get-scoped-profile.ts`, `packages/cli/src/commands/database/seed/bootstrap-sign-in.ts` | Refined the dashboard to mirror admin `/console/profile` much more closely: full-page account settings layout on `/`, grouped settings cards with left-side section labels and right-side tables, and a top-right user avatar dropdown (docs/help/version links removed from the header area for this fork). Added responsive width/grid tuning so desktop uses available space and cards collapse to a single-column layout on narrower viewports, aligned table/card background tones, added a console-like nested appearance submenu (sync/light/dark) in the user dropdown, and surfaced the signed-in user’s `customData` JSON when present. The custom data panel now uses syntax-highlighted JSON presentation inspired by the console code editor styling, and the appearance submenu was adjusted to stay open while navigating options (closing only on outside click or selection) to avoid hover-boundary flicker. The account-center OIDC client now requests `UserScope.CustomData`, while account profile filtering remains governed by Account Centre field controls. Bootstrap now enables account-center defaults with `avatar` and `customData` set to `ReadOnly` for the default tenant so those values are available in the UX without forcing backend bypass behavior. Existing field gating/navigation behavior is preserved. |
-
-#### New files (within existing pages)
-
-| Path | Description |
-|------|-------------|
-| `src/pages/Home/FieldRow.tsx` | Shared `FieldRow` display component and `editAction` helper used by `PersonalInfoSection` and `SecuritySection`. |
-| `src/pages/Home/PersonalInfoSection.tsx` | Personal info section of the dashboard. Profile-route fields (name, given name, family name, avatar) render as a group with a **single** "Edit" button in the section header. Contact fields (username, email, phone) each have their own action button. Also exports `checkHasPersonalInfoFields`. |
-
-#### Other modified files
-
-| Path | Change |
-|------|--------|
-| `src/apis/account.ts` | Added `updateProfileFields(profile: UserProfile)` calling `PATCH /api/my-account/profile`. |
-| `src/constants/routes.ts` | Added `authenticatorAppManageRoute = '/authenticator-app/manage'`. |
-| `src/App.tsx` | Registered the `TotpManage` component at `authenticatorAppManageRoute`. |
+| `src/pages/Home/` | BDM landing dashboard at `/`, including field-control-aware summaries and read-only syntax-highlighted `customData`. Upstream pages remain authoritative for editing profile, security, passkeys, social accounts, and sessions. |
+| `src/pages/TotpManage/` | TOTP removal flow at `/authenticator-app/manage`; existing TOTP binding attempts redirect here. |
+| `src/components/PageHeader/` | User avatar menu, appearance selection, and sign-out action layered onto the upstream layout. |
+| `src/pages/UpdateSuccess/` | Shows "Back to account" when no external or stored return target exists. |
 
 #### Dashboard design decisions
 
 - **Field visibility**: Each field row is gated by its corresponding `AccountCenterFieldControl` value. `Off` → hidden; `ReadOnly` → shown without action button; `Edit` → shown with "Edit"/"Add" button.
 - **Profile card**: The top card prioritises `profile.givenName + profile.familyName` as the display name, falling back to `name`, then `username`. The initials avatar is derived from the same value.
-- **Single edit button for profile fields**: Name, given name, family name, and avatar all navigate to the same `/profile` page, so they share one "Edit" button in the section header rather than having per-row buttons.
+- **Editing is upstream-owned**: Dashboard actions route into upstream profile, security, passkey, and session pages.
 - **MFA status**: TOTP active/inactive state and passkey count are fetched on mount via `GET /api/my-account/mfa-verifications` (no verification record required).
 - **Back to account CTA**: MFA success/failure pages detect whether the user arrived from the dashboard (no `redirectUrl` in session storage) and show a "Back to account" button instead of leaving the user stranded.
 
@@ -104,6 +89,14 @@ Example output:
 ```
 
 Text output remains the default (no change to existing behaviour when `LOG_FORMAT` is unset).
+
+#### Aurora database connection inputs
+
+The fork can build the database URL from individual secret fields. Set `DB_HOST`, `DB_USERNAME`,
+`DB_PASSWORD`, and `DB_NAME`. `DB_PORT` is optional and defaults to `5432`.
+
+`DB_SSL_MODE` accepts `disable`, `require`, or `no-verify`. `verify-full` is not supported by
+the Silverhand Slonik connection configuration.
 
 ---
 
@@ -268,11 +261,15 @@ Added support for the `LOGTO_OIDC_SIGNING_KEY_TYPE` environment variable. When n
 
 Commitlint is configured to support both this fork’s existing SV-style commit scopes and upstream Logto scopes, so upstream commits can be merged/cherry-picked without commit-message rewrites:
 
-- `scope-case`: allows `pascal-case`, `lower-case`, and `kebab-case`.
-- `scope-enum`: includes both upstream lowercase/kebab scopes (for example `core`, `deps-dev`, `app-insights`) and fork PascalCase variants (for example `Core`, `DepsDev`, `AppInsights`).
-- `header-max-length`: 100 locally, with CI override to 110 (matching upstream tolerance for appended PR numbers).
+- `scope-case`: allows upstream `lower-case` and `kebab-case`, plus `pascal-case` and
+  `upper-case` for retained fork scopes.
+- `scope-enum`: retains all upstream lowercase/kebab scopes plus the three PascalCase scopes used by
+  historical fork commits: `AC`, `Core`, and `UI`.
+- `header-max-length` and `footer-max-line-length`: use upstream defaults locally, with a
+  110-character CI allowance for imported upstream commits.
 - `body-max-line-length`: 110 (aligned with upstream).
-- `subject-case`: disabled to allow upstream/PR-generated subjects (including acronym and title-style wording).
+- `subject-case` and `subject-full-stop`: disabled for historical upstream commits that use
+  sentence-case subjects ending in a period.
 - `type-enum`: upstream conventional types plus fork-specific `api` and `release`.
 
 ---
@@ -287,6 +284,25 @@ PR builds run on both `linux/amd64` and `linux/arm64` natively (same runner matr
 | `sha-<short_sha>` | `sha-a1b2c3d` — specific commit |
 
 No `release` environment gate or release-please dependency — just build and push.
+
+### CI compatibility for upstream synchronization
+
+- GitHub Actions references use current stable major versions. The fork keeps
+  `silverhand-io/actions-node-pnpm-run-steps@v5`, which is its latest tag despite v4 being the
+  latest published GitHub release, and the current Logto integration action at v4.1.0.
+- The alteration compatibility workflow checks out the base revision in a `logto/` directory so
+  the upstream package script creates its expected artifact without a fork-specific script. It
+  runs only for fork-owned `next-*` alterations: imported versioned upstream alterations are
+  covered by upstream CI and the fork-release migration check below.
+- The alteration compatibility workflow includes upstream's `rerun.yml` dispatcher so transient
+  Puppeteer integration-test failures retry up to the workflow's configured limit.
+- Integration tests wait for document readiness rather than network idleness after navigation, and
+  use stable `data-testid` selectors for Console branding and preview controls.
+- The main alteration workflow validates both forward and reverse schema changes against the
+  `v0.4.0` fork release. It deliberately does not support or test migrations from an official
+  Logto database into the fork, because that is not a deployment path for this project.
+- Commitlint detects GitHub Actions explicitly so imported upstream commits use the CI
+  110-character header allowance.
 
 ### `.github/workflows/release.yml`
 
@@ -354,7 +370,10 @@ No database schema migration is required. Values live in the existing `custom_da
 
 ## Upstream Compatibility Notes
 
-- No database schema changes were made (all features use existing Logto API endpoints and `AccountCenterFieldControl` fields, plus the existing `custom_data` column for auto-generated claims).
-- The `fields.profile` control value (`AccountCenterControlValue`) was already present in upstream Logto but unused in the account center. We now use it to gate `givenName`/`familyName` display and editing.
-- `PATCH /api/my-account/profile` is an existing upstream endpoint; no backend changes were required.
-- All ESLint rules (complexity, max-lines, import order, etc.) are satisfied — no rule suppressions were added.
+- Fork features use upstream schemas and APIs wherever possible; `customer_id` continues to use the
+  existing `users.custom_data` JSONB column.
+- Upstream v1.41 schema alterations are retained unchanged and must be deployed for persistent
+  databases.
+- Account Center editing behavior is upstream-owned. Fork UI is limited to navigation, summary,
+  custom-data visibility, appearance, sign-out, and TOTP management.
+- Non-English fork phrase additions rely on the standard English fallback unless translated.

@@ -21,6 +21,8 @@ const security = {
     enable_captcha: 'Enable CAPTCHA',
     enable_captcha_description:
       'Enable CAPTCHA verification for sign-up, sign-in, and password recovery flows.',
+    custom_ui_captcha_notice:
+      'You are using Bring your UI. Additional configuration is required to enable CAPTCHA in your custom UI. <a>View setup guide</a>.',
   },
   create_captcha: {
     setup_captcha: 'Setup CAPTCHA',
@@ -86,7 +88,43 @@ const security = {
     custom_words_description:
       'Personalize context-specific words, case-insensitive, and one per line.',
     custom_words_placeholder: 'Your service name, company name, etc.',
+    password_expiration: 'Password expiration',
+    password_expiration_description:
+      'Require users to reset their password after a set number of days. Users signing in via SSO or passkey are not affected.',
+    enable_password_expiration: 'Enable password expiration',
+    enable_password_expiration_description:
+      'Require users to periodically reset their password. Existing users without a recorded password change date will be evaluated from the date this policy is enabled.',
+    enable_password_expiration_tip:
+      'Password expiration can only be enabled after you configure at least one forgot password method with a valid connector in sign-in experience.',
+    expiration_period: 'Password valid period (days)',
+    expiration_period_description: 'Number of days a password remains valid before it expires.',
+    expiration_period_error: 'Password valid period must be between {{min}} and {{max}} days.',
+    password_expiration_recovery_reminder:
+      "Some users may not have an email address or phone number to receive a password recovery code, so they won't be able to reset an expired password. Require an email or phone number at sign-up to make sure every user can recover their password.",
   },
+  verification_code_policy: {
+    card_title: 'Verification code',
+    card_description:
+      'Configure the expiration duration and maximum retry attempts for verification codes used in sign-in, sign-up, and password reset flows.',
+    enable: {
+      title: 'Customize verification code settings',
+      description:
+        'Allow customization of the verification code expiration duration and maximum retry attempts.',
+    },
+    expiration_duration: {
+      title: 'Expiration duration (seconds)',
+      description:
+        'The duration in seconds that a verification code remains valid after being sent.',
+      error_message: 'Expiration duration must be between 60 and 3600 seconds.',
+    },
+    max_retry_attempts: {
+      title: 'Maximum retry attempts',
+      description:
+        'Maximum number of failed verification attempts allowed before the code is invalidated.',
+      error_message: 'Maximum retry attempts must be between 1 and 100.',
+    },
+  },
+
   sentinel_policy: {
     card_title: 'Identifier lockout',
     card_description:

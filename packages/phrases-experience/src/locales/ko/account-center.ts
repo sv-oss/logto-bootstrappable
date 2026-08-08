@@ -1,40 +1,13 @@
 const account_center = {
-  home: {
-    title: '페이지를 찾을 수 없음',
-    description: '이 페이지는 사용할 수 없습니다.',
-    personal_info_section: 'Personal information',
-    security_section: 'Security',
-    not_set: 'Not set',
-    action_edit: 'Edit',
-    action_add: 'Add',
-    action_view: 'View',
-    manage: 'Manage',
-    field_name: 'Display name',
-    field_avatar: 'Avatar',
-    field_username: 'Username',
-    field_email: 'Email address',
-    field_phone: 'Phone number',
-    field_given_name: 'Given name',
-    field_family_name: 'Family name',
-    field_password: 'Password',
-    field_2fa: 'Two-factor authentication',
-    field_authenticator_app: 'Authenticator app',
-    field_passkeys: 'Passkeys',
-    field_backup_codes: 'Backup codes',
-    password_set: 'Set',
-    password_not_set: 'Not set',
-    totp_active: 'Active',
-    passkeys_count: '{{count}} passkey registered',
-    passkeys_count_plural: '{{count}} passkeys registered',
-    return_to_account: 'Back to account',
-    sign_out: 'Sign out',
-    no_fields_available:
-      'No user attributes are available for editing, please contact your administrator.',
-  },
   page: {
     title: '계정',
     security_title: '보안',
     security_description: '계정 보안을 위해 여기에서 계정 설정을 변경하세요.',
+    profile_title: '개인 정보',
+    profile_description: '여기에서 개인 정보를 변경하세요.',
+    sidebar_personal_info: '개인 정보',
+    sidebar_security: '보안',
+    sidebar_sessions: '세션',
     support: '지원',
   },
   verification: {
@@ -45,6 +18,9 @@ const account_center = {
     error_verify_failed: '인증에 실패했습니다. 코드를 다시 입력해주세요.',
     verification_required: '인증이 만료되었습니다. 다시 신원을 확인해주세요.',
     try_another_method: '다른 방법으로 인증하기',
+    no_available_methods_title: '사용 가능한 인증 방법이 없습니다',
+    no_available_methods_description:
+      '설정된 인증 방법이 없습니다. 먼저 계정에 비밀번호, 이메일 또는 전화번호를 추가해 주세요.',
   },
   password_verification: {
     title: '비밀번호 확인',
@@ -84,6 +60,7 @@ const account_center = {
   username: {
     title: '사용자 이름 설정',
     description: '사용자 이름은 문자, 숫자, 밑줄(_)만 사용할 수 있습니다.',
+    policy_description: '{{requirements}}',
     success: '사용자 이름이 성공적으로 업데이트되었습니다.',
   },
   security: {
@@ -111,6 +88,32 @@ const account_center = {
     backup_codes_count_other: '{{count}}개의 코드',
     view: '보기',
     manage: '관리',
+    turn_on_2_step_verification_description:
+      '추가 보안 계층을 추가합니다. 로그인 시 두 번째 인증 단계가 요청됩니다.',
+    turn_off_2_step_verification: '2단계 인증 끄기',
+    turn_off_2_step_verification_description:
+      '2단계 인증을 비활성화하면 로그인 시 추가 보호 계층이 제거됩니다. 계속하시겠습니까?',
+    disable_2_step_verification: '비활성화',
+    no_verification_method_warning:
+      '두 번째 인증 방법을 추가하지 않았습니다. 로그인 시 2단계 인증을 활성화하려면 최소 하나를 추가하세요.',
+    passkey_sign_in_prompt: '패스키 설정 안내 표시',
+    passkey_sign_in_prompt_description:
+      '켜면 더 빠르고 안전한 로그인을 위해 패스키를 설정하라는 안내를 받게 됩니다.',
+    account_removal: '계정 삭제',
+    delete_your_account: '내 계정 삭제',
+    delete_account: '계정 삭제',
+    remove_username_confirmation_title: '사용자 이름 제거',
+    remove_username_confirmation_description:
+      '제거하면 이 사용자 이름으로 더 이상 로그인할 수 없습니다. 계속하시겠습니까?',
+    remove_email_confirmation_title: '이메일 주소 제거',
+    remove_email_confirmation_description:
+      '제거하면 이 이메일 주소로 더 이상 로그인할 수 없습니다. 계속하시겠습니까?',
+    remove_phone_confirmation_title: '전화번호 제거',
+    remove_phone_confirmation_description:
+      '제거하면 이 전화번호로 더 이상 로그인할 수 없습니다. 계속하시겠습니까?',
+    email_removed: '이메일 주소가 성공적으로 제거되었습니다.',
+    phone_removed: '전화번호가 성공적으로 제거되었습니다.',
+    username_removed: '사용자 이름이 성공적으로 제거되었습니다.',
   },
   social: {
     linked: '{{connector}}이(가) 성공적으로 연결되었습니다.',
@@ -167,13 +170,6 @@ const account_center = {
     backup_code_not_enabled: '백업 코드가 활성화되지 않았습니다. 관리자에게 도움을 요청하세요.',
     backup_code_requires_other_mfa: '백업 코드를 사용하려면 다른 MFA 방법을 먼저 설정해야 합니다.',
     passkey_not_enabled: '패스키가 활성화되지 않았습니다. 관리자에게 도움을 요청하세요.',
-    totp_manage_title: 'Manage authenticator app',
-    totp_manage_description:
-      'Your authenticator app is currently active. Remove it to disable OTP two-factor authentication.',
-    totp_remove: 'Remove authenticator app',
-    totp_removed: 'Authenticator app removed.',
-    totp_remove_confirm_description:
-      'Are you sure you want to remove your authenticator app? You will no longer be able to use it for two-factor authentication.',
     passkey_already_registered:
       '이 패스키는 이미 계정에 등록되어 있습니다. 다른 인증기를 사용해 주세요.',
   },
@@ -248,14 +244,27 @@ const account_center = {
       '2단계 인증을 위해 이 기기가 성공적으로 확인되었습니다. 여러 키가 있는 경우 식별할 수 있도록 이름을 사용자 지정하세요.',
     name_input_label: '이름',
   },
-  profile: {
-    title: 'Edit profile',
-    description: 'Update your display name and avatar.',
-    name_label: 'Display name',
-    avatar_label: 'Avatar URL',
-    given_name_label: 'Given name',
-    family_name_label: 'Family name',
-    saved: 'Profile updated successfully.',
+  sessions: {
+    page_title: '세션',
+    page_description: '활성 세션과 승인된 서드파티 애플리케이션을 관리합니다.',
+    title: '세션',
+    current_session: '현재 세션',
+    signed_in_at: '{{date}}에 로그인',
+    revoke_session: '로그아웃',
+    revoke_session_title: '세션 로그아웃',
+    revoke_session_description:
+      '이 세션에서 로그아웃하고 관련된 모든 액세스를 철회합니다. 계속하시겠습니까?',
+    no_other_sessions: '다른 활성 세션이 없습니다.',
+    loading: '로딩 중...',
+    third_party_apps_title: '서드파티 앱',
+    no_third_party_apps: '승인된 서드파티 애플리케이션이 없습니다.',
+    third_party_apps_load_failed: '서드파티 앱을 불러오지 못했습니다. 다시 시도해 주세요.',
+    granted_at: '{{date}}에 승인',
+    revoke_grant: '제거',
+    revoke_grant_title: '서드파티 앱 액세스 제거',
+    revoke_grant_description:
+      '이 애플리케이션에 부여된 모든 액세스를 철회합니다. 계속하시겠습니까?',
+    revoke_grant_failed: '일부 권한 철회에 실패했습니다. 다시 시도해 주세요.',
   },
 };
 

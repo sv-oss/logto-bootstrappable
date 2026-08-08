@@ -1,11 +1,12 @@
-import { type Nullable } from '@silverhand/essentials';
-import { type Page, type Target } from 'puppeteer';
-
 import { logtoConsoleUrl as logtoConsoleUrlString, logtoUrl } from '#src/constants.js';
-import { goToAdminConsole } from '#src/ui-helpers/index.js';
+import { expectToOpenNewPage, goToAdminConsole } from '#src/ui-helpers/index.js';
 import { expectNavigation, appendPathname } from '#src/utils.js';
 
-import { expectToSelectPreviewLanguage, waitForFormCard } from './helpers.js';
+import {
+  ensureDarkModeEnabled,
+  expectToSelectPreviewLanguage,
+  waitForFormCard,
+} from './helpers.js';
 
 await page.setViewport({ width: 1920, height: 1080 });
 
@@ -51,32 +52,15 @@ describe('sign-in experience: sign-in preview', () => {
   });
 
   it('switch between theme modes', async () => {
-    // Enable dark mode
-    await expect(page).toClick(
-      'form div[class$=field] label[class$=switch]:has(input[name="color.isDarkModeEnabled"])'
-    );
-
-    await page.evaluate(() => {
-      return document.querySelector<HTMLInputElement>(
-        'form div[class$=field] input[name="color.isDarkModeEnabled"]'
-      )?.checked;
-    });
+    await ensureDarkModeEnabled(page);
 
     // Switch to dark mode
-    await expect(page).toClick(
-      'div[class$=preview] div[class$=header] div[class$=selects] button:first-of-type'
-    );
-    await expect(page).toMatchElement(
-      'div[class$=preview] div[class$=deviceWrapper] div[class*=device][class*=dark]'
-    );
+    await expect(page).toClick('[data-testid=toggle-preview-theme]');
+    await expect(page).toMatchElement('[data-testid=sign-in-experience-preview-device-dark]');
 
     // Switch to light mode
-    await expect(page).toClick(
-      'div[class$=preview] div[class$=header] div[class$=selects] button:first-of-type'
-    );
-    await expect(page).toMatchElement(
-      'div[class$=preview] div[class$=deviceWrapper] div[class*=device][class*=light]'
-    );
+    await expect(page).toClick('[data-testid=toggle-preview-theme]');
+    await expect(page).toMatchElement('[data-testid=sign-in-experience-preview-device-light]');
 
     // Reset
     await expect(page).toClick(
@@ -93,19 +77,13 @@ describe('sign-in experience: sign-in preview', () => {
   });
 
   it('check the live preview', async () => {
-    const livePreviewPagePromise = new Promise<Nullable<Page>>((resolve) => {
-      browser.once('targetcreated', (target: Target) => {
-        resolve(target.page());
-      });
-    });
+    const livePreviewUrl = appendPathname('/demo-app', new URL(logtoUrl)).href;
+    const livePreviewPagePromise = expectToOpenNewPage(browser, livePreviewUrl);
 
     await expect(page).toClick('div[class$=preview] div[class$=header] button span', {
       text: 'Live preview',
     });
 
-    const livePreviewPage = await livePreviewPagePromise;
-    expect(livePreviewPage?.url()).toBe(appendPathname('/demo-app', new URL(logtoUrl)).href);
-
-    await livePreviewPage?.close();
+    await livePreviewPagePromise;
   });
 });

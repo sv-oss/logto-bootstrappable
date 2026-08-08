@@ -68,3 +68,16 @@ export const expectToSelectPreviewLanguage = async (page: Page, language: string
 
   await selectDropdownMenuItem(page, 'div[role=menuitem]', language);
 };
+
+export const ensureDarkModeEnabled = async (page: Page) => {
+  const toggle =
+    'form div[class$=field] label[class$=switch]:has(input[name="color.isDarkModeEnabled"])';
+  const isDarkModeEnabled = await page.$eval(
+    'form div[class$=field] input[name="color.isDarkModeEnabled"]',
+    (input) => input.checked
+  );
+
+  if (!isDarkModeEnabled) {
+    await expect(page).toClick(toggle);
+  }
+};

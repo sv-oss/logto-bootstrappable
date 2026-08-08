@@ -2,9 +2,19 @@ import { type TFuncKey } from 'i18next';
 
 import { type LogtoSkuQuota } from '@/types/skus';
 
+type SkuQuotaItemPhraseKey = Exclude<
+  Extract<keyof LogtoSkuQuota, string>,
+  'actionsEnabled' | 'hostedEmailDailyLimit' | 'hostedEmailLimit' | 'inlineHooksEnabled'
+>;
+
+export const isSkuQuotaItemPhraseKey = (key: keyof LogtoSkuQuota): key is SkuQuotaItemPhraseKey =>
+  !['actionsEnabled', 'hostedEmailDailyLimit', 'hostedEmailLimit', 'inlineHooksEnabled'].includes(
+    key
+  );
+
 /* === for new pricing model === */
 export const skuQuotaItemPhrasesMap: Record<
-  keyof LogtoSkuQuota,
+  SkuQuotaItemPhraseKey,
   TFuncKey<'translation', 'admin_console.subscription.quota_item'>
 > = {
   mauLimit: 'mau_limit.name',
@@ -37,7 +47,7 @@ export const skuQuotaItemPhrasesMap: Record<
 };
 
 export const skuQuotaItemUnlimitedPhrasesMap: Record<
-  keyof LogtoSkuQuota,
+  SkuQuotaItemPhraseKey,
   TFuncKey<'translation', 'admin_console.subscription.quota_item'>
 > = {
   mauLimit: 'mau_limit.unlimited',
@@ -70,7 +80,7 @@ export const skuQuotaItemUnlimitedPhrasesMap: Record<
 };
 
 export const skuQuotaItemLimitedPhrasesMap: Record<
-  keyof LogtoSkuQuota,
+  SkuQuotaItemPhraseKey,
   TFuncKey<'translation', 'admin_console.subscription.quota_item'>
 > = {
   mauLimit: 'mau_limit.limited',
@@ -103,7 +113,7 @@ export const skuQuotaItemLimitedPhrasesMap: Record<
 };
 
 export const skuQuotaItemNotEligiblePhrasesMap: Record<
-  keyof LogtoSkuQuota,
+  SkuQuotaItemPhraseKey,
   TFuncKey<'translation', 'admin_console.subscription.quota_item'>
 > = {
   mauLimit: 'mau_limit.not_eligible',

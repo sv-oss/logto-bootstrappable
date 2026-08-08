@@ -1,40 +1,13 @@
 const account_center = {
-  home: {
-    title: 'Сторінку не знайдено',
-    description: 'Ця сторінка недоступна.',
-    personal_info_section: 'Personal information',
-    security_section: 'Security',
-    not_set: 'Not set',
-    action_edit: 'Edit',
-    action_add: 'Add',
-    action_view: 'View',
-    manage: 'Manage',
-    field_name: 'Display name',
-    field_avatar: 'Avatar',
-    field_username: 'Username',
-    field_email: 'Email address',
-    field_phone: 'Phone number',
-    field_given_name: 'Given name',
-    field_family_name: 'Family name',
-    field_password: 'Password',
-    field_2fa: 'Two-factor authentication',
-    field_authenticator_app: 'Authenticator app',
-    field_passkeys: 'Passkeys',
-    field_backup_codes: 'Backup codes',
-    password_set: 'Set',
-    password_not_set: 'Not set',
-    totp_active: 'Active',
-    passkeys_count: '{{count}} passkey registered',
-    passkeys_count_plural: '{{count}} passkeys registered',
-    return_to_account: 'Back to account',
-    sign_out: 'Sign out',
-    no_fields_available:
-      'No user attributes are available for editing, please contact your administrator.',
-  },
   page: {
     title: 'Акаунт',
     security_title: 'Безпека',
     security_description: 'Тут можна змінити налаштування акаунта, щоб забезпечити його безпеку.',
+    profile_title: 'Особиста інформація',
+    profile_description: 'Змініть свою особисту інформацію тут.',
+    sidebar_personal_info: 'Особиста інформація',
+    sidebar_security: 'Безпека',
+    sidebar_sessions: 'Сесії',
     support: 'Підтримка',
   },
   verification: {
@@ -46,6 +19,9 @@ const account_center = {
     error_verify_failed: 'Не вдалося підтвердити. Будь ласка, введіть код ще раз.',
     verification_required: 'Термін перевірки минув. Підтвердіть свою особу ще раз.',
     try_another_method: 'Спробуйте інший спосіб підтвердження',
+    no_available_methods_title: 'Немає доступних способів підтвердження',
+    no_available_methods_description:
+      'У вас не налаштовано жодного способу підтвердження. Спочатку додайте до свого облікового запису пароль, email або номер телефону.',
   },
   password_verification: {
     title: 'Підтвердьте пароль',
@@ -87,6 +63,7 @@ const account_center = {
   username: {
     title: "Встановити ім'я користувача",
     description: "Ім'я користувача може містити лише літери, цифри та символи підкреслення.",
+    policy_description: '{{requirements}}',
     success: "Ім'я користувача успішно оновлено.",
   },
   security: {
@@ -114,6 +91,32 @@ const account_center = {
     backup_codes_count_other: '{{count}} кодів залишилось',
     view: 'Перегляд',
     manage: 'Керування',
+    turn_on_2_step_verification_description:
+      'Додайте додатковий рівень безпеки. При вході вам буде запропоновано другий крок верифікації.',
+    turn_off_2_step_verification: 'Вимкнути двоетапну верифікацію',
+    turn_off_2_step_verification_description:
+      'Вимкнення двоетапної верифікації видалить додатковий рівень захисту вашого облікового запису при вході. Ви впевнені, що хочете продовжити?',
+    disable_2_step_verification: 'Вимкнути',
+    no_verification_method_warning:
+      'Ви не додали другий метод верифікації. Додайте принаймні один, щоб увімкнути двоетапну верифікацію при вході.',
+    passkey_sign_in_prompt: 'Пропонувати налаштувати passkey',
+    passkey_sign_in_prompt_description:
+      'Коли ввімкнено, вам буде запропоновано налаштувати passkey для швидшого та безпечнішого входу.',
+    account_removal: 'Видалення акаунта',
+    delete_your_account: 'Видаліть свій акаунт',
+    delete_account: 'Видалити акаунт',
+    remove_username_confirmation_title: "Видалити ім'я користувача",
+    remove_username_confirmation_description:
+      'Після видалення ви більше не зможете входити за допомогою цього імені користувача. Ви впевнені, що хочете продовжити?',
+    remove_email_confirmation_title: 'Видалити адресу електронної пошти',
+    remove_email_confirmation_description:
+      'Після видалення ви більше не зможете входити за допомогою цієї адреси електронної пошти. Ви впевнені, що хочете продовжити?',
+    remove_phone_confirmation_title: 'Видалити номер телефону',
+    remove_phone_confirmation_description:
+      'Після видалення ви більше не зможете входити за допомогою цього номера телефону. Ви впевнені, що хочете продовжити?',
+    email_removed: 'Адресу електронної пошти успішно видалено.',
+    phone_removed: 'Номер телефону успішно видалено.',
+    username_removed: "Ім'я користувача успішно видалено.",
   },
   social: {
     linked: '{{connector}} успішно прив’язано.',
@@ -175,13 +178,6 @@ const account_center = {
     backup_code_requires_other_mfa:
       'Резервні коди вимагають попереднього налаштування іншого методу MFA.',
     passkey_not_enabled: 'Passkey не увімкнено. Зверніться до адміністратора за допомогою.',
-    totp_manage_title: 'Manage authenticator app',
-    totp_manage_description:
-      'Your authenticator app is currently active. Remove it to disable OTP two-factor authentication.',
-    totp_remove: 'Remove authenticator app',
-    totp_removed: 'Authenticator app removed.',
-    totp_remove_confirm_description:
-      'Are you sure you want to remove your authenticator app? You will no longer be able to use it for two-factor authentication.',
     passkey_already_registered:
       'Цей passkey вже зареєстровано у вашому обліковому записі. Будь ласка, використовуйте інший автентифікатор.',
   },
@@ -257,14 +253,27 @@ const account_center = {
       'Ви успішно підтвердили цей пристрій для двоетапної автентифікації. Налаштуйте назву для розпізнавання, якщо у вас кілька ключів.',
     name_input_label: "Ім'я",
   },
-  profile: {
-    title: 'Edit profile',
-    description: 'Update your display name and avatar.',
-    name_label: 'Display name',
-    avatar_label: 'Avatar URL',
-    given_name_label: 'Given name',
-    family_name_label: 'Family name',
-    saved: 'Profile updated successfully.',
+  sessions: {
+    page_title: 'Сесії',
+    page_description: 'Керуйте активними сесіями та авторизованими сторонніми додатками.',
+    title: 'Сесії',
+    current_session: 'Поточна сесія',
+    signed_in_at: 'Вхід виконано {{date}}',
+    revoke_session: 'Вийти',
+    revoke_session_title: 'Завершити сесію',
+    revoke_session_description:
+      "Це завершить сесію та відкличе весь пов'язаний доступ. Ви впевнені, що хочете продовжити?",
+    no_other_sessions: 'Немає інших активних сесій.',
+    loading: 'Завантаження...',
+    third_party_apps_title: 'Сторонні додатки',
+    no_third_party_apps: 'Немає авторизованих сторонніх додатків.',
+    third_party_apps_load_failed: 'Не вдалося завантажити сторонні додатки. Спробуйте ще раз.',
+    granted_at: 'Авторизовано {{date}}',
+    revoke_grant: 'Видалити',
+    revoke_grant_title: 'Видалити доступ стороннього додатку',
+    revoke_grant_description:
+      'Це відкличе весь доступ, наданий цьому додатку. Ви впевнені, що хочете продовжити?',
+    revoke_grant_failed: 'Не вдалося відкликати деякі дозволи. Будь ласка, спробуйте ще раз.',
   },
 };
 

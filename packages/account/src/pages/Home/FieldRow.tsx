@@ -1,4 +1,5 @@
 import { AccountCenterControlValue } from '@logto/schemas';
+import type { TFuncKey } from 'i18next';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 

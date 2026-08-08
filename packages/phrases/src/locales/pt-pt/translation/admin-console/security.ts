@@ -87,8 +87,46 @@ const security = {
     custom_words: 'Palavras personalizadas',
     custom_words_description:
       'Personalize palavras específicas do contexto, não diferenciando maiúsculas de minúsculas e uma por linha.',
-    custom_words_placeholder: 'Nome de seu serviço, nome da empresa, etc.',
+    custom_words_placeholder: 'O seu nome de serviço, nome da empresa, etc.',
+    password_expiration: 'Expiração de palavra-passe',
+    password_expiration_description:
+      'Exigir que os utilizadores redefinam a sua palavra-passe após um número definido de dias. Os utilizadores que iniciam sessão via SSO ou passkey não são afetados.',
+    enable_password_expiration: 'Ativar expiração de palavra-passe',
+    enable_password_expiration_description:
+      'Exigir que os utilizadores redefinam periodicamente a sua palavra-passe. Os utilizadores existentes sem uma data de alteração de palavra-passe registada serão avaliados a partir da data em que esta política foi ativada.',
+    enable_password_expiration_tip:
+      'Só pode ativar a expiração da palavra-passe depois de configurar, na experiência de início de sessão, pelo menos um método de recuperação da palavra-passe com um conector válido.',
+    expiration_period: 'Período de validade da palavra-passe (dias)',
+    expiration_period_description:
+      'Número de dias que uma palavra-passe permanece válida antes de expirar.',
+    expiration_period_error:
+      'O período de validade da palavra-passe deve estar entre {{min}} e {{max}} dias.',
+    password_expiration_recovery_reminder:
+      'Alguns utilizadores podem não ter um endereço de e-mail ou número de telefone para receber um código de recuperação da palavra-passe, pelo que não poderão repor uma palavra-passe expirada. Exija um endereço de e-mail ou número de telefone no registo para garantir que todos os utilizadores possam recuperar a sua palavra-passe.',
   },
+  verification_code_policy: {
+    card_title: 'Código de verificação',
+    card_description:
+      'Configure a duração da expiração e o número máximo de novas tentativas para códigos de verificação usados nos fluxos de início de sessão, registo e reposição da palavra-passe.',
+    enable: {
+      title: 'Personalizar definições do código de verificação',
+      description:
+        'Permitir a personalização da duração da expiração do código de verificação e do número máximo de novas tentativas.',
+    },
+    expiration_duration: {
+      title: 'Duração da expiração (segundos)',
+      description:
+        'A duração em segundos durante a qual um código de verificação permanece válido após ser enviado.',
+      error_message: 'A duração da expiração deve estar entre 60 e 3600 segundos.',
+    },
+    max_retry_attempts: {
+      title: 'Número máximo de novas tentativas',
+      description:
+        'Número máximo de tentativas de verificação falhadas permitidas antes de o código ser invalidado.',
+      error_message: 'O número máximo de novas tentativas deve estar entre 1 e 100.',
+    },
+  },
+
   sentinel_policy: {
     card_title: 'Bloqueio de identificador',
     card_description:

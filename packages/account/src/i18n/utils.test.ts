@@ -1,33 +1,60 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
+import { getPreferredLanguage } from './utils';
 
-import type * as I18nUtilsModule from './utils';
+describe('i18n utils', () => {
+  afterEach(() => {
+    localStorage.clear();
+    jest.restoreAllMocks();
+  });
 
-const { resolveLanguage, resolveUiLocalesLanguage, getPreferredLanguage } = (await import(
-  new URL('utils.ts', import.meta.url).href
-)) as typeof I18nUtilsModule;
+  it('getPreferredLanguage returns raw ui_locales for server-side resolution', () => {
+    expect(
+      getPreferredLanguage({
+        uiLocales: 'vi-VN',
+        languageSettings: {
+          autoDetect: false,
+          fallbackLanguage: 'fr',
+        },
+      })
+    ).toBe('vi-VN');
+  });
 
-void test('resolveLanguage returns the best supported built-in language', () => {
-  assert.equal(resolveLanguage('pl'), 'pl-PL');
-  assert.equal(resolveLanguage('zh-HK'), 'zh-HK');
-  assert.equal(resolveLanguage('xx'), undefined);
-});
+  it('getPreferredLanguage respects ui_locales before language settings', () => {
+    expect(
+      getPreferredLanguage({
+        uiLocales: 'xx pl',
+        languageSettings: {
+          autoDetect: false,
+          fallbackLanguage: 'fr',
+        },
+      })
+    ).toBe('xx pl');
+  });
 
-void test('resolveUiLocalesLanguage returns the first supported locale with fallback support', () => {
-  assert.equal(resolveUiLocalesLanguage('xx pl fr'), 'pl-PL');
-  assert.equal(resolveUiLocalesLanguage('zh-HK zh'), 'zh-HK');
-  assert.equal(resolveUiLocalesLanguage('xx yy'), undefined);
-});
+  it('getPreferredLanguage uses fallback language when auto-detect is disabled', () => {
+    expect(
+      getPreferredLanguage({
+        languageSettings: {
+          autoDetect: false,
+          fallbackLanguage: 'vi-VN',
+        },
+      })
+    ).toBe('vi-VN');
+  });
 
-void test('getPreferredLanguage respects ui_locales fallback before language settings', () => {
-  assert.equal(
-    getPreferredLanguage({
-      uiLocales: 'xx pl',
-      languageSettings: {
-        autoDetect: false,
-        fallbackLanguage: 'fr',
-      },
-    }),
-    'pl-PL'
-  );
+  it('getPreferredLanguage does not pin lng when auto-detect is enabled', () => {
+    jest.spyOn(navigator, 'languages', 'get').mockReturnValue(['fr']);
+    jest.spyOn(navigator, 'language', 'get').mockReturnValue('fr');
+
+    localStorage.setItem('i18nextAccountCenterLng', 'zh-CN');
+    localStorage.setItem('i18nextLogtoUiLng', 'en-US');
+
+    expect(
+      getPreferredLanguage({
+        languageSettings: {
+          autoDetect: true,
+          fallbackLanguage: 'fr',
+        },
+      })
+    ).toBeUndefined();
+  });
 });

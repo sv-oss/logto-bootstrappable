@@ -86,7 +86,43 @@ const security = {
     custom_words_description:
       'Bağlamla ilgili kelimeleri kişiselleştirin, küçük/büyük harf duyarsız ve satır başına bir kelime olacak şekilde.',
     custom_words_placeholder: 'Servis adınız, şirket adınız, vb.',
+    password_expiration: 'Parola sona erme',
+    password_expiration_description:
+      'Kullanıcıların belirli bir gün sayısından sonra parolalarını sıfırlamasını gerektirir. SSO veya geçiş anahtarı (passkey) ile oturum açan kullanıcılar etkilenmez.',
+    enable_password_expiration: 'Parola sona ermeyi etkinleştir',
+    enable_password_expiration_description:
+      'Kullanıcıların parolalarını periyodik olarak sıfırlamasını gerektirir. Kayıtlı bir parola değiştirme tarihi olmayan mevcut kullanıcılar, bu politikanın etkinleştirildiği tarihten itibaren değerlendirilecektir.',
+    enable_password_expiration_tip:
+      'Parola sona ermesini yalnızca oturum açma deneyiminde geçerli bir bağlayıcıya sahip en az bir şifremi unuttum yöntemi yapılandırdıktan sonra etkinleştirebilirsiniz.',
+    expiration_period: 'Parola geçerlilik süresi (gün)',
+    expiration_period_description: 'Bir parolanın süresi dolmadan önce geçerli kaldığı gün sayısı.',
+    expiration_period_error: 'Parola geçerlilik süresi {{min}} ile {{max}} gün arasında olmalıdır.',
+    password_expiration_recovery_reminder:
+      'Bazı kullanıcıların parola kurtarma kodu almak için bir e-posta adresi veya telefon numarası olmayabilir, bu nedenle süresi dolmuş bir parolayı sıfırlayamazlar. Her kullanıcının parolasını kurtarabilmesini sağlamak için kayıt sırasında bir e-posta adresi veya telefon numarası zorunlu kılın.',
   },
+  verification_code_policy: {
+    card_title: 'Doğrulama kodu',
+    card_description:
+      'Oturum açma, kaydolma ve parola sıfırlama akışlarında kullanılan doğrulama kodları için sona erme süresini ve maksimum yeniden deneme sayısını yapılandırın.',
+    enable: {
+      title: 'Doğrulama kodu ayarlarını özelleştir',
+      description:
+        'Doğrulama kodu sona erme süresinin ve maksimum yeniden deneme sayısının özelleştirilmesine izin ver.',
+    },
+    expiration_duration: {
+      title: 'Sona erme süresi (saniye)',
+      description:
+        'Bir doğrulama kodunun gönderildikten sonra geçerli kaldığı saniye cinsinden süre.',
+      error_message: 'Sona erme süresi 60 ile 3600 saniye arasında olmalıdır.',
+    },
+    max_retry_attempts: {
+      title: 'Maksimum yeniden deneme sayısı',
+      description:
+        'Kod geçersiz kılınmadan önce izin verilen maksimum başarısız doğrulama denemesi sayısı.',
+      error_message: 'Maksimum yeniden deneme sayısı 1 ile 100 arasında olmalıdır.',
+    },
+  },
+
   sentinel_policy: {
     card_title: 'Kimlik kilitleme',
     card_description:

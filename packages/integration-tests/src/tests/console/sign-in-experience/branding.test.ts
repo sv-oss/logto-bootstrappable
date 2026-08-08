@@ -1,8 +1,13 @@
 import { logtoConsoleUrl as logtoConsoleUrlString } from '#src/constants.js';
 import { goToAdminConsole } from '#src/ui-helpers/index.js';
-import { expectNavigation, appendPathname, waitFor } from '#src/utils.js';
+import { expectNavigation, appendPathname } from '#src/utils.js';
 
-import { waitForFormCard, expectToSelectColor, expectToSaveSignInExperience } from './helpers.js';
+import {
+  ensureDarkModeEnabled,
+  waitForFormCard,
+  expectToSelectColor,
+  expectToSaveSignInExperience,
+} from './helpers.js';
 
 const defaultPrimaryColor = '#6139F6';
 const testPrimaryColor = '#5B4D8E';
@@ -49,10 +54,7 @@ describe('sign-in experience: branding', () => {
   });
 
   it('update branding config', async () => {
-    // Enabled dark mode
-    await expect(page).toClick(
-      'form div[class$=field] label[class$=switch]:has(input[name="color.isDarkModeEnabled"])'
-    );
+    await ensureDarkModeEnabled(page);
 
     // Update brand color
     await expectToSelectColor(page, {
@@ -61,10 +63,10 @@ describe('sign-in experience: branding', () => {
     });
 
     // Recalculate dark brand color
-    await expect(page).toClick('div[class$=darkModeTip] button span', { text: 'Recalculate' });
-
-    // Wait for the recalculate to finish
-    await waitFor(500);
+    await expect(page).toClick('[data-testid=reset-dark-primary-color]');
+    await page.waitForFunction(
+      () => document.querySelector('[data-testid=reset-dark-primary-color]') === null
+    );
 
     // Fill in the custom CSS
     await expect(page).toFill('div[class$=editor] textarea', 'body { background-color: #5B4D8E; }');
@@ -80,10 +82,10 @@ describe('sign-in experience: branding', () => {
     });
 
     // Recalculate dark brand color
-    await expect(page).toClick('div[class$=darkModeTip] button span', { text: 'Recalculate' });
-
-    // Wait for the recalculate to finish
-    await waitFor(500);
+    await expect(page).toClick('[data-testid=reset-dark-primary-color]');
+    await page.waitForFunction(
+      () => document.querySelector('[data-testid=reset-dark-primary-color]') === null
+    );
 
     // Fill in the custom CSS
     await expect(page).toFill('div[class$=editor] textarea', '');

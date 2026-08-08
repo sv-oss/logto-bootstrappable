@@ -1,6 +1,6 @@
 {
   "name": "@logto/console",
-  "version": "1.35.0",
+  "version": "1.38.0",
   "description": "> TODO: description",
   "author": "Silverhand Inc. <contact@silverhand.io>",
   "homepage": "https://github.com/logto-io/logto#readme",
@@ -21,6 +21,8 @@
     "lint": "eslint --ext .ts --ext .tsx src",
     "lint:report": "pnpm lint --format json --output-file report.json",
     "stylelint": "stylelint \"src/**/*.scss\"",
+    "pretest": "pnpm generate",
+    "pretest:ci": "pnpm generate",
     "test:ci": "jest --coverage --silent",
     "test": "jest"
   },
@@ -28,7 +30,7 @@
     "@fontsource/roboto-mono": "^5.0.0",
     "@inkeep/cxkit-react": "^0.5.66",
     "@jest/types": "^29.5.0",
-    "@logto/cloud": "0.2.5-cbf0233",
+    "@logto/cloud": "0.2.5-66a5752",
     "@logto/connector-kit": "workspace:^",
     "@logto/core-kit": "workspace:^",
     "@logto/language-kit": "workspace:^",
@@ -99,6 +101,7 @@
     "react-animate-height": "^3.0.4",
     "react-color-palette": "^7.2.1",
     "react-confetti": "^6.1.0",
+    "react-day-picker": "^8.10.2",
     "react-dnd": "^16.0.0",
     "react-dnd-html5-backend": "^16.0.0",
     "react-dom": "^18.3.1",

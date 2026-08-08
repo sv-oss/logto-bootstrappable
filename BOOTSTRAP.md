@@ -9,10 +9,12 @@ The bootstrap runs automatically as part of `pnpm cli db seed` (or `npm run cli 
 The typical Docker entrypoint is:
 
 ```bash
-npm run cli db seed -- --swe && npm start
+npm run cli db seed -- --swe && npm run cli db alteration deploy 1.41.0 && npm start
 ```
 
-This means: seed (and bootstrap) only on the first run, then start the server.
+This means: seed (and bootstrap) only on the first run, deploy any pending database alterations,
+then start the server. Running alterations after `--swe` supports both fresh databases (already
+created from the current schema) and persistent databases upgraded from an older Logto release.
 
 ## Environment Variables
 
@@ -110,15 +112,16 @@ Configure the SMTP email connector in the default tenant. Default email template
 |---|---|---|
 | `LOGTO_SMTP_HOST` | Yes | SMTP server hostname (e.g., `smtp.example.com`) |
 | `LOGTO_SMTP_PORT` | Yes | SMTP server port (e.g., `587`, `465`, `25`) |
-| `LOGTO_SMTP_USERNAME` | Yes | SMTP authentication username |
-| `LOGTO_SMTP_PASSWORD` | Yes | SMTP authentication password |
+| `LOGTO_SMTP_USERNAME` | No | SMTP authentication username; must be paired with `LOGTO_SMTP_PASSWORD` |
+| `LOGTO_SMTP_PASSWORD` | No | SMTP authentication password; must be paired with `LOGTO_SMTP_USERNAME` |
 | `LOGTO_SMTP_FROM_EMAIL` | Yes | Sender email address (e.g., `noreply@example.com`) |
 | `LOGTO_SMTP_REPLY_TO` | No | Reply-to email address |
 | `LOGTO_SMTP_SECURE` | No | Use TLS (`true` or `false`, default: `false`) |
 | `LOGTO_SMTP_IGNORE_SSL` | No | Ignore TLS/SSL certificate errors, e.g. for self-signed certs (`true` or `false`, default: `false`) |
 | `LOGTO_SMTP_DEBUG` | No | Enable verbose SMTP debug logging via Nodemailer (logs full SMTP client/server traffic to stdout, `true` or `false`, default: `false`) |
 
-> **Note:** All five required variables must be set to trigger SMTP connector creation.
+> **Note:** Host, port, and from address trigger connector creation. Omit both credential variables
+> for source-authorized SMTP relays; setting only one credential is an error.
 
 Default email templates use a simple HTML format:
 
@@ -134,8 +137,8 @@ Configure the SMTP SMS connector (custom Service Vic connector) in the default t
 |---|---|---|
 | `LOGTO_SMTP_SMS_HOST` | Yes | SMTP server hostname (e.g., `smtp.example.com`) |
 | `LOGTO_SMTP_SMS_PORT` | Yes | SMTP server port (e.g., `587`, `465`, `25`) |
-| `LOGTO_SMTP_SMS_USERNAME` | Yes | SMTP authentication username |
-| `LOGTO_SMTP_SMS_PASSWORD` | Yes | SMTP authentication password |
+| `LOGTO_SMTP_SMS_USERNAME` | No | SMTP authentication username; must be paired with `LOGTO_SMTP_SMS_PASSWORD` |
+| `LOGTO_SMTP_SMS_PASSWORD` | No | SMTP authentication password; must be paired with `LOGTO_SMTP_SMS_USERNAME` |
 | `LOGTO_SMTP_SMS_FROM_EMAIL` | Yes | Sender email address |
 | `LOGTO_SMTP_SMS_TO_EMAIL_TEMPLATE` | Yes | Gateway address template (e.g., `{{phoneNumberOnly}}@txt.att.net`) |
 | `LOGTO_SMTP_SMS_SUBJECT` | No | Optional email subject line (most SMS gateways ignore this) |
@@ -143,7 +146,8 @@ Configure the SMTP SMS connector (custom Service Vic connector) in the default t
 | `LOGTO_SMTP_SMS_IGNORE_SSL` | No | Ignore TLS/SSL certificate errors, e.g. for self-signed certs (`true` or `false`, default: `false`) |
 | `LOGTO_SMTP_SMS_DEBUG` | No | Enable verbose SMTP debug logging via Nodemailer (logs full SMTP client/server traffic to stdout, `true` or `false`, default: `false`) |
 
-> **Note:** All six required variables must be set to trigger SMTP SMS connector creation.
+> **Note:** Host, port, from address, and recipient template trigger connector creation. Omit both
+> credential variables for source-authorized SMTP relays; setting only one credential is an error.
 
 The `LOGTO_SMTP_SMS_TO_EMAIL_TEMPLATE` supports two placeholders:
 
@@ -302,6 +306,8 @@ The Account Centre for the default tenant is **enabled** with the following fiel
 | `avatar` | Users can view their avatar (`ReadOnly`) |
 | `customData` | Users can view their custom data (`ReadOnly`) |
 | `mfa` | Users can configure or remove MFA methods (TOTP, passkeys, backup codes) |
+| `passkey` | Users can register or remove passkeys (WebAuthn) |
+| `session` | Users can view and revoke active sessions |
 | `phone` | Users can update their phone number (**only enabled when `LOGTO_SMTP_SMS_*` is configured**; set to `Off` otherwise) |
 
 This allows end-users to self-manage their credentials and profile via the Account Centre SPA without further configuration.
@@ -318,7 +324,7 @@ services:
       - /bin/sh
       - -c
       - |
-        npm run cli db seed -- --swe && npm start
+        npm run cli db seed -- --swe && npm run cli db alteration deploy 1.41.0 && npm start
     environment:
       # Core Logto configuration
       - DB_URL=postgres://postgres:p0stgr3s@postgres:5432/logto
@@ -396,12 +402,16 @@ volumes:
 
 1. **Idempotent via `--swe`:** The bootstrap runs inside the `db seed` transaction. With `--swe`, seeding (and bootstrap) is skipped if the database already exists. This means bootstrap data is created once on first init.
 
-2. **Account Centre always configured:** Whenever any bootstrap variable is set, the Account Centre for the default tenant is enabled with password/email/name/profile/MFA editing, `avatar` + `customData` set to `ReadOnly`, and phone editing enabled only when SMTP SMS bootstrap config is present.
+2. **Alterations on every start:** Run `npm run cli db alteration deploy 1.41.0` after seeding and before
+   starting Logto. It is a no-op when the database is current and applies required schema changes
+   when an existing environment is upgraded.
 
-3. **Transactional:** All bootstrap operations run within the same database transaction as the seed. If any step fails, the entire seed (including bootstrap) is rolled back.
+3. **Account Centre always configured:** Whenever any bootstrap variable is set, the Account Centre for the default tenant is enabled with password/email/name/profile/MFA/passkey/session editing, `avatar` + `customData` set to `ReadOnly`, and phone editing enabled only when SMTP SMS bootstrap config is present.
 
-4. **Insert vs update:** Admin users, OIDC applications, SMTP connectors, and seed users are inserted as new records — running bootstrap twice (e.g. without `--swe`) will fail with a duplicate-key error. The Account Centre settings and MFA factors use `UPDATE` and will silently overwrite any existing values on repeat runs.
+4. **Transactional:** All bootstrap operations run within the same database transaction as the seed. If any step fails, the entire seed (including bootstrap) is rolled back.
 
-5. **Password security:** Passwords in environment variables and seed files are hashed with Argon2i (OWASP-recommended settings) before being stored. Plaintext passwords are never persisted.
+5. **Insert vs update:** Admin users, OIDC applications, SMTP connectors, and seed users are inserted as new records — running bootstrap twice (e.g. without `--swe`) will fail with a duplicate-key error. The Account Centre settings and MFA factors use `UPDATE` and will silently overwrite any existing values on repeat runs.
 
-6. **Client ID constraint:** The Logto database uses `varchar(21)` for application IDs. Ensure your `LOGTO_APP_CLIENT_ID` is 21 characters or fewer.
+6. **Password security:** Passwords in environment variables and seed files are hashed with Argon2i (OWASP-recommended settings) before being stored. Plaintext passwords are never persisted.
+
+7. **Client ID constraint:** The Logto database uses `varchar(21)` for application IDs. Ensure your `LOGTO_APP_CLIENT_ID` is 21 characters or fewer.

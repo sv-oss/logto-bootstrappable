@@ -4,6 +4,12 @@ import type { ZodType } from 'zod';
 import { z } from 'zod';
 
 import {
+  type MessageRateLimitOverride,
+  messageRateLimitOverrideGuard,
+} from '../../consts/message-rate-limit.js';
+
+import { type InlineHook, LogtoInlineHookKey, inlineHookGuard } from './inline-hook.js';
+import {
   type AccessTokenJwtCustomizer,
   type ClientCredentialsJwtCustomizer,
   accessTokenJwtCustomizerGuard,
@@ -12,6 +18,7 @@ import {
 
 export * from './oidc-provider.js';
 export * from './jwt-customizer.js';
+export * from './inline-hook.js';
 
 /**
  * Logto OIDC signing key types, used mainly in REST API routes.
@@ -45,6 +52,17 @@ export const oidcConfigKeyGuard = z.object({
 });
 export type OidcConfigKey = z.infer<typeof oidcConfigKeyGuard>;
 
+export enum OidcSigningKeyStatus {
+  Next = 'Next',
+  Current = 'Current',
+  Previous = 'Previous',
+}
+
+export const oidcPrivateKeyGuard = oidcConfigKeyGuard.extend({
+  status: z.nativeEnum(OidcSigningKeyStatus).optional(),
+});
+export type OidcPrivateKey = z.infer<typeof oidcPrivateKeyGuard>;
+
 export const oidcSessionConfigGuard = z.object({
   ttl: z.number().int().min(1).max(31_536_000).optional(),
 });
@@ -52,7 +70,7 @@ export const oidcSessionConfigGuard = z.object({
 export type OidcSessionConfig = z.infer<typeof oidcSessionConfigGuard>;
 
 export type LogtoOidcConfigType = {
-  [LogtoOidcConfigKey.PrivateKeys]: OidcConfigKey[];
+  [LogtoOidcConfigKey.PrivateKeys]: OidcPrivateKey[];
   [LogtoOidcConfigKey.CookieKeys]: OidcConfigKey[];
   [LogtoOidcConfigKey.Session]: OidcSessionConfig;
 };
@@ -64,7 +82,7 @@ export const logtoOidcConfigGuard: Readonly<{
     Optional<Nullable<LogtoOidcConfigType[key]>>
   >;
 }> = Object.freeze({
-  [LogtoOidcConfigKey.PrivateKeys]: oidcConfigKeyGuard.array(),
+  [LogtoOidcConfigKey.PrivateKeys]: oidcPrivateKeyGuard.array(),
   [LogtoOidcConfigKey.CookieKeys]: oidcConfigKeyGuard.array(),
   // Session config is optional, if not set, it will fallback to default value in core.
   [LogtoOidcConfigKey.Session]: oidcSessionConfigGuard.nullish().transform((data) => data ?? {}),
@@ -85,6 +103,18 @@ export const jwtCustomizerConfigGuard: Readonly<{
 }> = Object.freeze({
   [LogtoJwtTokenKey.AccessToken]: accessTokenJwtCustomizerGuard,
   [LogtoJwtTokenKey.ClientCredentials]: clientCredentialsJwtCustomizerGuard,
+});
+
+export type InlineHookType = {
+  [LogtoInlineHookKey.PostFirstFactorVerification]: InlineHook;
+  [LogtoInlineHookKey.PostSignIn]: InlineHook;
+};
+
+export const inlineHookConfigGuard: Readonly<{
+  [key in LogtoInlineHookKey]: ZodType<InlineHookType[key]>;
+}> = Object.freeze({
+  [LogtoInlineHookKey.PostFirstFactorVerification]: inlineHookGuard,
+  [LogtoInlineHookKey.PostSignIn]: inlineHookGuard,
 });
 
 export const jwtCustomizerConfigsGuard = z.discriminatedUnion('key', [
@@ -145,6 +175,12 @@ export const idTokenConfigGuard = z.object({
 });
 export type IdTokenConfig = z.infer<typeof idTokenConfigGuard>;
 
+export const signingKeyRotationStateGuard = z.object({
+  tenantCacheExpiresAt: z.number().optional(),
+  signingKeyRotationAt: z.number().optional(),
+});
+export type SigningKeyRotationState = z.infer<typeof signingKeyRotationStateGuard>;
+
 export enum LogtoTenantConfigKey {
   AdminConsole = 'adminConsole',
   CloudConnection = 'cloudConnection',
@@ -152,12 +188,18 @@ export enum LogtoTenantConfigKey {
   SessionNotFoundRedirectUrl = 'sessionNotFoundRedirectUrl',
   /** ID token configuration for extended claims. */
   IdToken = 'idToken',
+  /** Tenant-scoped rotation state for staged private signing key activation. */
+  SigningKeyRotationState = 'signingKeyRotationState',
+  /** Internal, ops-only override of the system message send-rate-limit policy. Not exposed by any API. */
+  MessageRateLimitOverride = 'messageRateLimitOverride',
 }
 export type LogtoTenantConfigType = {
   [LogtoTenantConfigKey.AdminConsole]: AdminConsoleData;
   [LogtoTenantConfigKey.CloudConnection]: CloudConnectionData;
   [LogtoTenantConfigKey.SessionNotFoundRedirectUrl]: { url: string };
   [LogtoTenantConfigKey.IdToken]: IdTokenConfig;
+  [LogtoTenantConfigKey.SigningKeyRotationState]: SigningKeyRotationState;
+  [LogtoTenantConfigKey.MessageRateLimitOverride]: MessageRateLimitOverride;
 };
 
 export const logtoTenantConfigGuard: Readonly<{
@@ -167,29 +209,46 @@ export const logtoTenantConfigGuard: Readonly<{
   [LogtoTenantConfigKey.CloudConnection]: cloudConnectionDataGuard,
   [LogtoTenantConfigKey.SessionNotFoundRedirectUrl]: z.object({ url: z.string() }),
   [LogtoTenantConfigKey.IdToken]: idTokenConfigGuard,
+  [LogtoTenantConfigKey.SigningKeyRotationState]: signingKeyRotationStateGuard,
+  [LogtoTenantConfigKey.MessageRateLimitOverride]: messageRateLimitOverrideGuard,
 });
 
 /* --- Summary --- */
-export type LogtoConfigKey = LogtoOidcConfigKey | LogtoJwtTokenKey | LogtoTenantConfigKey;
-export type LogtoConfigType = LogtoOidcConfigType | JwtCustomizerType | LogtoTenantConfigType;
+export type LogtoConfigKey =
+  | LogtoOidcConfigKey
+  | LogtoJwtTokenKey
+  | LogtoInlineHookKey
+  | LogtoTenantConfigKey;
+export type LogtoConfigType =
+  | LogtoOidcConfigType
+  | JwtCustomizerType
+  | InlineHookType
+  | LogtoTenantConfigType;
 export type LogtoConfigGuard = typeof logtoOidcConfigGuard &
   typeof jwtCustomizerConfigGuard &
+  typeof inlineHookConfigGuard &
   typeof logtoTenantConfigGuard;
 
 export const logtoConfigKeys: readonly LogtoConfigKey[] = Object.freeze([
   ...Object.values(LogtoOidcConfigKey),
   ...Object.values(LogtoJwtTokenKey),
+  ...Object.values(LogtoInlineHookKey),
   ...Object.values(LogtoTenantConfigKey),
 ]);
 
 export const logtoConfigGuards: LogtoConfigGuard = Object.freeze({
   ...logtoOidcConfigGuard,
   ...jwtCustomizerConfigGuard,
+  ...inlineHookConfigGuard,
   ...logtoTenantConfigGuard,
 });
 
-export const oidcConfigKeysResponseGuard = oidcConfigKeyGuard
-  .omit({ value: true })
-  .merge(z.object({ signingKeyAlgorithm: z.nativeEnum(SupportedSigningKeyAlgorithm).optional() }));
+export const oidcConfigKeysResponseGuard = oidcConfigKeyGuard.omit({ value: true }).merge(
+  z.object({
+    signingKeyAlgorithm: z.nativeEnum(SupportedSigningKeyAlgorithm).optional(),
+    status: z.nativeEnum(OidcSigningKeyStatus).optional(),
+    effectiveAt: z.number().optional(),
+  })
+);
 
 export type OidcConfigKeysResponse = z.infer<typeof oidcConfigKeysResponseGuard>;

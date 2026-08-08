@@ -9,21 +9,21 @@ import {
 import { generateStandardId } from '@logto/shared';
 import { z } from 'zod';
 
-import koaGuard from '#src/middleware/koa-guard.js';
-
-import RequestError from '../../errors/RequestError/index.js';
-import { buildVerificationRecordByIdAndType } from '../../libraries/verification.js';
-import assertThat from '../../utils/assert-that.js';
-import { transpileUserMfaVerifications } from '../../utils/user.js';
+import RequestError from '#src/errors/RequestError/index.js';
 import {
   generateBackupCodes,
   validateBackupCodes,
-} from '../interaction/utils/backup-code-validation.js';
+} from '#src/libraries/verification-helpers/backup-code-validation.js';
 import {
   generateTotpSecret,
   validateTotpSecret,
   validateTotpToken,
-} from '../interaction/utils/totp-validation.js';
+} from '#src/libraries/verification-helpers/totp-validation.js';
+import { buildVerificationRecordByIdAndType } from '#src/libraries/verification.js';
+import koaGuard from '#src/middleware/koa-guard.js';
+import assertThat from '#src/utils/assert-that.js';
+import { transpileUserMfaVerifications } from '#src/utils/user.js';
+
 import type { UserRouter, RouterInitArgs } from '../types.js';
 
 import { accountApiPrefix } from './constants.js';
@@ -92,8 +92,10 @@ export default function mfaVerificationsRoutes<T extends UserRouter>(
         new RequestError({ code: 'verification_record.permission_denied', status: 401 })
       );
       const { fields } = ctx.accountCenter;
+      const isWebAuthn = ctx.guard.body.type === MfaFactor.WebAuthn;
+      const passkeyControl = isWebAuthn ? (fields.passkey ?? fields.mfa) : fields.mfa;
       assertThat(
-        fields.mfa === AccountCenterControlValue.Edit,
+        passkeyControl === AccountCenterControlValue.Edit,
         'account_center.field_not_editable'
       );
 
@@ -105,8 +107,11 @@ export default function mfaVerificationsRoutes<T extends UserRouter>(
       const user = await findUserById(userId);
 
       // Check sign in experience, if mfa factor is enabled
-      const { mfa } = await findDefaultSignInExperience();
-      assertThat(mfa.factors.includes(ctx.guard.body.type), 'session.mfa.mfa_factor_not_enabled');
+      const { mfa, passkeySignIn } = await findDefaultSignInExperience();
+      const isFactorEnabled = isWebAuthn
+        ? mfa.factors.includes(MfaFactor.WebAuthn) || passkeySignIn.enabled
+        : mfa.factors.includes(ctx.guard.body.type);
+      assertThat(isFactorEnabled, 'session.mfa.mfa_factor_not_enabled');
 
       switch (ctx.guard.body.type) {
         case MfaFactor.TOTP: {
@@ -390,8 +395,9 @@ export default function mfaVerificationsRoutes<T extends UserRouter>(
       );
       const { name } = ctx.guard.body;
       const { fields } = ctx.accountCenter;
+      const passkeyControl = fields.passkey ?? fields.mfa;
       assertThat(
-        fields.mfa === AccountCenterControlValue.Edit,
+        passkeyControl === AccountCenterControlValue.Edit,
         'account_center.field_not_editable'
       );
 
@@ -438,11 +444,6 @@ export default function mfaVerificationsRoutes<T extends UserRouter>(
         identityVerified,
         new RequestError({ code: 'verification_record.permission_denied', status: 401 })
       );
-      const { fields } = ctx.accountCenter;
-      assertThat(
-        fields.mfa === AccountCenterControlValue.Edit,
-        'account_center.field_not_editable'
-      );
       assertThat(
         scopes.has(UserScope.Identities),
         new RequestError({ code: 'auth.unauthorized', status: 401 })
@@ -453,6 +454,14 @@ export default function mfaVerificationsRoutes<T extends UserRouter>(
         (mfaVerification) => mfaVerification.id === ctx.guard.params.verificationId
       );
       assertThat(mfaVerification, 'verification_record.not_found');
+
+      const { fields } = ctx.accountCenter;
+      const isWebAuthnVerification = mfaVerification.type === MfaFactor.WebAuthn;
+      const deleteControl = isWebAuthnVerification ? (fields.passkey ?? fields.mfa) : fields.mfa;
+      assertThat(
+        deleteControl === AccountCenterControlValue.Edit,
+        'account_center.field_not_editable'
+      );
 
       const updatedUser = await updateUserById(userId, {
         mfaVerifications: user.mfaVerifications.filter(

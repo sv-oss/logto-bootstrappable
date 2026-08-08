@@ -19,7 +19,11 @@ import {
   buildUserLogtoConfigResponse,
   userLogtoConfigResponseGuard,
 } from '#src/libraries/user-logto-config.js';
-import { encryptUserPassword } from '#src/libraries/user.utils.js';
+import {
+  buildUserPasswordPayload,
+  buildUserPasswordPayloadFromPassword,
+  encryptUserPassword,
+} from '#src/libraries/user.utils.js';
 import koaGuard from '#src/middleware/koa-guard.js';
 import assertThat from '#src/utils/assert-that.js';
 
@@ -229,6 +233,7 @@ export default function adminUserBasicsRoutes<T extends ManagementApiRouter>(
       response: adminUserProfileResponseGuard,
       status: [200, 400, 404, 422],
     }),
+    // eslint-disable-next-line complexity
     async (ctx, next) => {
       const {
         primaryEmail,
@@ -247,7 +252,8 @@ export default function adminUserBasicsRoutes<T extends ManagementApiRouter>(
       assertThat(!passwordDigest || passwordAlgorithm, 'user.password_algorithm_required');
 
       assertThat(
-        !username || !(await hasUser(username)),
+        !username ||
+          !(await hasUser(username, await queries.signInExperiences.getUsernameCaseSensitive())),
         new RequestError({
           code: 'user.username_already_in_use',
           status: 422,
@@ -270,6 +276,14 @@ export default function adminUserBasicsRoutes<T extends ManagementApiRouter>(
       }
 
       const id = await generateUserId();
+      const passwordPayload = password
+        ? buildUserPasswordPayload(await encryptUserPassword(password))
+        : passwordDigest && passwordAlgorithm
+          ? buildUserPasswordPayload({
+              passwordEncrypted: passwordDigest,
+              passwordEncryptionMethod: passwordAlgorithm,
+            })
+          : undefined;
 
       const [user] = await insertUser({
         id,
@@ -279,13 +293,7 @@ export default function adminUserBasicsRoutes<T extends ManagementApiRouter>(
         name,
         avatar,
         ...conditional(customData && { customData }),
-        ...conditional(password && (await encryptUserPassword(password))),
-        ...conditional(
-          passwordDigest && {
-            passwordEncrypted: passwordDigest,
-            passwordEncryptionMethod: passwordAlgorithm,
-          }
-        ),
+        ...conditional(passwordPayload),
         ...conditional(profile && { profile }),
       });
 
@@ -342,12 +350,45 @@ export default function adminUserBasicsRoutes<T extends ManagementApiRouter>(
 
       await findUserById(userId);
 
-      const { passwordEncrypted, passwordEncryptionMethod } = await encryptUserPassword(password);
+      const user = await updateUserById(
+        userId,
+        await buildUserPasswordPayloadFromPassword(password)
+      );
 
-      const user = await updateUserById(userId, {
-        passwordEncrypted,
-        passwordEncryptionMethod,
-      });
+      ctx.body = transpileAdminUserProfileResponse(user);
+
+      return next();
+    }
+  );
+
+  router.patch(
+    '/users/:userId/password/expiration',
+    koaGuard({
+      params: object({ userId: string() }),
+      body: object({ isExpired: boolean() }),
+      response: adminUserProfileResponseGuard,
+      status: [200, 400, 404],
+    }),
+    async (ctx, next) => {
+      const {
+        params: { userId },
+        body: { isExpired },
+      } = ctx.guard;
+
+      const { findDefaultSignInExperience } = queries.signInExperiences;
+
+      await findUserById(userId);
+      const { passwordExpiration } = await findDefaultSignInExperience();
+
+      assertThat(
+        !isExpired || (passwordExpiration.enabled && passwordExpiration.validPeriodDays),
+        new RequestError({
+          code: 'sign_in_experiences.password_expiration_not_enabled',
+          status: 400,
+        })
+      );
+
+      const user = await updateUserById(userId, { isPasswordExpired: isExpired });
 
       ctx.body = transpileAdminUserProfileResponse(user);
 

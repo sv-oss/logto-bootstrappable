@@ -87,7 +87,41 @@ const security = {
     custom_words_description:
       '特定の文脈に関連するワードを、大文字小文字を区別せずに、1つの行に1つずつ追加します。',
     custom_words_placeholder: 'サービス名、会社名など',
+    password_expiration: 'パスワードの有効期限',
+    password_expiration_description:
+      '設定した日数が経過した後にユーザーにパスワードのリセットを要求します。SSO またはパスキーでサインインするユーザーは影響を受けません。',
+    enable_password_expiration: 'パスワードの有効期限を有効にする',
+    enable_password_expiration_description:
+      'ユーザーに定期的なパスワードのリセットを要求します。パスワード変更日の記録がない既存のユーザーは、このポリシーが有効化された日を基準に評価されます。',
+    enable_password_expiration_tip:
+      'パスワードの有効期限は、サインイン体験で有効なコネクタを持つ「パスワードを忘れた場合」方法を少なくとも 1 つ設定した後でのみ有効にできます。',
+    expiration_period: 'パスワード有効期間 (日)',
+    expiration_period_description: 'パスワードが期限切れになるまでの有効日数。',
+    expiration_period_error:
+      'パスワードの有効期間は {{min}} 日から {{max}} 日の間である必要があります。',
+    password_expiration_recovery_reminder:
+      '一部のユーザーは、パスワード回復コードを受け取るためのメールアドレスや電話番号を持っていない場合があり、期限切れのパスワードをリセットできないことがあります。すべてのユーザーがパスワードを回復できるよう、サインアップ時にメールアドレスまたは電話番号を必須にしてください。',
   },
+  verification_code_policy: {
+    card_title: '認証コード',
+    card_description:
+      'サインイン、サインアップ、パスワードリセットのフローで使用される認証コードの有効期限と最大再試行回数を設定します。',
+    enable: {
+      title: '認証コード設定をカスタマイズ',
+      description: '認証コードの有効期限と最大再試行回数のカスタマイズを許可します。',
+    },
+    expiration_duration: {
+      title: '有効期限（秒）',
+      description: '認証コードが送信後に有効である秒数です。',
+      error_message: '有効期限は 60 秒から 3600 秒の間である必要があります。',
+    },
+    max_retry_attempts: {
+      title: '最大再試行回数',
+      description: 'コードが無効になるまでに許可される認証失敗回数の上限です。',
+      error_message: '最大再試行回数は 1 から 100 の間である必要があります。',
+    },
+  },
+
   sentinel_policy: {
     card_title: '識別子によるロックアウト',
     card_description:

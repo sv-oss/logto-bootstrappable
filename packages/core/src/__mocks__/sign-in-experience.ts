@@ -6,7 +6,13 @@ import type {
   SignUp,
   SignIn,
 } from '@logto/schemas';
-import { SignInMode, SignInIdentifier, MfaPolicy, AgreeToTermsPolicy } from '@logto/schemas';
+import {
+  SignInMode,
+  SignInIdentifier,
+  MfaPolicy,
+  AgreeToTermsPolicy,
+  defaultUsernamePolicy,
+} from '@logto/schemas';
 
 export const mockColor: Color = {
   primaryColor: '#000',
@@ -94,7 +100,11 @@ export const mockSignInExperience: SignInExperience = {
   customContent: {},
   agreeToTermsPolicy: AgreeToTermsPolicy.Automatic,
   customUiAssets: null,
+  customUiCsp: {},
   passwordPolicy: {},
+  passwordExpiration: {
+    enabled: false,
+  },
   mfa: {
     policy: MfaPolicy.PromptAtSignInAndSignUp,
     factors: [],
@@ -109,6 +119,7 @@ export const mockSignInExperience: SignInExperience = {
   unknownSessionRedirectUrl: null,
   captchaPolicy: {},
   sentinelPolicy: {},
+  verificationCodePolicy: {},
   emailBlocklistPolicy: {},
   forgotPasswordMethods: null,
   passkeySignIn: {
@@ -116,4 +127,6 @@ export const mockSignInExperience: SignInExperience = {
     showPasskeyButton: false,
     allowAutofill: false,
   },
+  signUpProfileFields: null,
+  usernamePolicy: defaultUsernamePolicy,
 };

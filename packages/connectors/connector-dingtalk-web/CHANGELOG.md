@@ -1,5 +1,20 @@
 # @logto/connector-dingtalk-web
 
+## 0.4.5
+
+### Patch Changes
+
+- Updated dependencies [e7b6e9de1]
+- Updated dependencies [b7386a5113]
+  - @logto/connector-kit@5.1.0
+
+## 0.4.4
+
+### Patch Changes
+
+- Updated dependencies [41a56f79e3]
+  - @logto/connector-kit@5.0.1
+
 ## 0.4.3
 
 ### Patch Changes

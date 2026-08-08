@@ -1,5 +1,303 @@
 # Change Log
 
+## 1.41.0
+
+### Minor Changes
+
+- a923dcbdc: Make `POST /api/applications/:applicationId/roles` idempotent: role IDs already attached to the application are silently ignored instead of causing the request to fail with `422 application.role_exists`. The response is now `201` with body `{ roleIds, addedRoleIds }`, matching the response shape of `POST /api/users/:userId/roles`.
+
+  Closes #8900.
+
+- a305713bb2: expose the target organization to the access token JWT customizer for organization (API resource) tokens
+
+  When Logto issues an organization access token (a token requested with both `organization_id` and `resource`), the access token JWT customizer now receives a `context.organization` object with the target organization's `id`, `name`, `description` and `customData`. Previously the customizer was invoked with the same payload as a regular user access token and had no way to know which organization the token was being issued for — the `organization_id` claim is only injected after the customizer runs.
+
+  This lets scripts attach per-organization claims (for example mapping the Logto organization id to an internal id stored in `organization.customData`) without embedding a map of every organization the user belongs to into every token.
+
+- c7f17d6c5c: rate-limit outbound verification-code and message sends per recipient and suppress delivery to unknown recipients
+
+  Adds a mandatory, system-level per-recipient send rate limit across all email/SMS send paths (experience verification codes including MFA, the account and management verification-code APIs, `/me`, organization invitations, and the legacy interaction API), emits a `Message.RateLimited` webhook when a send is throttled, and suppresses verification-code delivery to unregistered recipients when registration is disabled to prevent account enumeration. The `Message.RateLimited` event is now selectable in the Console webhook settings.
+
+- d41082bd7d: add app-level access control for applications
+
+  Add a new application access control feature that allows administrators to restrict user access to applications. When enabled, users who do not have permission to access an application will see an access denied error message when they attempt to sign in or access the application. This feature can be configured in the Console Security settings.
+
+  Supported custom control rules include:
+
+  - User IDs
+  - User roles
+  - Organizations
+  - Organization roles
+
+  Refer to the documentation for more details: https://docs.logto.io/integrate-logto/app-level-access-control
+
+- c1ff0c114: release account center profile page, custom profile fields at sign-up, and experience/account avatar upload from dev feature gates
+
+  The collect-user-profile sign-up flow now respects the explicit `signUpProfileFields` list instead of always showing the full catalog. The account center profile page and avatar upload endpoints are no longer gated behind a dev feature flag.
+
+- bcd517bacf: add independent Account Center passkey controls for passkey sign-in
+
+  Admins can now configure passkey visibility separately from MFA in Account Center, and users can manage passkeys plus their passkey sign-in prompt preference when passkey sign-in is enabled.
+
+- c2016a044c: add a configurable per-tenant password expiration policy
+
+  Operators can enable password expiration from Console → Security → Password policy and set the number of days a password stays valid. When a password reaches the end of its valid period — or is manually expired for a specific user — the end user is forced through the forgot-password flow on their next password sign-in before they can continue. Users signing in via SSO or passkey are not affected.
+
+  - **Console**: a new "Password expiration" card with an enable toggle and a valid-period (days) input, an inline reminder when sign-up requires no contact identifier to guarantee password recovery, and a per-user "Expire password" action on the user details page.
+  - **Core / API**: the policy is stored on the sign-in experience (`passwordExpiration`) and enforced after password verification. `PATCH /api/users/:userId/password/expiration` lets admins manually expire a user's password, and deleting the last forgot-password connector is rejected while the policy is enabled.
+  - **Experience**: an expired password prompts the user to reset it via the configured recovery method before sign-in completes.
+
+  Legacy users without a recorded password-change date are anchored to the timestamp the policy was enabled, so they get a full valid period instead of being expired immediately.
+
+- 67b99bba85: add per-tenant username policy enforcement and mirror preferred_username from username by default
+
+  The sign-in experience now stores a per-tenant username policy (case sensitivity, length bounds, and allowed character types) that is enforced on end-user username writes: experience sign-up and profile fulfillment, the account API, and `/me`. Admin (Management API) writes keep the always-on baseline rules only.
+
+  Switching usernames to case-insensitive is guarded: `PATCH /api/sign-in-exp` is rejected with a 409 while usernames that differ only by case exist, and the new `GET /api/sign-in-exp/username-policy/case-sensitivity-conflicts` endpoint reports such conflicts.
+
+  For deployments using the legacy `CASE_SENSITIVE_USERNAME` environment variable: the effective case sensitivity is the per-tenant policy AND-combined with the env var, so usernames are treated case-insensitively if either is false. Existing `CASE_SENSITIVE_USERNAME=false` setups keep their behavior — the env var acts as a runtime override that forces case-insensitive handling for every tenant, and the per-tenant policy cannot re-enable case sensitivity while it is set. The env var is deprecated and slated for removal in the next major; migrate by unsetting it and configuring `usernamePolicy.caseSensitive` per tenant instead.
+
+  The OIDC `preferred_username` claim now falls back to the user's `username` when `profile.preferredUsername` is unset, so standards-compliant clients receive a usable value out of the box.
+
+- eb45edbe34: allow customizing verification code settings
+
+  Admins can configure the verification code expiration duration and maximum retry attempts in Console Security settings.
+
+### Patch Changes
+
+- 811740be44: make organization role creation transactional when assigning initial scopes
+
+  When creating an organization role with initial organization scopes or resource scopes, Logto now saves the role and its scope assignments in a single transaction. If any provided scope ID is invalid, the whole request fails without leaving a partially created role.
+
+- 413b7ec1a7: map custom UI asset Azure Blob transport failures to retryable storage download errors
+- 0213812375: avoid constructing a regular expression from user-controlled input in the email subaddressing blocklist check
+- 209fa0a5cb: escape HTML attribute values in the SAML IdP auto-submit form
+
+  When Logto acts as a SAML IdP, the auto-submit form posted to the SP's ACS interpolated `SAMLResponse`, `RelayState` and the action URL into HTML attributes without escaping. If a value contained a double quote, the browser truncated the attribute at that quote.
+
+  This broke SPs that send a JSON string as `RelayState`: the SP received only `{` instead of the full value, losing the post-login context. The values are now HTML-escaped, so quotes and other markup characters round-trip intact (this also closes a reflected-markup injection vector in the interstitial page).
+
+  In addition, the form action URL is now restricted to the `http`/`https` schemes before rendering. Escaping the attribute value alone does not neutralize a scriptable scheme such as `javascript:`, which the browser would execute on submission, so such URLs are now rejected.
+
+- 37999f7fce: fix a flash of built-in styles on the hosted sign-in experience when custom CSS is configured
+
+  Custom CSS was injected on the client via react-helmet, which mutates `<head>` asynchronously after the page had already painted with the built-in styles. The server-rendered experience HTML now inlines the configured custom CSS into `<head>`, so it is part of the cascade on the first paint. The `</style>` sequence in custom CSS is escaped so it cannot terminate the style element early, and the SSR data embedded in the inline `<script>` is now serialized with HTML-significant characters escaped to prevent script breakout.
+
+- 9de40208e2: fix identifier-lockout sentinel misfiring because `count(*)` was treated as a string
+
+  Postgres returns `count(*)` as a bigint that Slonik surfaces as a string. The sentinel added `1` to this value to decide whether to lock an identifier, so `'10' + 1` evaluated to `'101'` and the failed-attempt threshold (default 100) tripped far too early — roughly at 10 failed attempts. The count is now coerced to a number so the threshold is compared numerically.
+
+- 5b5005db0d: fix custom UI asset upload timeout caused by Azure blob existence checks
+- ba0e70c28b: support OIDC enterprise connector discovery endpoints that reject JSON-only response negotiation
+
+  OIDC enterprise connectors can now fetch discovery configuration from providers that reject JSON-only response negotiation with `406 Not Acceptable`.
+
+- 9847dfd13: fix one-time token consent handling for switch-account sign-in flows
+- f56255a7ed: restrict account center step-up verification to user permission verification records
+- 9118867f6c: prevent replaying an already accepted TOTP code during MFA verification
+
+  Existing TOTP verification now records the accepted TOTP time-step counter and rejects any later verification that matches the same or an older counter. This enforces one-time use for TOTP codes across the RFC 6238 acceptance window.
+
+- c98403862a: reject null bytes in OIDC request bodies and strip them from audit logs so malformed input returns a clean 400 instead of a 500
+
+  A null byte (`U+0000`) in an `application/x-www-form-urlencoded` body sent to `/oidc/token` previously surfaced as a `500 Internal Server Error`. The actual cause was the audit log insert: PostgreSQL rejects null bytes in `jsonb` (error `22P05`), and because the insert runs in a `finally` block, that failure masked the original clean error. The OIDC body parser now rejects null bytes with a `400 invalid_request`, and audit log payloads are sanitized of null bytes before insert as defense in depth.
+
+  Closes #8990.
+
+- 72820ac41e: prevent theme flash in sign-in experience and account center
+
+  Sign-in experience and account center now apply tenant theme, platform, and brand color before the app hydrates, reducing flashes of the wrong theme during initial page load.
+
+- 9097054860: upgrade `samlify` to `^2.13.0`, which consistently XML-escapes attribute values in generated SAML assertions, and adapt the SAML application and SSO connector call sites to its stricter return types (`getAssertionConsumerService`, `getX509Certificate`, and the `createLoginResponse` binding-context union)
+- 17c52384b: allow linking social identities in account center without password, email, or phone when the user has no legacy security verification methods
+- Updated dependencies [e7b6e9de1]
+- Updated dependencies [413b7ec1a7]
+- Updated dependencies [92560f6b2e]
+- Updated dependencies [a305713bb2]
+- Updated dependencies [c7f17d6c5c]
+- Updated dependencies [d41082bd7d]
+- Updated dependencies [3d38ae2074]
+- Updated dependencies [c1ff0c114]
+- Updated dependencies [bcd517bacf]
+- Updated dependencies [c2016a044c]
+- Updated dependencies [72820ac41e]
+- Updated dependencies [c73d32b5ee]
+- Updated dependencies [b7386a5113]
+- Updated dependencies [67b99bba85]
+- Updated dependencies [67b99bba85]
+- Updated dependencies [e1fadfb1a]
+- Updated dependencies [67b99bba85]
+- Updated dependencies [a88413689]
+- Updated dependencies [eb45edbe34]
+  - @logto/connector-kit@5.1.0
+  - @logto/phrases@1.29.0
+  - @logto/console@1.38.0
+  - @logto/schemas@1.41.0
+  - @logto/experience@1.20.0
+  - @logto/phrases-experience@1.14.0
+  - @logto/account@0.5.0
+  - @logto/core-kit@2.11.0
+  - @logto/shared@3.4.1
+  - @logto/cli@1.41.0
+  - @logto/demo-app@1.5.0
+  - @logto/device-demo-app@0.1.0
+
+## 1.40.1
+
+### Patch Changes
+
+- Updated dependencies [e4eaa5aef5]
+  - @logto/core-kit@2.10.0
+  - @logto/account@0.4.1
+  - @logto/cli@1.40.1
+  - @logto/console@1.37.0
+  - @logto/demo-app@1.5.0
+  - @logto/device-demo-app@0.1.0
+  - @logto/experience@1.19.2
+  - @logto/phrases-experience@1.13.3
+  - @logto/schemas@1.40.1
+
+## 1.40.0
+
+### Minor Changes
+
+- cc0d70335: add `enableCap=true` query parameter to `GET /logs` and `GET /hooks/:id/recent-logs` to reduce the chance of `statement_timeout` on tenants with very large log volumes.
+
+  When the param is passed:
+
+  - The count query short-circuits at ~10,000 rows, returning `10001` as a saturation sentinel.
+  - The response includes a `Total-Number-Is-Capped: true` header when the cap is hit.
+  - In capped responses, both `Link: rel="last"` and `Link: rel="next"` are omitted because the saturated count makes the derived page count unreliable. Clients should construct page URLs themselves and stop on an empty response.
+
+  Default request behavior (without `enableCap`) is unchanged.
+
+- 57c27d42f: add `start_time` and `end_time` query parameters to `GET /api/logs` and `GET /api/hooks/{id}/recent-logs` for filtering logs by a time window.
+
+  Both are exclusive bounds in unix milliseconds (`createdAt > start_time AND createdAt < end_time`). Either value is optional; when both are present, the endpoint returns `400` if `start_time >= end_time`. Either value being non-numeric also returns `400`.
+
+  On `GET /api/hooks/{id}/recent-logs`, supplying either `start_time` or `end_time` replaces the endpoint's default 24-hour lower bound so callers can query an arbitrary historical window. Default behavior (no time params supplied) is unchanged: the endpoint still returns logs from the last 24 hours.
+
+- c4c34e6af0: enrich `Organization.Membership.Updated` webhook payload with explicit delta fields describing the exact membership change:
+
+  - `addedUserIds` / `removedUserIds` on `POST /organizations/:id/users`, `PUT /organizations/:id/users`, and `DELETE /organizations/:id/users/:userId`.
+  - `addedApplicationIds` / `removedApplicationIds` on `POST /organizations/:id/applications`, `PUT /organizations/:id/applications`, and `DELETE /organizations/:id/applications/:applicationId`.
+  - `addedUserIds` on invitation accept (`PUT /organization-invitations/:id/status`) and experience-flow just-in-time provisioning (email-domain JIT and enterprise SSO JIT during sign-up / sign-in).
+
+  Each delta array is capped silently at 5000 entries; for bulk operations that exceed the cap, consumers should reconcile authoritative membership via `GET /organizations/:id/users` or `GET /organizations/:id/applications`. Empty deltas are omitted from the payload entirely, and consumers must treat a missing field as "no change on that side," not as "an empty change." The `PUT` replace handlers report the truly-new and truly-removed IDs (not the entire declared set). Re-accepting an invitation by a user who is already a member still produces the legacy `{ organizationId }`-only shape.
+
+  No breaking change: the four delta fields are additive optional fields; the previously emitted `data: null` field is unchanged. See the [webhook reference](https://docs.logto.io/developers/webhooks/webhooks-request#organizationmembershipupdated-payload) for the full payload contract.
+
+  Supersedes #8752, thanks @chiche84.
+
+- 42f3969840: add protected app ID token claim scopes and tenant custom domain SDK endpoint support
+
+  Protected App settings in Console let you choose which ID token claims (such as `roles`, `custom_data`, and `organizations`) are forwarded to your origin via the `Logto-ID-Token` header. When a tenant custom domain is active, Protected App remote config uses that domain as the SDK endpoint.
+
+### Patch Changes
+
+- ebbc8f43aa: declare `additionalProperties: true` on arbitrary JSON object schemas in the OpenAPI document. Generated TypeScript clients (e.g. `@logto/api`) now type fields such as `customData` as `{ [key: string]: unknown }` instead of `Record<string, never>`, which previously forbade every property at compile time
+- a27d81309: allow users who have no password, no primary email, and no primary phone to set their initial password without a verification record through Account API
+- 671a7b73d7: read admin tenant signing keys directly from the database in OSS to reduce self-hosted deployment friction
+
+  Self-hosted OSS deployments no longer need extra host or DNS mappings that let the Logto container fetch its own admin tenant OIDC configuration through the externally configured endpoint.
+
+- 3edda5243: speed up `GET /organizations/:id/users` on large memberships by aggregating roles via `LATERAL`
+
+  The entities query for `getUsersByOrganizationId` joined `organization_role_user_relations` and `organization_roles` before applying `GROUP BY users.id` + `LIMIT`. Postgres had to build the entire `members × roles_per_member` intermediate result on every paginated request, aggregate it, then slice. A 20-row page over a 10k-member org with 3 roles each materialized ~30k intermediate rows regardless of page size.
+
+  The rewrite moves the role aggregation into a `LATERAL` subquery joined per user row. `LIMIT` now prunes the outer user set before the role-table lookups fire, so the aggregation runs `limit` times instead of once over the full join, and each lateral lookup hits `organization_role_user_relations__tenant_id_org_id_user_id` (added in the prior Phase 0.5 migration) directly. The row ordering, previously incidental under the `GROUP BY` plan, is now pinned by an explicit `ORDER BY` so pagination is deterministic across calls.
+
+- 26c8c3f2ed: add `TwoRelationsQueries.replaceWithDelta()` for high-cardinality relation tables; switch `PUT /organizations/:id/users` to use it
+
+  The existing `replace()` runs `DELETE WHERE schema1_id = X` + bulk `INSERT` inside a transaction, rewriting O(N) rows on every call. The new `replaceWithDelta()` computes the added/removed sets in a single CTE statement, so a no-op call writes zero rows and a one-row delta writes exactly one row. It returns `{ added, removed }` so downstream consumers (notably the membership-webhook payload work in LOG-13462) can read the delta without a re-query.
+
+  `replace()` is unchanged. The new method is opt-in. This PR migrates one call site — `PUT /organizations/:id/users` — where organization membership can grow into the 10k+ range. The other nine `TwoRelationsQueries` subclasses continue to use `replace()`.
+
+  For relation tables upstream of an `on delete cascade` FK (e.g. `organization_user_relations` → `organization_role_user_relations`), `replace()` cascades for every current row on every call — silently dropping dependents of unchanged members. `replaceWithDelta()` only cascades for truly-departing rows, so dependents of surviving members are preserved. The migrated `PUT /organizations/:id/users` now keeps a member's role assignments when their membership survives the PUT; a new integration test guards this.
+
+- 16553c027: expose `isCurrent` on the Account API sessions response
+
+  `GET /api/my-account/sessions` now returns `isCurrent: boolean` on every entry. The session whose OIDC uid backs the calling access token is `true`; the others are `false`. Use this to mark the "This device" entry in session-management UIs and to avoid revoking the caller's own session.
+
+  The admin user-sessions endpoints (`GET /users/:userId/sessions` and `GET /users/:userId/sessions/:sessionId`) are unchanged — they have no caller-session concept and continue to use the original response shape.
+
+  Closes [#8681](https://github.com/logto-io/logto/issues/8681).
+
+- Updated dependencies [32c40b1ad]
+- Updated dependencies [8407ecd410]
+- Updated dependencies [346816a350]
+- Updated dependencies [2ae0a420f]
+- Updated dependencies [6b9944d01f]
+- Updated dependencies [fafe81e8f]
+- Updated dependencies [617275158]
+- Updated dependencies [7b7a5c8f6]
+- Updated dependencies [41a56f79e3]
+- Updated dependencies [42f3969840]
+- Updated dependencies [16553c027]
+- Updated dependencies [32c9ea4d81]
+- Updated dependencies [7c30c2adb]
+- Updated dependencies [be5fa483a2]
+  - @logto/account@0.4.1
+  - @logto/phrases-experience@1.13.2
+  - @logto/console@1.37.0
+  - @logto/experience@1.19.2
+  - @logto/schemas@1.40.0
+  - @logto/connector-kit@5.0.1
+  - @logto/cli@1.40.0
+  - @logto/demo-app@1.5.0
+  - @logto/device-demo-app@0.1.0
+
+## 1.39.0
+
+### Minor Changes
+
+- ab073bb65f: support blocking token issuance when custom JWT scripts fail
+
+  This update adds configurable JWT customizer error handling for access tokens and client credentials flows.
+
+  - core now preserves `api.denyAccess()` as `access_denied` and converts other blocking-mode script failures into localized `invalid_request` responses
+  - console adds a dedicated `Error handling` tab for configuring the behavior, defaults `blockIssuanceOnError` to enabled for newly created scripts, keeps existing scripts without a saved value on the legacy disabled default, and aligns the related guidance copy
+  - schemas, phrases, and integration coverage are updated to match the new blocking behavior and localized error messages
+
+- 3350b13ec8: add grace period support to private signing key rotation
+
+  This update adds support for a grace period during private signing key rotation, through the environment variable `PRIVATE_KEY_ROTATION_GRACE_PERIOD`, or CLI `--gracePeriod` option.
+
+  During the grace period, the new signing key is marked as "Next", and the existing signing key remains active. This allows for a smoother transition when rotating keys, as it provides a window of time for clients to refresh cached JWKS without experiencing downtime or authentication failures.
+
+  After the grace period ends, the new private signing key will transition to "Current" state, and the old signing key will be marked as "Previous".
+
+  Check out the [documentation](https://docs.logto.io/logto-oss/using-cli/rotate-signing-keys) for more details.
+
+### Patch Changes
+
+- 5c83985dbe: return response bodies from organization user and role assignment APIs
+
+  - POST `/organizations/:id/users` now returns `{ userIds: string[] }` echoing the user IDs that were sent with the request
+  - POST `/organizations/:id/users/:userId/roles` now returns `{ organizationRoleIds: string[] }` with the final deduplicated role IDs that were assigned, resolved from any provided role names
+
+- 8eeba717c0: return a unified verification_code.code_mismatch error in forgot-password flows to prevent account enumeration
+
+  Forgot-password verification no longer exposes whether an email or phone exists through differing error responses.
+
+- 33a588e34f: fix: pass request IP to connector when sending verification codes
+- Updated dependencies [cc9857d073]
+- Updated dependencies [93523a1ae0]
+- Updated dependencies [ab073bb65f]
+- Updated dependencies [d4570beed5]
+- Updated dependencies [3350b13ec8]
+  - @logto/experience@1.19.1
+  - @logto/core-kit@2.9.0
+  - @logto/console@1.36.0
+  - @logto/phrases@1.28.0
+  - @logto/schemas@1.39.0
+  - @logto/account@0.4.0
+  - @logto/cli@1.39.0
+  - @logto/shared@3.4.0
+  - @logto/demo-app@1.5.0
+  - @logto/device-demo-app@0.1.0
+  - @logto/phrases-experience@1.13.1
+
 ## 1.38.0
 
 ### Minor Changes
