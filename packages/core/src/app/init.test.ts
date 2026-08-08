@@ -65,4 +65,31 @@ describe('App Init', () => {
       consoleError.mockRestore();
     }
   });
+
+  it('suppresses HTTP logs for the external status endpoint by default', async () => {
+    const consoleLog = jest.spyOn(console, 'log').mockImplementation();
+    getTenantId.mockResolvedValueOnce(['default', false]);
+    tenantPoolGet.mockResolvedValueOnce({
+      requestStart: () => true,
+      checkHealth: async () => true,
+      requestEnd: jest.fn(),
+      run: async (ctx: Koa.Context, next: Koa.Next) => {
+        ctx.status = 204;
+
+        return next();
+      },
+    });
+
+    try {
+      const app = new Koa();
+      await initApp(app);
+
+      const response = await request(app.callback()).get('/api/status');
+
+      expect(response.status).toBe(204);
+      expect(consoleLog).not.toHaveBeenCalled();
+    } finally {
+      consoleLog.mockRestore();
+    }
+  });
 });
