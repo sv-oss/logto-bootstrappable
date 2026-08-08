@@ -90,6 +90,14 @@ Example output:
 
 Text output remains the default (no change to existing behaviour when `LOG_FORMAT` is unset).
 
+#### Aurora database connection inputs
+
+The fork can build the database URL from individual secret fields. Set `DB_HOST`, `DB_USERNAME`,
+`DB_PASSWORD`, and `DB_NAME`. `DB_PORT` is optional and defaults to `5432`.
+
+`DB_SSL_MODE` accepts `disable`, `require`, or `no-verify`. `verify-full` is not supported by
+the Silverhand Slonik connection configuration.
+
 ---
 
 ### `packages/core`

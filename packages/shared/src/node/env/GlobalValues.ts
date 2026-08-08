@@ -65,7 +65,7 @@ const validSslModes = new Set<string>(['disable', 'no-verify', 'require']);
  * 2. Individual AWS CDK `DatabaseSecret` fields injected as separate env vars:
  *    `DB_HOST`, `DB_USERNAME`, `DB_PASSWORD`, `DB_NAME`, and optionally:
  *    - `DB_PORT` (default `5432`)
- *    - `DB_SSL_MODE` — PostgreSQL `sslmode` value, e.g. `require` or `verify-full`.
+ *    - `DB_SSL_MODE` — supported SSL mode: `require` or `no-verify`.
  *      When set, appends `?sslmode=<value>` to the constructed URL.
  *      Required for databases that enforce TLS connections (e.g. AWS RDS).
  *
