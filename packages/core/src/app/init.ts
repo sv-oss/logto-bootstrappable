@@ -50,6 +50,7 @@ const logListening = (type: 'core' | 'admin' = 'core') => {
 };
 
 const serverTimeout = 120_000;
+const healthcheckPaths = new Set(['/status', '/api/status']);
 
 export default async function initApp(app: Koa): Promise<void> {
   app.use(async (ctx, next) => {
@@ -112,7 +113,7 @@ export default async function initApp(app: Koa): Promise<void> {
       transporter: (string, args) => {
         // Args shape: [formatString, method, url, ...] — url is at index 2
         const requestPath = args[2];
-        if (ctx.path === '/status' && !EnvSet.values.isHealthcheckRequestLoggingEnabled) {
+        if (healthcheckPaths.has(ctx.path) && !EnvSet.values.isHealthcheckRequestLoggingEnabled) {
           return;
         }
 

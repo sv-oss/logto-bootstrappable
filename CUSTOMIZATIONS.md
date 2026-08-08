@@ -130,9 +130,9 @@ The koa-logger transporter calls `consoleLog.http(koaString, entry)` for every H
 
 #### Healthcheck request logging control (`src/app/init.ts`)
 
-Healthcheck probes on `GET /api/status` are supported on both core and admin ports (including domain-based multi-tenancy mode).
+Healthcheck probes on `GET /api/status` are supported on both core and admin ports (including domain-based multi-tenancy mode). The internal domain-based health route remains `GET /status`.
 
-HTTP request logging for `/api/status` is **disabled by default** to avoid noisy periodic health probe logs.
+HTTP request logging for both status routes is **disabled by default** to avoid noisy periodic health probe logs.
 
 - Set `LOG_HTTP_HEALTHCHECK=true` to enable request/response log lines for `/api/status`.
 
