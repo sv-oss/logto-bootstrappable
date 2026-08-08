@@ -28,6 +28,7 @@ function ToggleUiThemeButton({
   return (
     <div className={classNames(styles.container, styles[size])}>
       <Button
+        data-testid="toggle-preview-theme"
         size={size}
         className={classNames(styles.button, className)}
         icon={<ThemeIcon className={classNames(styles.icon, iconClassName)} />}

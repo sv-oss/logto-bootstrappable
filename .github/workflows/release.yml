@@ -21,7 +21,7 @@ jobs:
       next_version: ${{ steps.next-version.outputs.version }}
 
     steps:
-      - uses: googleapis/release-please-action@v4
+      - uses: googleapis/release-please-action@v5
         id: release
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -57,7 +57,7 @@ jobs:
       id-token: write
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -83,11 +83,11 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Build and push by digest
         id: build
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           platforms: ${{ matrix.platform }}
           context: .
@@ -101,7 +101,7 @@ jobs:
           touch "/tmp/digests/${digest#sha256:}"
 
       - name: Upload digest
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: digests-${{ matrix.platform_tag }}
           path: /tmp/digests/*
@@ -118,7 +118,7 @@ jobs:
 
     steps:
       - name: Download digests
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: /tmp/digests
           pattern: digests-*
@@ -146,7 +146,7 @@ jobs:
             type=raw,value=v${{ needs.release-please.outputs.next_version }}-rc.${{ github.run_number }},enable=${{ needs.release-please.outputs.release_created != 'true' && needs.release-please.outputs.next_version != '' }}
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Create manifest list and push
         working-directory: /tmp/digests
@@ -168,4 +168,3 @@ jobs:
               [ -n "$tag" ] && echo "| \`${tag}\` | \`docker pull ${tag}\` |"
             done <<< "$TAGS"
           } >> "$GITHUB_STEP_SUMMARY"
-

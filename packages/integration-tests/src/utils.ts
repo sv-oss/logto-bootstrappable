@@ -81,9 +81,8 @@ export const appendPathname = (pathname: string, baseUrl: URL) =>
   new URL(path.join(baseUrl.pathname, pathname), baseUrl);
 
 /**
- * Run an action and simultaneously wait for navigation to complete. This is
- * useful for actions that trigger navigation, such as clicking a link or
- * submitting a form.
+ * Run an action and simultaneously wait for navigation to reach a usable document. This is
+ * useful for actions that trigger navigation, such as clicking a link or submitting a form.
  *
  * When the action triggers a full-page navigation, the execution context may be destroyed
  * before the action's Promise resolves (e.g., expect-puppeteer's `toClick` polls the DOM
@@ -96,7 +95,7 @@ export const expectNavigation = async <T>(
   page: Page = global.page
 ): Promise<void> => {
   await Promise.all([
-    page.waitForNavigation({ waitUntil: 'networkidle0' }),
+    page.waitForNavigation({ waitUntil: 'domcontentloaded' }),
     action.catch((error: unknown) => {
       const message =
         error instanceof Error

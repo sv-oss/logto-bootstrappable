@@ -137,7 +137,8 @@ describe('admin console user management', () => {
       profile: { gender: 'neutral' },
     });
     const { customData, profile } = await getUser(user.id);
-    expect({ ...customData }).toStrictEqual({ foo: 'bar' });
+    expect({ ...customData }).toMatchObject({ foo: 'bar' });
+    expect(customData.customer_id).toMatch(/^\d{10}$/);
     expect({ ...profile }).toStrictEqual({ gender: 'neutral' });
   });
 

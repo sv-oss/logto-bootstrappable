@@ -24,9 +24,10 @@ runtime defaults, and SMTP-based connectors.
 - **Signing keys:** initial RSA/EC selection remains available through
   `LOGTO_OIDC_SIGNING_KEY_TYPE`, while persisted keys use upstream's rotation-aware key status
   model and grace-period support.
+- **Sign-in appearance:** the fork enables dark mode for the default sign-in experience.
 - **Database upgrades:** deployments run `db seed --swe`, deploy alterations for `1.41.0`, then
-  start the server. This supports fresh ephemeral databases and upgrades from the previous
-  `1.38.0` base.
+  start the server. This supports fresh ephemeral databases and upgrades from the `v0.4.0` fork
+  release, whose schema package version is `1.38.0`.
 - **SMTP and dependency security:** bootstrap supports upstream-style source-authorized SMTP relays
   without credentials. Nodemailer, tunnel proxy, and ZIP dependencies are pinned to patched
   releases; the production dependency audit reports no known vulnerabilities.
@@ -252,11 +253,15 @@ Added support for the `LOGTO_OIDC_SIGNING_KEY_TYPE` environment variable. When n
 
 Commitlint is configured to support both this fork’s existing SV-style commit scopes and upstream Logto scopes, so upstream commits can be merged/cherry-picked without commit-message rewrites:
 
-- `scope-case`: allows `pascal-case`, `lower-case`, and `kebab-case`.
-- `scope-enum`: includes both upstream lowercase/kebab scopes (for example `core`, `deps-dev`, `app-insights`) and fork PascalCase variants (for example `Core`, `DepsDev`, `AppInsights`).
-- `header-max-length`: 100 locally, with CI override to 110 (matching upstream tolerance for appended PR numbers).
+- `scope-case`: allows upstream `lower-case` and `kebab-case`, plus `pascal-case` and
+  `upper-case` for retained fork scopes.
+- `scope-enum`: retains all upstream lowercase/kebab scopes plus the three PascalCase scopes used by
+  historical fork commits: `AC`, `Core`, and `UI`.
+- `header-max-length` and `footer-max-line-length`: use upstream defaults locally, with a
+  110-character CI allowance for imported upstream commits.
 - `body-max-line-length`: 110 (aligned with upstream).
-- `subject-case`: disabled to allow upstream/PR-generated subjects (including acronym and title-style wording).
+- `subject-case` and `subject-full-stop`: disabled for historical upstream commits that use
+  sentence-case subjects ending in a period.
 - `type-enum`: upstream conventional types plus fork-specific `api` and `release`.
 
 ---
@@ -271,6 +276,25 @@ PR builds run on both `linux/amd64` and `linux/arm64` natively (same runner matr
 | `sha-<short_sha>` | `sha-a1b2c3d` — specific commit |
 
 No `release` environment gate or release-please dependency — just build and push.
+
+### CI compatibility for upstream synchronization
+
+- GitHub Actions references use current stable major versions. The fork keeps
+  `silverhand-io/actions-node-pnpm-run-steps@v5`, which is its latest tag despite v4 being the
+  latest published GitHub release, and the current Logto integration action at v4.1.0.
+- The alteration compatibility workflow checks out the base revision in a `logto/` directory so
+  the upstream package script creates its expected artifact without a fork-specific script. It
+  runs only for fork-owned `next-*` alterations: imported versioned upstream alterations are
+  covered by upstream CI and the fork-release migration check below.
+- The alteration compatibility workflow includes upstream's `rerun.yml` dispatcher so transient
+  Puppeteer integration-test failures retry up to the workflow's configured limit.
+- Integration tests wait for document readiness rather than network idleness after navigation, and
+  use stable `data-testid` selectors for Console branding and preview controls.
+- The main alteration workflow validates both forward and reverse schema changes against the
+  `v0.4.0` fork release. It deliberately does not support or test migrations from an official
+  Logto database into the fork, because that is not a deployment path for this project.
+- Commitlint detects GitHub Actions explicitly so imported upstream commits use the CI
+  110-character header allowance.
 
 ### `.github/workflows/release.yml`
 

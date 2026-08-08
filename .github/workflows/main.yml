@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup Node and pnpm
         uses: silverhand-io/actions-node-pnpm-run-steps@v5
@@ -38,7 +38,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup Node and pnpm
         uses: silverhand-io/actions-node-pnpm-run-steps@v5
@@ -53,7 +53,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup Node and pnpm
         uses: silverhand-io/actions-node-pnpm-run-steps@v5
@@ -71,7 +71,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup Node and pnpm
         uses: silverhand-io/actions-node-pnpm-run-steps@v5
@@ -92,7 +92,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup Node and pnpm
         uses: silverhand-io/actions-node-pnpm-run-steps@v5
@@ -111,14 +111,14 @@ jobs:
         run: pnpm ci:test
 
       - name: Codecov core
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v7
         with:
           flags: core
           directory: ./packages/core
           token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Codecov ui
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v7
         with:
           flags: ui
           directory: ./packages/ui
@@ -128,21 +128,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # ** Checkout fresh and alteration ref **
-      - uses: actions/checkout@v4
+      # ** Checkout current fork and supported fork upgrade baseline **
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           path: ./fresh
 
-      # Fetch the current version by finding the latest tag starts with "v", e.g. "v1.0.0-beta.19"
-      - id: version
-        working-directory: ./fresh
-        run: echo "current=$(git describe --match "@logto/core@*" --abbrev=0)" >> $GITHUB_OUTPUT
-
-      - uses: actions/checkout@v4
+      # v0.4.0 is the latest released fork version. Official Logto-to-fork migrations are not
+      # supported, so test the upgrade path that deployments actually use.
+      - uses: actions/checkout@v7
         with:
-          ref: ${{ steps.version.outputs.current }}
+          ref: v0.4.0
           path: ./alteration
+
+      - id: baseline-version
+        working-directory: ./alteration
+        run: |
+          version=$(node -p "require('./packages/schemas/package.json').version")
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
       # ** End **
 
       - name: Copy lockfile # Make setup workflow happy
@@ -166,7 +169,7 @@ jobs:
       # ** End **
 
       - name: Setup Postgres
-        uses: ikalnytskyi/action-setup-postgres@v6
+        uses: ikalnytskyi/action-setup-postgres@v8
 
       # ** Setup up-to-date databases and compare (test `up`) **
       - name: Setup fresh database
@@ -206,7 +209,7 @@ jobs:
 
       - name: Revert fresh database to old
         working-directory: ./fresh
-        run: pnpm cli db alt r v$(echo ${{ steps.version.outputs.current }} | cut -d@ -f3)
+        run: pnpm cli db alt r v${{ steps.baseline-version.outputs.version }}
         env:
           ALTERATION_TEST: true
           DB_URL: postgres://postgres:postgres@localhost:5432/fresh

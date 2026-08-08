@@ -38,6 +38,21 @@ const shouldServeRuntimeConfig = (packagePath: string, requestPath: string): boo
   (packagePath === UserApps.AccountCenter || packagePath === 'experience') &&
   requestPath === runtimeConfigPath;
 
+const isStaticRequest = (requestPath: unknown): boolean =>
+  typeof requestPath === 'string' && path.basename(requestPath).includes('.');
+
+const isMiddleware = <StateT, ContextT>(
+  value: unknown
+): value is MiddlewareType<StateT, ContextT> => typeof value === 'function';
+
+const logProxyTarget = (context: unknown, target: string) => {
+  if (typeof context !== 'object' || context === null) {
+    throw new TypeError('Koa proxy middleware received an invalid context.');
+  }
+
+  getConsoleLogFromContext(context).plain(`\tproxy --> ${target}`);
+};
+
 export default function koaSpaProxy<StateT, ContextT extends IRouterParamContext>({
   mountedApps,
   packagePath = 'experience',
@@ -49,22 +64,28 @@ export default function koaSpaProxy<StateT, ContextT extends IRouterParamContext
 
   const distributionPath = path.join('node_modules/@logto', packagePath, 'dist');
 
-  const spaProxy: Middleware = EnvSet.values.isProduction
+  const proxyMiddleware: unknown = EnvSet.values.isProduction
     ? serveStatic(distributionPath)
     : proxy('*', {
         target: `http://localhost:${port}`,
         changeOrigin: true,
-        logs: (ctx, target) => {
+        logs: (ctx, target: string) => {
           // Ignoring static file requests in development since vite will load a crazy amount of files
-          if (path.basename(ctx.request.path).includes('.')) {
+          if (isStaticRequest(ctx.request.path)) {
             return;
           }
-          getConsoleLogFromContext(ctx).plain(`\tproxy --> ${target}`);
+          logProxyTarget(ctx, target);
         },
         rewrite: (requestPath) => {
           return '/' + path.join(prefix, requestPath);
         },
       });
+
+  if (!isMiddleware<StateT, ContextT>(proxyMiddleware)) {
+    throw new TypeError('Koa proxy middleware must be a function.');
+  }
+
+  const spaProxy: Middleware = proxyMiddleware;
 
   return async (ctx, next) => {
     const requestPath = ctx.request.path;

@@ -2,10 +2,15 @@ import { type TFuncKey } from 'i18next';
 
 import { type LogtoSkuQuota } from '@/types/skus';
 
-type SkuQuotaItemPhraseKey = Exclude<keyof LogtoSkuQuota, 'inlineHooksEnabled'>;
+type SkuQuotaItemPhraseKey = Exclude<
+  Extract<keyof LogtoSkuQuota, string>,
+  'actionsEnabled' | 'hostedEmailDailyLimit' | 'hostedEmailLimit' | 'inlineHooksEnabled'
+>;
 
 export const isSkuQuotaItemPhraseKey = (key: keyof LogtoSkuQuota): key is SkuQuotaItemPhraseKey =>
-  key !== 'inlineHooksEnabled';
+  !['actionsEnabled', 'hostedEmailDailyLimit', 'hostedEmailLimit', 'inlineHooksEnabled'].includes(
+    key
+  );
 
 /* === for new pricing model === */
 export const skuQuotaItemPhrasesMap: Record<

@@ -104,6 +104,7 @@ function BrandingForm() {
               <div className={styles.darkModeTip}>
                 {t('sign_in_exp.color.dark_mode_reset_tip')}
                 <Button
+                  data-testid="reset-dark-primary-color"
                   type="text"
                   size="small"
                   title="sign_in_exp.color.reset"

@@ -182,7 +182,10 @@ function SignInExperiencePreview({
         </div>
       ) : (
         <div className={styles.deviceWrapper}>
-          <div className={classNames(styles.device, styles[String(mode)])}>
+          <div
+            data-testid={`sign-in-experience-preview-device-${mode}`}
+            className={classNames(styles.device, styles[String(mode)])}
+          >
             {platform !== PreviewPlatform.DesktopWeb && (
               <div className={styles.topBar}>
                 <div className={styles.time}>{format(Date.now(), 'HH:mm')}</div>
