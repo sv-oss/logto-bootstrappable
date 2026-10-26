@@ -60,7 +60,7 @@
     "zod": "3.24.3"
   },
   "engines": {
-    "node": "^22.14.0"
+    "node": "^22.23.4"
   },
   "eslintConfig": {
     "extends": "@silverhand"

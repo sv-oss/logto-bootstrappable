@@ -6,7 +6,7 @@ Logto is an open-source identity and access management platform (OIDC/OAuth 2.1/
 
 ## Prerequisites
 
-- Node.js ^22.14.0, pnpm ^9.0.0 || ^10.0.0, PostgreSQL ^14.0
+- Node.js ^22.23.4, pnpm ^9.0.0 || ^10.0.0, PostgreSQL ^14.0
 
 ## Build, Lint, and Test Commands
 

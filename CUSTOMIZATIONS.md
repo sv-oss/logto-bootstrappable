@@ -11,6 +11,8 @@ runtime defaults, and SMTP-based connectors.
 
 ### v1.45.0 upstream reconciliation
 
+- **Runtime security:** containers, CI, and package engine metadata require Node.js `^22.23.4`,
+  the patched Node 22 LTS release for Broccoli2Shell.
 - **Audit logging:** upstream audit entries can now omit request IPs and use idempotency keys. The
   fork continues to emit each sanitized final audit payload to structured console output.
 - **Account Center:** upstream trusted-device, user-menu, and third-party application updates are
