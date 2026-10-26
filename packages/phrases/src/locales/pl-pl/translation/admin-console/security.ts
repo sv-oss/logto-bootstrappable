@@ -36,6 +36,11 @@ const security = {
       description:
         'Inteligentna alternatywa dla CAPTCHA od Cloudflare, zapewniająca ochronę przed botami bez zakłócania użytkownika i gwarantująca płynne doświadczenie bez wizualnych łamigłówek.',
     },
+    cap: {
+      name: 'Cap',
+      description:
+        'Otwartoźródłowa, samodzielnie hostowana CAPTCHA oparta na proof-of-work, bez wizualnych łamigłówek i usług zewnętrznych – idealna dla regionów, w których inne usługi CAPTCHA są niedostępne.',
+    },
   },
   captcha_details: {
     back_to_security: 'Powrót do bezpieczeństwa',
@@ -51,6 +56,10 @@ const security = {
     domain_placeholder: 'www.google.com (domyślna) lub recaptcha.net',
     recaptcha_key_id: 'ID klucza reCAPTCHA',
     recaptcha_api_key: 'Klucz API projektu',
+    cap_endpoint: 'Endpoint Cap',
+    cap_endpoint_placeholder: 'https://cap.example.com',
+    cap_endpoint_http_notice:
+      'Ten punkt końcowy używa HTTP, co nadaje się tylko do lokalnego programowania. Przeglądarki blokują żądania HTTP ze strony logowania HTTPS, a klucz tajny zostałby wysłany bez szyfrowania. W środowisku produkcyjnym użyj HTTPS.',
     deletion_description: 'Czy na pewno chcesz usunąć tego dostawcę CAPTCHA?',
     captcha_deleted: 'Pomyślnie usunięto dostawcę CAPTCHA',
     setup_captcha: 'Skonfiguruj CAPTCHA',
@@ -59,6 +68,10 @@ const security = {
     mode_checkbox: 'Pole wyboru',
     mode_notice:
       'Tryb weryfikacji jest zdefiniowany w ustawieniach klucza reCAPTCHA w Google Cloud Console. Zmiana trybu tutaj wymaga odpowiedniego typu klucza.',
+    score_threshold: 'Próg punktacji',
+    score_threshold_description:
+      'Wyniki poniżej progu są odrzucane. 0.0 pozwala na wszystkie, 1.0 tylko na idealne wyniki. Domyślnie 0.5.',
+    score_threshold_error: 'Próg punktacji musi wynosić od 0 do 1.',
   },
   password_policy: {
     password_requirements: 'Wymagania dotyczące hasła',
@@ -168,9 +181,8 @@ const security = {
     custom_email_allowlist: {
       title: 'Zezwalaj na niestandardowe adresy e-mail',
       description:
-        'Zezwalaj tylko na pasujące adresy e-mail, domeny lub wzorce z symbolami wieloznacznymi dla nowych rejestracji i nowo powiązanych e-maili.',
-      placeholder:
-        'Wpisz dozwolony adres e-mail, domenę lub wzorzec z symbolem wieloznacznym (np. bar@example.com, @example.com, foo*@example.com, *@example.com)',
+        'Dodaj reguły zezwalające tylko na określone domeny e-mail, adresy e-mail lub wzorce z symbolami wieloznacznymi dla nowych rejestracji i nowo powiązanych e-maili. Przykłady: bar@example.com, @example.com, foo*@example.com, *@example.com. Domeny gmail.com i googlemail.com są traktowane jako równoważne, a kropki w części lokalnej są ignorowane, więc foo.bar@gmail.com pasuje do foobar@googlemail.com.',
+      placeholder: 'Wpisz adres e-mail, domenę lub wzorzec z symbolem wieloznacznym',
       duplicate_error:
         'Adres e-mail, domena lub wzorzec z symbolem wieloznacznym został już dodany',
       invalid_format_error:
@@ -199,9 +211,8 @@ const security = {
     custom_email_address: {
       title: 'Zablokuj niestandardowe adresy email',
       description:
-        'Dodaj reguły blokujące określone domeny email, adresy email lub wzorce adresów email z symbolami wieloznacznymi przed rejestracją lub powiązaniem przez UI.',
-      placeholder:
-        'Wprowadź zablokowany adres email, domenę lub wzorzec adresu email z symbolem wieloznacznym (np. bar@example.com, @example.com, foo*@example.com, *@example.com)',
+        'Dodaj reguły blokujące określone domeny e-mail, adresy e-mail lub wzorce z symbolami wieloznacznymi przed rejestracją lub powiązaniem przez UI. Przykłady: bar@example.com, @example.com, foo*@example.com, *@example.com. Domeny gmail.com i googlemail.com są traktowane jako równoważne, a kropki w części lokalnej są ignorowane, więc foo.bar@gmail.com pasuje do foobar@googlemail.com.',
+      placeholder: 'Wpisz adres e-mail, domenę lub wzorzec z symbolem wieloznacznym',
       duplicate_error:
         'Adres email, domena lub wzorzec adresu email z symbolem wieloznacznym już dodany',
       invalid_format_error:

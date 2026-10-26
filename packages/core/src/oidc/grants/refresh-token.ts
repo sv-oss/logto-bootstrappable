@@ -30,30 +30,30 @@
  *   from the v8 fork; upstream relies on the grant lookup failing instead.
  */
 
-import { UserScope } from '@logto/core-kit';
+import { ReservedResource, UserScope } from '@logto/core-kit';
 import { noop } from '@silverhand/essentials';
 import { errors, type Provider } from 'oidc-provider';
 
 import { type EnvSet } from '#src/env-set/index.js';
 import { assertUserHasApplicationAccessForOidc } from '#src/oidc/application-access-control.js';
+import { shouldTreatAsCimdClient } from '#src/oidc/cimd/index.js';
+import { getOidcScopesNoLongerAllowed } from '#src/oidc/client-scope.js';
 import {
   applyMtlsBinding,
   buildTokenResponse,
   certificateThumbprint,
   checkAccountMismatch,
   checkAttestBinding,
+  checkDpopReplay,
   checkDpopRequired,
   checkRar,
   createAccessToken,
-  CHALLENGE_OK_WINDOW,
   difference,
   dpopValidate,
-  epochTime,
   getProviderConfiguration,
   type GrantTypeHandler,
   issueIdToken,
   pluralize,
-  type ReplayDetectionClass,
   resolveResource,
   revoke,
   validateAccount,
@@ -132,13 +132,12 @@ export const buildHandler: Handler = (envSet, queries, appAccess) => async (ctx)
     features: {
       userinfo,
       mTLS: { getCertificate },
-      dPoP: { allowReplay },
       resourceIndicators,
       richAuthorizationRequests,
     },
   } = getProviderConfiguration(provider);
 
-  const { RefreshToken, AccessToken, ReplayDetection } = provider;
+  const { RefreshToken, AccessToken } = provider;
 
   const dPoP = await dpopValidate(ctx);
 
@@ -193,16 +192,7 @@ export const buildHandler: Handler = (envSet, queries, appAccess) => async (ctx)
     }
   }
 
-  if (dPoP && !allowReplay) {
-    // eslint-disable-next-line no-restricted-syntax -- widen with the static method missing from the typings, see `ReplayDetectionClass`
-    const unique = await (ReplayDetection as ReplayDetectionClass).unique(
-      client.clientId,
-      dPoP.jti,
-      epochTime() + CHALLENGE_OK_WINDOW
-    );
-
-    assertThat(unique, new InvalidGrant('DPoP proof JWT Replay detected'));
-  }
+  await checkDpopReplay(ctx, dPoP, client.clientId, InvalidGrant);
 
   if (refreshToken.jkt && (!dPoP || refreshToken.jkt !== dPoP.thumbprint)) {
     throw new InvalidGrant('failed jkt verification');
@@ -229,21 +219,41 @@ export const buildHandler: Handler = (envSet, queries, appAccess) => async (ctx)
     throw new InvalidRequest('authorization_details is unsupported for this refresh token');
   }
 
-  await assertUserHasApplicationAccessForOidc(
-    appAccess,
-    client.clientId,
-    account.accountId,
-    client.metadata().appLevelAccessControlEnabled
-  );
+  /**
+   * Application-level access control only applies to registered applications; the
+   * access-control library's fallback lookup would query the applications table with the CIMD
+   * identifier URL and deny on not-found.
+   */
+  if (!shouldTreatAsCimdClient(envSet, client.clientId)) {
+    await assertUserHasApplicationAccessForOidc(
+      appAccess,
+      client.clientId,
+      account.accountId,
+      client.metadata().appLevelAccessControlEnabled
+    );
+  }
 
   /* === RFC 0001 === */
-  const { organizationId } = await checkOrganizationAccess(ctx, queries, account);
+  const { organizationId } = await checkOrganizationAccess(ctx, { envSet, queries, account });
 
   if (
     organizationId && // Validate if the refresh token has the required scope from RFC 0001.
     !refreshToken.scopes.has(UserScope.Organizations)
   ) {
     throw new InsufficientScope('refresh token missing required scope', UserScope.Organizations);
+  }
+
+  /** Keyed on the token's own scopes: the request may omit `scope` and still pass `organization_id`. */
+  if (
+    organizationId &&
+    getOidcScopesNoLongerAllowed(grant, client, refreshToken.scopes).includes(
+      UserScope.Organizations
+    )
+  ) {
+    throw new InsufficientScope(
+      'requested scope is no longer allowed for the client',
+      UserScope.Organizations
+    );
   }
   /* === End RFC 0001 === */
 
@@ -310,6 +320,15 @@ export const buildHandler: Handler = (envSet, queries, appAccess) => async (ctx)
 
   /** The scopes requested by the client. If not provided, use the scopes from the refresh token. */
   const scope = params.scope ? requestParamScopes : refreshToken.scopes;
+  /**
+   * Dropped rather than rejected: the client usually sends no `scope` on refresh, so rejecting
+   * would turn a configuration change into an outage it has no way to fix.
+   *
+   * Kept separate from `scope`, which resource and organization issuance match by name — a scope
+   * name there may collide with an OP scope name.
+   */
+  const scopesNoLongerAllowed = getOidcScopesNoLongerAllowed(grant, client, scope);
+  const oidcScope = new Set([...scope].filter((name) => !scopesNoLongerAllowed.includes(name)));
   await checkRar(ctx, noop);
 
   // Note, issue organization token only if `params.resource` is not present.
@@ -317,10 +336,32 @@ export const buildHandler: Handler = (envSet, queries, appAccess) => async (ctx)
   // the logic is handled in `getResourceServerInfo` and `extraTokenClaims`, see the init file of oidc-provider.
   if (organizationId && !params.resource) {
     /* === RFC 0001 === */
-    /** All available scopes for the user in the organization. */
-    const availableScopes = await queries.organizations.relations.usersRoles
+    /** All the scopes granted to the user through organization roles. */
+    const roleScopeNames = await queries.organizations.relations.usersRoles
       .getUserScopes(organizationId, account.accountId)
       .then((scopes) => scopes.map(({ name }) => name));
+    /**
+     * CIMD clients bound organization role scopes twice: by the Grant's organization-resource
+     * record and by the tenant-wide `cimd_organization_scopes` ceiling (the organization-scope
+     * counterpart of the resource-server ceiling filter in `init.ts`). The Grant intersection is
+     * load-bearing — scope names are not unique across resources, and the flat refresh-token
+     * scope set passed to `handleOrganizationToken` cannot carry the organization resource's
+     * boundary, so without it a name granted for an unrelated API resource would issue the
+     * same-named organization scope. Registered applications are governed by their own consent
+     * configuration.
+     */
+    const availableScopes = shouldTreatAsCimdClient(envSet, client.clientId)
+      ? await queries.cimd.organizationScopes.findAll().then((ceiling) => {
+          const ceilingNames = new Set(ceiling.map(({ name }) => name));
+          // `getResourceScope` returns `''` when the Grant carries no record for the resource.
+          const grantedOrganizationScopes = new Set(
+            grant.getResourceScope(ReservedResource.Organization).split(' ').filter(Boolean)
+          );
+          return roleScopeNames.filter(
+            (name) => ceilingNames.has(name) && grantedOrganizationScopes.has(name)
+          );
+        })
+      : roleScopeNames;
     await handleOrganizationToken({
       envSet,
       availableScopes,
@@ -353,7 +394,7 @@ export const buildHandler: Handler = (envSet, queries, appAccess) => async (ctx)
       );
     } else {
       at.claims = refreshToken.claims;
-      at.scope = grant.getOIDCScopeFiltered(scope);
+      at.scope = grant.getOIDCScopeFiltered(oidcScope);
     }
   }
 
@@ -371,7 +412,7 @@ export const buildHandler: Handler = (envSet, queries, appAccess) => async (ctx)
     at,
     grant,
     { conformIdTokenClaims, userinfo },
-    scope
+    oidcScope
   );
 
   ctx.body = buildTokenResponse(at, accessToken, {

@@ -19,6 +19,7 @@ type OmittedSignInExperienceKeys = keyof Pick<
   SignInExperience,
   | 'mfa'
   | 'adaptiveMfa'
+  | 'trustedDevice'
   | 'captchaPolicy'
   | 'sentinelPolicy'
   | 'passwordPolicy'
@@ -35,7 +36,24 @@ export enum SignInExperienceTab {
   Content = 'content',
 }
 
-const accountCenterFieldKeys: Array<keyof AccountCenterFieldControl> = [
+export type AccountCenterFieldKey = keyof Pick<
+  AccountCenterFieldControl,
+  | 'email'
+  | 'phone'
+  | 'social'
+  | 'password'
+  | 'mfa'
+  | 'passkey'
+  | 'username'
+  | 'name'
+  | 'avatar'
+  | 'profile'
+  | 'customData'
+  | 'session'
+  | 'trustedDevice'
+>;
+
+const accountCenterFieldKeys: AccountCenterFieldKey[] = [
   'email',
   'phone',
   'social',
@@ -48,9 +66,8 @@ const accountCenterFieldKeys: Array<keyof AccountCenterFieldControl> = [
   'profile',
   'customData',
   'session',
+  'trustedDevice',
 ] as const;
-
-export type AccountCenterFieldKey = (typeof accountCenterFieldKeys)[number];
 
 export type AccountCenterFormValues = {
   enabled: boolean;
@@ -99,13 +116,18 @@ export const normalizeAccountCenterFieldsForSubmit = (
   fields: AccountCenterFormValues['fields'],
   originalFields?: AccountCenterConfig['fields']
 ): AccountCenterFieldControl => {
-  const { passkey, ...fieldsWithoutPasskey } = fields;
+  const { passkey, trustedDevice, ...stableFields } = fields;
 
-  if (originalFields?.passkey === undefined && passkey === AccountCenterControlValue.Off) {
-    return fieldsWithoutPasskey;
-  }
-
-  return fields;
+  return {
+    ...stableFields,
+    ...(originalFields?.passkey !== undefined || passkey !== AccountCenterControlValue.Off
+      ? { passkey }
+      : {}),
+    ...(originalFields?.trustedDevice !== undefined ||
+    trustedDevice !== AccountCenterControlValue.Off
+      ? { trustedDevice }
+      : {}),
+  };
 };
 
 /**

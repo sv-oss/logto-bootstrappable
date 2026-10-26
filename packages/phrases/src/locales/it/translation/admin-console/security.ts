@@ -36,6 +36,11 @@ const security = {
       description:
         "Alternativa intelligente di CAPTCHA di Cloudflare che offre protezione dai bot non invasiva assicurando un'esperienza utente senza puzzle visivi.",
     },
+    cap: {
+      name: 'Cap',
+      description:
+        'CAPTCHA open source e self-hosted basato su proof-of-work, senza puzzle visivi né servizi di terze parti, ideale per le regioni in cui altri servizi CAPTCHA non sono raggiungibili.',
+    },
   },
   captcha_details: {
     back_to_security: 'Torna alla sicurezza',
@@ -51,6 +56,10 @@ const security = {
     domain_placeholder: 'www.google.com (predefinito) o recaptcha.net',
     recaptcha_key_id: 'ID chiave reCAPTCHA',
     recaptcha_api_key: 'Chiave API del progetto',
+    cap_endpoint: 'Endpoint di Cap',
+    cap_endpoint_placeholder: 'https://cap.example.com',
+    cap_endpoint_http_notice:
+      'Questo endpoint usa HTTP, adatto solo allo sviluppo locale. I browser bloccano le richieste HTTP da una pagina di accesso HTTPS e la chiave segreta verrebbe inviata non crittografata. Usa HTTPS in produzione.',
     deletion_description: 'Sei sicuro di voler eliminare questo fornitore di CAPTCHA?',
     captcha_deleted: 'Fornitore di CAPTCHA eliminato con successo',
     setup_captcha: 'Configura CAPTCHA',
@@ -59,6 +68,10 @@ const security = {
     mode_checkbox: 'Casella di controllo',
     mode_notice:
       'La modalità di verifica è definita nelle impostazioni della chiave reCAPTCHA in Google Cloud Console. Per cambiare la modalità qui è necessario un tipo di chiave corrispondente.',
+    score_threshold: 'Soglia del punteggio',
+    score_threshold_description:
+      'I punteggi inferiori alla soglia vengono rifiutati. 0.0 consente tutti, 1.0 solo punteggi perfetti. Il valore predefinito è 0.5.',
+    score_threshold_error: 'La soglia del punteggio deve essere compresa tra 0 e 1.',
   },
   password_policy: {
     password_requirements: 'Requisiti per la password',
@@ -171,9 +184,8 @@ const security = {
     custom_email_allowlist: {
       title: 'Consenti indirizzi email personalizzati',
       description:
-        'Consenti solo indirizzi email, domini o pattern email con caratteri jolly corrispondenti per nuove registrazioni e nuove email collegate.',
-      placeholder:
-        'Inserisci l’indirizzo email, il dominio o il pattern email con caratteri jolly consentito (ad es. bar@example.com, @example.com, foo*@example.com, *@example.com)',
+        'Aggiungi regole per consentire solo domini email, indirizzi email o pattern con caratteri jolly specifici per nuove registrazioni e nuove email collegate. Esempi: bar@example.com, @example.com, foo*@example.com, *@example.com. I domini gmail.com e googlemail.com sono considerati equivalenti e i punti nella parte locale vengono ignorati, quindi foo.bar@gmail.com corrisponde a foobar@googlemail.com.',
+      placeholder: 'Inserisci un indirizzo email, un dominio o un pattern con caratteri jolly',
       duplicate_error: 'Indirizzo email, dominio o pattern email con caratteri jolly già aggiunto',
       invalid_format_error:
         'Deve essere un indirizzo email valido (bar@example.com), un dominio (@example.com) o un pattern email con caratteri jolly (foo*@example.com, *@example.com)',
@@ -201,9 +213,8 @@ const security = {
     custom_email_address: {
       title: 'Blocca indirizzi email personalizzati',
       description:
-        "Aggiungi regole per bloccare domini email specifici, indirizzi email o modelli di indirizzi email con caratteri jolly dalla registrazione o dal collegamento tramite l'UI.",
-      placeholder:
-        "Inserisci l'indirizzo email, il dominio o il modello di indirizzo email con caratteri jolly bloccato (ad es., bar@example.com, @example.com, foo*@example.com, *@example.com)",
+        "Aggiungi regole per impedire a domini email, indirizzi email o pattern con caratteri jolly specifici di registrarsi o collegarsi tramite l'UI. Esempi: bar@example.com, @example.com, foo*@example.com, *@example.com. I domini gmail.com e googlemail.com sono considerati equivalenti e i punti nella parte locale vengono ignorati, quindi foo.bar@gmail.com corrisponde a foobar@googlemail.com.",
+      placeholder: 'Inserisci un indirizzo email, un dominio o un pattern con caratteri jolly',
       duplicate_error:
         'Indirizzo email, dominio o modello di indirizzo email con caratteri jolly già aggiunto',
       invalid_format_error:

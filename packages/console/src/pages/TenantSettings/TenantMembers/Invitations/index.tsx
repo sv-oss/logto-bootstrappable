@@ -13,12 +13,11 @@ import Plus from '@/assets/icons/plus.svg?react';
 import Redo from '@/assets/icons/redo.svg?react';
 import UsersEmptyDark from '@/assets/images/users-empty-dark.svg?react';
 import UsersEmpty from '@/assets/images/users-empty.svg?react';
-import { useAuthedCloudApi } from '@/cloud/hooks/use-cloud-api';
 import type { InvitationResponse, TenantInvitationResponse } from '@/cloud/types/router';
 import Breakable from '@/components/Breakable';
 import { RoleOption } from '@/components/OrganizationRolesSelect';
+import { isCloud } from '@/consts/env';
 import { SubscriptionDataContext } from '@/contexts/SubscriptionDataProvider';
-import { TenantsContext } from '@/contexts/TenantsProvider';
 import ActionMenu, { ActionMenuItem } from '@/ds-components/ActionMenu';
 import Button from '@/ds-components/Button';
 import DynamicT from '@/ds-components/DynamicT';
@@ -30,6 +29,7 @@ import { useConfirmModal } from '@/hooks/use-confirm-modal';
 import useCurrentTenantScopes from '@/hooks/use-current-tenant-scopes';
 
 import InviteMemberModal from '../InviteMemberModal';
+import useTenantMembersApi from '../use-tenant-members-api';
 
 const convertInvitationStatusToTagStatus = (
   status: OrganizationInvitationStatus
@@ -52,16 +52,15 @@ const convertInvitationStatusToTagStatus = (
 
 function Invitations() {
   const { t } = useTranslation(undefined, { keyPrefix: 'admin_console.tenant_members' });
-  const cloudApi = useAuthedCloudApi();
-  const { currentTenantId } = useContext(TenantsContext);
+  const { invitationsKey, getInvitations, resendInvitation, revokeInvitation, deleteInvitation } =
+    useTenantMembersApi();
   const {
     access: { canInviteMember, canRemoveMember },
   } = useCurrentTenantScopes();
   const { mutateSubscriptionQuotaAndUsages } = useContext(SubscriptionDataContext);
   const { data, error, isLoading, mutate } = useSWR<TenantInvitationResponse[], RequestError>(
-    `api/tenants/${currentTenantId}/invitations`,
-    async () =>
-      cloudApi.get('/api/tenants/:tenantId/invitations', { params: { tenantId: currentTenantId } })
+    invitationsKey,
+    getInvitations
   );
 
   const [showInviteModal, setShowInviteModal] = useState(false);
@@ -77,10 +76,7 @@ function Invitations() {
       return;
     }
 
-    await cloudApi.patch(`/api/tenants/:tenantId/invitations/:invitationId/status`, {
-      params: { tenantId: currentTenantId, invitationId },
-      body: { status: OrganizationInvitationStatus.Revoked },
-    });
+    await revokeInvitation(invitationId);
     mutateSubscriptionQuotaAndUsages();
     void mutate();
     toast.success(t('messages.invitation_revoked'));
@@ -96,9 +92,7 @@ function Invitations() {
       return;
     }
 
-    await cloudApi.delete(`/api/tenants/:tenantId/invitations/:invitationId`, {
-      params: { tenantId: currentTenantId, invitationId },
-    });
+    await deleteInvitation(invitationId);
     mutateSubscriptionQuotaAndUsages();
     void mutate();
     toast.success(t('messages.invitation_deleted'));
@@ -113,7 +107,11 @@ function Invitations() {
             image={<UsersEmpty />}
             imageDark={<UsersEmptyDark />}
             title="tenant_members.invitation_empty_placeholder.title"
-            description="tenant_members.invitation_empty_placeholder.description"
+            description={
+              isCloud
+                ? 'tenant_members.invitation_empty_placeholder.description'
+                : 'tenant_members.invite_modal.subtitle_oss'
+            }
             action={conditional(
               canInviteMember && (
                 <Button
@@ -135,29 +133,31 @@ function Invitations() {
         columns={[
           {
             dataIndex: 'user',
-            colSpan: 2,
+            colSpan: isCloud ? 2 : 4,
             title: t('user'),
             render: ({ invitee }) => <Breakable>{invitee}</Breakable>,
           },
-          {
-            dataIndex: 'roles',
-            colSpan: 2,
-            title: t('roles'),
-            render: ({ organizationRoles }) => {
-              if (organizationRoles.length === 0) {
-                return '-';
-              }
+          ...condArray(
+            isCloud && {
+              dataIndex: 'roles',
+              colSpan: 2,
+              title: t('roles'),
+              render: ({ organizationRoles }: TenantInvitationResponse) => {
+                if (organizationRoles.length === 0) {
+                  return '-';
+                }
 
-              return organizationRoles.map(({ id }) => (
-                <Tag key={id} variant="cell">
-                  <RoleOption
-                    value={id}
-                    title={t(id === TenantRole.Admin ? 'admin' : 'collaborator')}
-                  />
-                </Tag>
-              ));
-            },
-          },
+                return organizationRoles.map(({ id }) => (
+                  <Tag key={id} variant="cell">
+                    <RoleOption
+                      value={id}
+                      title={t(id === TenantRole.Admin ? 'admin' : 'collaborator')}
+                    />
+                  </Tag>
+                ));
+              },
+            }
+          ),
           {
             dataIndex: 'status',
             colSpan: 2,
@@ -195,12 +195,7 @@ function Invitations() {
                       <ActionMenuItem
                         icon={<Invite />}
                         onClick={async () => {
-                          await cloudApi.post(
-                            '/api/tenants/:tenantId/invitations/:invitationId/message',
-                            {
-                              params: { tenantId: currentTenantId, invitationId: id },
-                            }
-                          );
+                          await resendInvitation(id);
                           toast.success(t('messages.invitation_sent'));
                         }}
                       >

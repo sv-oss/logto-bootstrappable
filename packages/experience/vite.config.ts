@@ -36,7 +36,6 @@ const buildConfig = (mode: string): UserConfig => ({
     'process.env': {
       NODE_ENV: process.env.NODE_ENV,
       DEV_FEATURES_ENABLED: process.env.DEV_FEATURES_ENABLED,
-
     },
   },
   build: {
@@ -49,6 +48,12 @@ const buildConfig = (mode: string): UserConfig => ({
         manualChunks: (id, meta) => {
           if (/\/node_modules\/i18next[^/]*\//.test(id)) {
             return 'i18next';
+          }
+
+          // Keep the Cap widget in its own lazy-loaded chunk, as it's only needed when Cap is the
+          // captcha provider and it registers a custom element once evaluated.
+          if (id.includes('/node_modules/cap-widget/')) {
+            return 'cap-widget';
           }
 
           for (const largePackage of ['libphonenumber-js', 'core-js']) {

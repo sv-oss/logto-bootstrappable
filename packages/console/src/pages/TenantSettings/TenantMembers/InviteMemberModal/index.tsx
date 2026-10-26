@@ -6,12 +6,11 @@ import { toast } from 'react-hot-toast';
 import { Trans, useTranslation } from 'react-i18next';
 import ReactModal from 'react-modal';
 
-import { useAuthedCloudApi } from '@/cloud/hooks/use-cloud-api';
 import AddOnNoticeFooter from '@/components/AddOnNoticeFooter';
+import { isCloud } from '@/consts/env';
 import { addOnPricingExplanationLink } from '@/consts/external-links';
 import { latestProPlanId, tenantMembersAddOnUnitPrice } from '@/consts/subscriptions';
 import { SubscriptionDataContext } from '@/contexts/SubscriptionDataProvider';
-import { TenantsContext } from '@/contexts/TenantsProvider';
 import FormField from '@/ds-components/FormField';
 import ModalLayout from '@/ds-components/ModalLayout';
 import Select, { type Option } from '@/ds-components/Select';
@@ -25,6 +24,7 @@ import InviteEmailsInput from '../InviteEmailsInput';
 import useEmailInputUtils from '../InviteEmailsInput/hooks';
 import styles from '../index.module.scss';
 import { type InviteMemberForm } from '../types';
+import useTenantMembersApi from '../use-tenant-members-api';
 
 import Footer from './Footer';
 
@@ -35,10 +35,9 @@ type Props = {
 
 function InviteMemberModal({ isOpen, onClose }: Props) {
   const { t } = useTranslation(undefined, { keyPrefix: 'admin_console' });
-  const { currentTenantId } = useContext(TenantsContext);
 
   const [isLoading, setIsLoading] = useState(false);
-  const cloudApi = useAuthedCloudApi();
+  const { invite } = useTenantMembersApi();
   const { parseEmailOptions } = useEmailInputUtils();
   const { show } = useConfirmModal();
   const {
@@ -84,7 +83,7 @@ function InviteMemberModal({ isOpen, onClose }: Props) {
   const hasTenantMembersReachedLimit = hasReachedSubscriptionQuotaLimit('tenantMembersLimit');
 
   const onSubmit = handleSubmit(async ({ emails, role }) => {
-    if (role === TenantRole.Admin) {
+    if (isCloud && role === TenantRole.Admin) {
       const [result] = await show({
         ModalContent: () => (
           <Trans components={{ ul: <ul className={styles.list} />, li: <li /> }}>
@@ -102,10 +101,10 @@ function InviteMemberModal({ isOpen, onClose }: Props) {
     setIsLoading(true);
     if (emails.length > 0) {
       try {
-        await cloudApi.post('/api/tenants/:tenantId/invitations', {
-          params: { tenantId: currentTenantId },
-          body: { invitee: emails.map(({ value }) => value), roleName: role },
-        });
+        await invite(
+          emails.map(({ value }) => value),
+          role
+        );
         mutateSubscriptionQuotaAndUsages();
         toast.success(t('tenant_members.messages.invitation_sent'));
         onClose(true);
@@ -126,13 +125,20 @@ function InviteMemberModal({ isOpen, onClose }: Props) {
     >
       <ModalLayout
         size="large"
-        title="tenant_members.invite_modal.title"
-        paywall={conditional(!isPaidTenant && latestProPlanId)}
-        hasAddOnTag={isPaidTenant && hasTenantMembersReachedLimit}
-        subtitle="tenant_members.invite_modal.subtitle"
+        // The Cloud title names Logto Cloud. Member limits, paywalls and add-on charges are Cloud
+        // billing too: a self-hosted license grants Console collaboration or not, and Core checks it.
+        title={isCloud ? 'tenant_members.invite_modal.title' : 'tenant_members.invite_members'}
+        paywall={conditional(isCloud && !isPaidTenant && latestProPlanId)}
+        hasAddOnTag={isCloud && isPaidTenant && hasTenantMembersReachedLimit}
+        subtitle={
+          isCloud
+            ? 'tenant_members.invite_modal.subtitle'
+            : 'tenant_members.invite_modal.subtitle_oss'
+        }
         footer={
           conditional(
-            hasTenantMembersReachedLimit &&
+            isCloud &&
+              hasTenantMembersReachedLimit &&
               // Just in case the enterprise plan has reached the resource limit, we still need to show charge notice.
               isPaidTenant &&
               !tenantMembersUpsellNoticeAcknowledged && (
@@ -192,15 +198,17 @@ function InviteMemberModal({ isOpen, onClose }: Props) {
               )}
             />
           </FormField>
-          <FormField title="tenant_members.roles">
-            <Controller
-              name="role"
-              control={control}
-              render={({ field: { onChange, value } }) => (
-                <Select options={roleOptions} value={value} onChange={onChange} />
-              )}
-            />
-          </FormField>
+          {isCloud && (
+            <FormField title="tenant_members.roles">
+              <Controller
+                name="role"
+                control={control}
+                render={({ field: { onChange, value } }) => (
+                  <Select options={roleOptions} value={value} onChange={onChange} />
+                )}
+              />
+            </FormField>
+          )}
         </FormProvider>
       </ModalLayout>
     </ReactModal>

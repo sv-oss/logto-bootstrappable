@@ -34,6 +34,11 @@ const security = {
       description:
         'Cloudflare 的智能 CAPTCHA 替代方案，提供非侵入性的機器人保護，同時確保無視覺難題的無縫用戶體驗。',
     },
+    cap: {
+      name: 'Cap',
+      description:
+        '開源、可自行託管的工作量證明 CAPTCHA，無需視覺謎題或第三方服務，適合無法存取其他 CAPTCHA 服務的地區。',
+    },
   },
   captcha_details: {
     back_to_security: '返回安全性',
@@ -49,6 +54,10 @@ const security = {
     domain_placeholder: 'www.google.com（預設）或 recaptcha.net',
     recaptcha_key_id: 'reCAPTCHA 金鑰 ID',
     recaptcha_api_key: '項目的 API 金鑰',
+    cap_endpoint: 'Cap 端點',
+    cap_endpoint_placeholder: 'https://cap.example.com',
+    cap_endpoint_http_notice:
+      '此端點使用 HTTP，僅適用於本地開發。瀏覽器會攔截 HTTPS 登入頁發出的 HTTP 請求，且密鑰將以明文傳輸。生產環境請使用 HTTPS。',
     deletion_description: '你確定要刪除此 CAPTCHA 供應商嗎？',
     captcha_deleted: 'CAPTCHA 供應商已成功刪除',
     setup_captcha: '設定 CAPTCHA',
@@ -57,6 +66,10 @@ const security = {
     mode_checkbox: '複選框驗證',
     mode_notice:
       '驗證模式在 Google Cloud Console 的 reCAPTCHA 金鑰設定中定義。更改此處的模式需要匹配的金鑰類型。',
+    score_threshold: '分數門檻',
+    score_threshold_description:
+      '低於門檻的分數會被拒絕。0.0 允許所有分數，1.0 只允許滿分。預設值為 0.5。',
+    score_threshold_error: '分數門檻必須介乎 0 至 1 之間。',
   },
   password_policy: {
     password_requirements: '密碼要求',
@@ -151,9 +164,8 @@ const security = {
     custom_email_allowlist: {
       title: '允許自訂電子郵件地址',
       description:
-        '只允許相符的電子郵件地址、網域或萬用字元電子郵件地址模式用於新註冊和新綁定的電子郵件。',
-      placeholder:
-        '輸入允許的電子郵件地址、網域或萬用字元電子郵件地址模式（例如，bar@example.com，@example.com，foo*@example.com，*@example.com）',
+        '新增規則，只允許特定的電子郵件網域、電子郵件地址或萬用字元模式用於新註冊和新綁定的電子郵件。例如：bar@example.com、@example.com、foo*@example.com、*@example.com。gmail.com 和 googlemail.com 網域會被視為等同，且本地部分中的點號會被忽略，因此 foo.bar@gmail.com 與 foobar@googlemail.com 相符。',
+      placeholder: '輸入電子郵件地址、網域或萬用字元模式',
       duplicate_error: '電子郵件地址、網域或萬用字元電子郵件地址模式已新增',
       invalid_format_error:
         '必須是有效的電子郵件地址（bar@example.com）、網域（@example.com）或萬用字元電子郵件地址模式（foo*@example.com，*@example.com）',
@@ -177,9 +189,8 @@ const security = {
     custom_email_address: {
       title: '封鎖自定義電子郵件地址',
       description:
-        '添加規則，以封鎖特定電子郵件域、電子郵件地址或通配符電子郵件地址模式通過 UI 註冊或連結。',
-      placeholder:
-        '輸入被封鎖的電子郵件地址、域或通配符電子郵件地址模式（例如 bar@example.com, @example.com, foo*@example.com, *@example.com）',
+        '新增規則，封鎖特定的電子郵件網域、電子郵件地址或萬用字元模式透過 UI 註冊或連結。例如：bar@example.com、@example.com、foo*@example.com、*@example.com。gmail.com 和 googlemail.com 網域會被視為等同，且本地部分中的點號會被忽略，因此 foo.bar@gmail.com 與 foobar@googlemail.com 相符。',
+      placeholder: '輸入電子郵件地址、網域或萬用字元模式',
       duplicate_error: '電子郵件地址、域或通配符電子郵件地址模式已添加',
       invalid_format_error:
         '必須是有效的電子郵件地址（bar@example.com）、域（@example.com）或通配符電子郵件地址模式（foo*@example.com, *@example.com）',

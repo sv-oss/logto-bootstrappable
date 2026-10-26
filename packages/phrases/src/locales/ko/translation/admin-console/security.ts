@@ -36,6 +36,11 @@ const security = {
       description:
         'Cloudflare의 스마트 CAPTCHA 대안으로, 시각적 퍼즐 없이 원활한 사용자 경험을 보장하면서 비침투적인 봇 보호를 제공합니다.',
     },
+    cap: {
+      name: 'Cap',
+      description:
+        '시각적 퍼즐이나 타사 서비스 없이 작업 증명을 사용하는 오픈 소스 자체 호스팅 CAPTCHA로, 다른 CAPTCHA 서비스에 접근할 수 없는 지역에 적합합니다.',
+    },
   },
   captcha_details: {
     back_to_security: '보안으로 돌아가기',
@@ -51,6 +56,10 @@ const security = {
     domain_placeholder: 'www.google.com (기본값) 또는 recaptcha.net',
     recaptcha_key_id: 'reCAPTCHA 키 ID',
     recaptcha_api_key: '프로젝트의 API 키',
+    cap_endpoint: 'Cap 엔드포인트',
+    cap_endpoint_placeholder: 'https://cap.example.com',
+    cap_endpoint_http_notice:
+      '이 엔드포인트는 HTTP를 사용하므로 로컬 개발에만 적합합니다. 브라우저는 HTTPS 로그인 페이지의 HTTP 요청을 차단하며, 시크릿 키가 암호화되지 않은 채 전송됩니다. 프로덕션에서는 HTTPS를 사용하세요.',
     deletion_description: '이 CAPTCHA 제공자를 삭제하시겠습니까?',
     captcha_deleted: 'CAPTCHA 제공자가 성공적으로 삭제되었습니다',
     setup_captcha: 'CAPTCHA 설정',
@@ -59,6 +68,10 @@ const security = {
     mode_checkbox: '체크박스',
     mode_notice:
       '인증 모드는 Google Cloud Console의 reCAPTCHA 키 설정에서 정의됩니다. 여기서 모드를 변경하려면 일치하는 키 유형이 필요합니다.',
+    score_threshold: '점수 임계값',
+    score_threshold_description:
+      '임계값보다 낮은 점수는 거부됩니다. 0.0은 모든 점수를 허용하고 1.0은 완벽한 점수만 허용합니다. 기본값은 0.5입니다.',
+    score_threshold_error: '점수 임계값은 0에서 1 사이여야 합니다.',
   },
   password_policy: {
     password_requirements: '비밀번호 요구사항',
@@ -159,9 +172,8 @@ const security = {
     custom_email_allowlist: {
       title: '사용자 지정 이메일 주소 허용',
       description:
-        '새 가입 및 새로 연결되는 이메일에는 일치하는 이메일 주소, 도메인 또는 와일드카드 이메일 주소 패턴만 허용합니다.',
-      placeholder:
-        '허용할 이메일 주소, 도메인 또는 와일드카드 이메일 주소 패턴을 입력하세요(예: bar@example.com, @example.com, foo*@example.com, *@example.com)',
+        '신규 가입 및 새로 연결되는 이메일에 특정 이메일 도메인, 이메일 주소 또는 와일드카드 패턴만 허용하는 규칙을 추가하세요. 예: bar@example.com, @example.com, foo*@example.com, *@example.com. gmail.com과 googlemail.com 도메인은 동일하게 처리되며 로컬 부분의 점은 무시되므로 foo.bar@gmail.com은 foobar@googlemail.com과 일치합니다.',
+      placeholder: '이메일 주소, 도메인 또는 와일드카드 패턴 입력',
       duplicate_error: '이메일 주소, 도메인 또는 와일드카드 이메일 주소 패턴이 이미 추가되었습니다',
       invalid_format_error:
         '유효한 이메일 주소(bar@example.com), 도메인(@example.com) 또는 와일드카드 이메일 주소 패턴(foo*@example.com, *@example.com)이어야 합니다',
@@ -189,9 +201,8 @@ const security = {
     custom_email_address: {
       title: '사용자 정의 이메일 주소 차단',
       description:
-        '특정 이메일 도메인, 이메일 주소 또는 와일드카드 이메일 주소 패턴이 UI를 통해 등록되거나 연결되지 않도록 차단하는 규칙을 추가합니다.',
-      placeholder:
-        '차단할 이메일 주소, 도메인 또는 와일드카드 이메일 주소 패턴을 입력하세요 (예: bar@example.com, @example.com, foo*@example.com, *@example.com)',
+        '특정 이메일 도메인, 이메일 주소 또는 와일드카드 패턴이 UI를 통해 등록되거나 연결되지 않도록 하는 규칙을 추가하세요. 예: bar@example.com, @example.com, foo*@example.com, *@example.com. gmail.com과 googlemail.com 도메인은 동일하게 처리되며 로컬 부분의 점은 무시되므로 foo.bar@gmail.com은 foobar@googlemail.com과 일치합니다.',
+      placeholder: '이메일 주소, 도메인 또는 와일드카드 패턴 입력',
       duplicate_error: '이메일 주소, 도메인 또는 와일드카드 이메일 주소 패턴이 이미 추가되었습니다',
       invalid_format_error:
         '유효한 이메일 주소(bar@example.com), 도메인(@example.com) 또는 와일드카드 이메일 주소 패턴(foo*@example.com, *@example.com)이어야 합니다',

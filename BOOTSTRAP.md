@@ -9,7 +9,7 @@ The bootstrap runs automatically as part of `pnpm cli db seed` (or `npm run cli 
 The typical Docker entrypoint is:
 
 ```bash
-npm run cli db seed -- --swe && npm run cli db alteration deploy 1.41.0 && npm start
+npm run cli db seed -- --swe && npm run cli db alteration deploy 1.45.0 && npm start
 ```
 
 This means: seed (and bootstrap) only on the first run, deploy any pending database alterations,
@@ -306,7 +306,7 @@ services:
       - /bin/sh
       - -c
       - |
-        npm run cli db seed -- --swe && npm run cli db alteration deploy 1.41.0 && npm start
+        npm run cli db seed -- --swe && npm run cli db alteration deploy 1.45.0 && npm start
     environment:
       # Core Logto configuration
       - DB_URL=postgres://postgres:p0stgr3s@postgres:5432/logto
@@ -384,7 +384,7 @@ volumes:
 
 1. **Idempotent via `--swe`:** The bootstrap runs inside the `db seed` transaction. With `--swe`, seeding (and bootstrap) is skipped if the database already exists. This means bootstrap data is created once on first init.
 
-2. **Alterations on every start:** Run `npm run cli db alteration deploy 1.41.0` after seeding and before
+2. **Alterations on every start:** Run `npm run cli db alteration deploy 1.45.0` after seeding and before
    starting Logto. It is a no-op when the database is current and applies required schema changes
    when an existing environment is upgraded.
 

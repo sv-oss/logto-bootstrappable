@@ -12,6 +12,8 @@ const tenant_members = {
   invite_modal: {
     title: 'Invitar personas a Logto Cloud',
     subtitle: 'Para invitar miembros a una organización, deben aceptar la invitación.',
+    subtitle_oss:
+      'Los miembros invitados reciben acceso completo de administrador a esta instancia de Logto.',
     to: 'Para',
     added_as: 'Añadido como roles',
     email_input_placeholder: 'johndoe@example.com',

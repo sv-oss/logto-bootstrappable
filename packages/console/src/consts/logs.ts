@@ -17,6 +17,7 @@ export const auditLogEventTitle = Object.freeze({
   'Interaction.Register.Update': 'Update register interaction',
   'Interaction.SignIn.Profile.Update': 'Patch update sign-in interaction profile',
   'Interaction.SignIn.Submit': 'Submit sign-in interaction',
+  'Interaction.SignIn.StepUp.Submit': 'Submit step-up authentication',
   'Interaction.SignIn.Update': 'Update sign-in interaction',
   'Interaction.Register.Create': 'Create new register interaction',
   'Interaction.SignIn.Create': 'Create new sign-in interaction',
@@ -95,6 +96,8 @@ export const auditLogEventTitle = Object.freeze({
   'SamlApplication.Callback': 'Handle SAML application callback',
   'Action.PostFirstFactorVerification': 'Execute post first-factor verification action',
   'Action.PostSignIn': 'Execute post sign-in action',
+  'TrustedDevice.Created': 'Create trusted device',
+  'TrustedDevice.Used': 'Use trusted device',
 } satisfies Partial<Record<Exclude<AuditLogKey, interaction.DeprecatedInteractionLogKey>, string>>);
 
 export const logEventTitle: Record<string, Optional<string>> & {

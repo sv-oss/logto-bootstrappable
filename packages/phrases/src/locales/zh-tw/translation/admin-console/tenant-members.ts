@@ -12,6 +12,7 @@ const tenant_members = {
   invite_modal: {
     title: '邀請加入 Logto Cloud',
     subtitle: '要邀請成員加入組織，必須接受邀請。',
+    subtitle_oss: '受邀成員將獲得此 Logto 執行個體的完整管理員權限。',
     to: '寄至',
     added_as: '以角色新增',
     email_input_placeholder: 'johndoe@example.com',

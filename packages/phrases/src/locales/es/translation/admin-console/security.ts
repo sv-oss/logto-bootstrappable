@@ -36,6 +36,11 @@ const security = {
       description:
         'La alternativa inteligente de CAPTCHA de Cloudflare que proporciona protección contra bots no intrusiva mientras garantiza una experiencia de usuario fluida sin acertijos visuales.',
     },
+    cap: {
+      name: 'Cap',
+      description:
+        'CAPTCHA de código abierto y autoalojado basado en prueba de trabajo, sin acertijos visuales ni servicios de terceros, ideal para regiones donde otros servicios de CAPTCHA no son accesibles.',
+    },
   },
   captcha_details: {
     back_to_security: 'Volver a seguridad',
@@ -51,6 +56,10 @@ const security = {
     domain_placeholder: 'www.google.com (predeterminado) o recaptcha.net',
     recaptcha_key_id: 'ID de la clave reCAPTCHA',
     recaptcha_api_key: 'Clave API del proyecto',
+    cap_endpoint: 'Endpoint de Cap',
+    cap_endpoint_placeholder: 'https://cap.example.com',
+    cap_endpoint_http_notice:
+      'Este endpoint usa HTTP, lo que solo es adecuado para el desarrollo local. Los navegadores bloquean las solicitudes HTTP desde una página de inicio de sesión HTTPS y la clave secreta se enviaría sin cifrar. Usa HTTPS en producción.',
     deletion_description: '¿Estás seguro de que quieres eliminar este proveedor de CAPTCHA?',
     captcha_deleted: 'Proveedor de CAPTCHA eliminado con éxito',
     setup_captcha: 'Configurar CAPTCHA',
@@ -59,6 +68,10 @@ const security = {
     mode_checkbox: 'Casilla de verificación',
     mode_notice:
       'El modo de verificación se define en la configuración de tu clave reCAPTCHA en Google Cloud Console. Cambiar el modo aquí requiere un tipo de clave coincidente.',
+    score_threshold: 'Umbral de puntuación',
+    score_threshold_description:
+      'Las puntuaciones por debajo del umbral se rechazan. 0.0 permite todas, 1.0 solo permite puntuaciones perfectas. El valor predeterminado es 0.5.',
+    score_threshold_error: 'El umbral de puntuación debe estar entre 0 y 1.',
   },
   password_policy: {
     password_requirements: 'Requisitos de contraseña',
@@ -172,9 +185,8 @@ const security = {
     custom_email_allowlist: {
       title: 'Permitir direcciones de correo personalizadas',
       description:
-        'Permite solo direcciones de correo, dominios o patrones comodín coincidentes para nuevos registros y correos vinculados recientemente.',
-      placeholder:
-        'Ingresa la dirección de correo, dominio o patrón comodín permitido (p. ej., bar@example.com, @example.com, foo*@example.com, *@example.com)',
+        'Agrega reglas para permitir solo dominios de correo, direcciones de correo o patrones comodín específicos para nuevos registros y correos vinculados recientemente. Ejemplos: bar@example.com, @example.com, foo*@example.com, *@example.com. Los dominios gmail.com y googlemail.com se tratan como equivalentes y los puntos de la parte local se ignoran, por lo que foo.bar@gmail.com coincide con foobar@googlemail.com.',
+      placeholder: 'Ingresa una dirección de correo, dominio o patrón comodín',
       duplicate_error: 'La dirección de correo, dominio o patrón comodín ya se agregó',
       invalid_format_error:
         'Debe ser una dirección de correo válida (bar@example.com), un dominio (@example.com) o un patrón comodín (foo*@example.com, *@example.com)',
@@ -202,9 +214,8 @@ const security = {
     custom_email_address: {
       title: 'Bloquear direcciones de correo electrónico personalizadas',
       description:
-        'Agrega reglas para bloquear dominios de correo específicos, direcciones de correo electrónico o patrones de direcciones de correo con comodines para que no puedan registrarse o vincularse a través de la interfaz de usuario.',
-      placeholder:
-        'Ingresa la dirección de correo electrónico, dominio o patrón de dirección de correo con comodín bloqueado (por ejemplo, bar@example.com, @example.com, foo*@example.com, *@example.com)',
+        'Agrega reglas para impedir que dominios de correo, direcciones de correo o patrones comodín específicos se registren o vinculen mediante la interfaz de usuario. Ejemplos: bar@example.com, @example.com, foo*@example.com, *@example.com. Los dominios gmail.com y googlemail.com se tratan como equivalentes y los puntos de la parte local se ignoran, por lo que foo.bar@gmail.com coincide con foobar@googlemail.com.',
+      placeholder: 'Ingresa una dirección de correo, dominio o patrón comodín',
       duplicate_error:
         'La dirección de correo electrónico, el dominio o el patrón de dirección de correo con comodín ya fue agregado',
       invalid_format_error:

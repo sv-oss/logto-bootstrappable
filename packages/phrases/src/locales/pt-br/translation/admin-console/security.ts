@@ -36,6 +36,11 @@ const security = {
       description:
         'Alternativa inteligente de CAPTCHA da Cloudflare que oferece proteção contra bots sem interrupções, garantindo uma experiência de usuário perfeita sem quebra-cabeças visuais.',
     },
+    cap: {
+      name: 'Cap',
+      description:
+        'CAPTCHA de código aberto e auto-hospedado baseado em prova de trabalho, sem quebra-cabeças visuais ou serviços de terceiros, ideal para regiões onde outros serviços de CAPTCHA não estão acessíveis.',
+    },
   },
   captcha_details: {
     back_to_security: 'Voltar para Segurança',
@@ -51,6 +56,10 @@ const security = {
     domain_placeholder: 'www.google.com (padrão) ou recaptcha.net',
     recaptcha_key_id: 'ID da chave reCAPTCHA',
     recaptcha_api_key: 'Chave da API do projeto',
+    cap_endpoint: 'Endpoint do Cap',
+    cap_endpoint_placeholder: 'https://cap.example.com',
+    cap_endpoint_http_notice:
+      'Este endpoint usa HTTP, o que só é adequado para desenvolvimento local. Os navegadores bloqueiam solicitações HTTP de uma página de login HTTPS, e a chave secreta seria enviada sem criptografia. Use HTTPS em produção.',
     deletion_description: 'Tem certeza de que deseja excluir este provedor de CAPTCHA?',
     captcha_deleted: 'Provedor de CAPTCHA excluído com sucesso',
     setup_captcha: 'Configurar CAPTCHA',
@@ -59,6 +68,10 @@ const security = {
     mode_checkbox: 'Caixa de seleção',
     mode_notice:
       'O modo de verificação é definido nas configurações da chave reCAPTCHA no Google Cloud Console. Alterar o modo aqui requer um tipo de chave correspondente.',
+    score_threshold: 'Limite de pontuação',
+    score_threshold_description:
+      'Pontuações abaixo do limite são rejeitadas. 0.0 permite todas, 1.0 só permite pontuações perfeitas. O padrão é 0.5.',
+    score_threshold_error: 'O limite de pontuação deve estar entre 0 e 1.',
   },
   password_policy: {
     password_requirements: 'Requisitos de senha',
@@ -172,9 +185,8 @@ const security = {
     custom_email_allowlist: {
       title: 'Permitir endereços de e-mail personalizados',
       description:
-        'Permita apenas endereços de e-mail, domínios ou padrões curinga correspondentes para novos cadastros e e-mails recém-vinculados.',
-      placeholder:
-        'Insira o endereço de e-mail, domínio ou padrão curinga permitido (ex.: bar@example.com, @example.com, foo*@example.com, *@example.com)',
+        'Adicione regras para permitir apenas domínios de e-mail, endereços de e-mail ou padrões curinga específicos para novos cadastros e e-mails recém-vinculados. Exemplos: bar@example.com, @example.com, foo*@example.com, *@example.com. Os domínios gmail.com e googlemail.com são tratados como equivalentes e os pontos na parte local são ignorados, portanto foo.bar@gmail.com corresponde a foobar@googlemail.com.',
+      placeholder: 'Insira um endereço de e-mail, domínio ou padrão curinga',
       duplicate_error: 'Endereço de e-mail, domínio ou padrão curinga já adicionado',
       invalid_format_error:
         'Deve ser um endereço de e-mail válido (bar@example.com), domínio (@example.com) ou padrão curinga (foo*@example.com, *@example.com)',
@@ -202,9 +214,8 @@ const security = {
     custom_email_address: {
       title: 'Bloquear endereços de email personalizados',
       description:
-        'Adicione regras para bloquear domínios de email específicos, endereços de email ou padrões de endereço de email com curinga de se registrar ou vincular via UI.',
-      placeholder:
-        'Digite o endereço de email, domínio ou padrão de endereço de email com curinga bloqueado (por exemplo, bar@example.com, @example.com, foo*@example.com, *@example.com)',
+        'Adicione regras para impedir que domínios de e-mail, endereços de e-mail ou padrões curinga específicos se registrem ou sejam vinculados pela UI. Exemplos: bar@example.com, @example.com, foo*@example.com, *@example.com. Os domínios gmail.com e googlemail.com são tratados como equivalentes e os pontos na parte local são ignorados, portanto foo.bar@gmail.com corresponde a foobar@googlemail.com.',
+      placeholder: 'Insira um endereço de e-mail, domínio ou padrão curinga',
       duplicate_error:
         'Endereço de email, domínio ou padrão de endereço de email com curinga já adicionado',
       invalid_format_error:

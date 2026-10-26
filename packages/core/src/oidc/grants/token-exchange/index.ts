@@ -8,6 +8,17 @@
  * no upstream counterpart to stay in sync with. It still consumes the shared token-endpoint
  * helpers from v9's `grant_common.js` through the `oidc-provider-internals.js` seam module, so
  * the sender-constraining (mTLS and DPoP) behavior stays aligned with the forked grants.
+ *
+ * This grant is deliberately a first-party-only capability: subject tokens are minted through
+ * the Management API by the tenant's own trusted backends, and the exchange involves no user
+ * consent, while third-party access is governed by the consent model — the two are mutually
+ * exclusive, so third-party applications can never enable this grant type (enforced when
+ * configuring applications, see `assertThirdPartyApplicationTokenExchangeDisabled`). That is
+ * also why no per-client scope filtering happens here: every client that can reach this grant
+ * is first-party and carries no scope allowlist, so issued scopes are capped only by what the
+ * user owns and by the global OIDC scope set. A third party that needs an exchanged token
+ * should obtain it from the tenant's own machine-to-machine backend instead of performing the
+ * exchange itself.
  */
 
 import { buildOrganizationUrn } from '@logto/core-kit';
@@ -93,7 +104,6 @@ export const buildHandler: Handler = (envSet, queries, appAccess) => async (ctx)
       userinfo,
       resourceIndicators,
       mTLS: { getCertificate },
-      dPoP: { allowReplay },
     },
     scopes: oidcScopes,
     findAccount,
@@ -133,7 +143,12 @@ export const buildHandler: Handler = (envSet, queries, appAccess) => async (ctx)
     clientId: client.clientId,
   } as ConstructorParameters<typeof Grant>[0]);
 
-  const { organizationId } = await checkOrganizationAccess(ctx, queries, account, isThirdParty);
+  const { organizationId } = await checkOrganizationAccess(ctx, {
+    envSet,
+    queries,
+    account,
+    isThirdParty,
+  });
 
   const accessToken = createAccessToken(
     ctx,
@@ -148,7 +163,7 @@ export const buildHandler: Handler = (envSet, queries, appAccess) => async (ctx)
     ...(subjectTokenId ? { subjectTokenId } : {}),
   };
 
-  await applyDpopBinding(ctx, dPoP, accessToken, allowReplay);
+  await applyDpopBinding(ctx, dPoP, accessToken);
   checkDpopRequired(ctx, dPoP);
 
   const cert = checkMtlsCert(ctx, getCertificate);

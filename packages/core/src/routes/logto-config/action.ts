@@ -12,8 +12,8 @@ import { buildSafeActionErrorSummary } from '#src/libraries/action-sanitization.
 import koaGuard from '#src/middleware/koa-guard.js';
 import { koaQuotaGuard } from '#src/middleware/koa-quota-guard.js';
 import { getConsoleLogFromContext } from '#src/utils/console.js';
-import { isRecord } from '#src/utils/sensitive-data.js';
 import { actionQuotaKey } from '#src/utils/subscription/types.js';
+import { isRecord } from '#src/utils/type.js';
 
 import type { ManagementApiRouter, RouterInitArgs } from '../types.js';
 
@@ -84,8 +84,9 @@ export default function logtoConfigActionRoutes<T extends ManagementApiRouter>(
       const { body } = ctx.guard;
 
       try {
-        // Share the same Cloud/local execution selection as production `runAction()`.
-        const result = await libraries.actions.executeScript(body);
+        // Share the same Cloud/local execution selection as production `runAction()`, flagged as
+        // a dry run so the Cloud runner does not account for it as production traffic.
+        const result = await libraries.actions.executeScript({ ...body, isTest: true });
 
         if (result === undefined) {
           ctx.status = 204;

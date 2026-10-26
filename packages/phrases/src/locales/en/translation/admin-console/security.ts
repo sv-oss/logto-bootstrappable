@@ -38,6 +38,11 @@ const security = {
       description:
         "Cloudflare's smart CAPTCHA alternative that provides non-intrusive bot protection while ensuring a seamless user experience without visual puzzles.",
     },
+    cap: {
+      name: 'Cap',
+      description:
+        'Open-source, self-hosted proof-of-work CAPTCHA without visual puzzles or third-party services, ideal for regions where other CAPTCHA services are unreachable.',
+    },
   },
   captcha_details: {
     back_to_security: 'Back to security',
@@ -53,6 +58,10 @@ const security = {
     domain_placeholder: 'www.google.com (default) or recaptcha.net',
     recaptcha_key_id: 'reCAPTCHA key ID',
     recaptcha_api_key: 'API key of the project',
+    cap_endpoint: 'Cap endpoint',
+    cap_endpoint_placeholder: 'https://cap.example.com',
+    cap_endpoint_http_notice:
+      'This endpoint uses HTTP, which is only suitable for local development. Browsers block HTTP requests from an HTTPS sign-in page, and the secret key would be sent unencrypted. Use HTTPS in production.',
     deletion_description: 'Are you sure you want to delete this CAPTCHA provider?',
     captcha_deleted: 'CAPTCHA provider deleted successfully',
     setup_captcha: 'Setup CAPTCHA',
@@ -61,6 +70,10 @@ const security = {
     mode_checkbox: 'Checkbox',
     mode_notice:
       'The verification mode is defined in your reCAPTCHA key settings in Google Cloud Console. Changing the mode here requires a matching key type.',
+    score_threshold: 'Score threshold',
+    score_threshold_description:
+      'Scores below the threshold are rejected. 0.0 allows all, 1.0 only allows perfect scores. Default is 0.5.',
+    score_threshold_error: 'Score threshold must be between 0 and 1.',
   },
   password_policy: {
     password_requirements: 'Password requirements',
@@ -168,9 +181,8 @@ const security = {
     custom_email_allowlist: {
       title: 'Allow custom email addresses',
       description:
-        'Allow only matching email addresses, domains, or wildcard email address patterns for new sign-ups and newly linked emails.',
-      placeholder:
-        'Enter the allowed email address, domain, or wildcard email address pattern (e.g., bar@example.com, @example.com, foo*@example.com, *@example.com)',
+        'Add rules to allow only specific email domains, email addresses, or wildcard patterns for new sign-ups and newly linked emails. Examples: bar@example.com, @example.com, foo*@example.com, *@example.com. The gmail.com and googlemail.com domains are treated as equivalent, and dots in the local part are ignored, so foo.bar@gmail.com matches foobar@googlemail.com.',
+      placeholder: 'Enter an email address, domain, or wildcard pattern',
       duplicate_error: 'Email address, domain, or wildcard email address pattern already added',
       invalid_format_error:
         'Must be a valid email address (bar@example.com), domain (@example.com), or wildcard email address pattern (foo*@example.com, *@example.com)',
@@ -198,9 +210,8 @@ const security = {
     custom_email_address: {
       title: 'Block custom email addresses',
       description:
-        'Add rules to block specific email domains, email addresses, or wildcard email address patterns from registering or linking via the UI.',
-      placeholder:
-        'Enter the blocked email address, domain, or wildcard email address pattern (e.g., bar@example.com, @example.com, foo*@example.com, *@example.com)',
+        'Add rules to block specific email domains, email addresses, or wildcard patterns from registering or linking via the UI. Examples: bar@example.com, @example.com, foo*@example.com, *@example.com. The gmail.com and googlemail.com domains are treated as equivalent, and dots in the local part are ignored, so foo.bar@gmail.com matches foobar@googlemail.com.',
+      placeholder: 'Enter an email address, domain, or wildcard pattern',
       duplicate_error: 'Email address, domain, or wildcard email address pattern already added',
       invalid_format_error:
         'Must be a valid email address (bar@example.com), domain (@example.com), or wildcard email address pattern (foo*@example.com, *@example.com)',

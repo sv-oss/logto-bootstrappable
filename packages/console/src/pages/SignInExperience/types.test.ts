@@ -17,6 +17,7 @@ const createAccountCenterFields = (
   profile: AccountCenterControlValue.Off,
   customData: AccountCenterControlValue.Off,
   session: AccountCenterControlValue.Off,
+  trustedDevice: AccountCenterControlValue.Off,
   ...overrides,
 });
 
@@ -48,5 +49,27 @@ describe('SignInExperience types utils', () => {
     );
 
     expect(normalizedFields).toHaveProperty('passkey', AccountCenterControlValue.Edit);
+  });
+
+  it('omits the default trusted-device field when the original config did not set it', () => {
+    const normalizedFields = normalizeAccountCenterFieldsForSubmit(createAccountCenterFields(), {
+      session: AccountCenterControlValue.Edit,
+    });
+
+    expect(normalizedFields).not.toHaveProperty('trustedDevice');
+  });
+
+  it('keeps the trusted-device field when enabled or already persisted', () => {
+    expect(
+      normalizeAccountCenterFieldsForSubmit(
+        createAccountCenterFields({ trustedDevice: AccountCenterControlValue.Edit }),
+        {}
+      )
+    ).toHaveProperty('trustedDevice', AccountCenterControlValue.Edit);
+    expect(
+      normalizeAccountCenterFieldsForSubmit(createAccountCenterFields(), {
+        trustedDevice: AccountCenterControlValue.Off,
+      })
+    ).toHaveProperty('trustedDevice', AccountCenterControlValue.Off);
   });
 });

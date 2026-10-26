@@ -1,4 +1,5 @@
 import type {
+  AccountTrustedDeviceResponse,
   GetAccountUserSessionsResponse,
   GetUserApplicationGrantsResponse,
   GetThirdPartyAccessTokenResponse,
@@ -256,5 +257,25 @@ export const deleteSession = async (
         options?.revokeGrantsTarget && { revokeGrantsTarget: options.revokeGrantsTarget }
       ),
     }),
+    headers: { [verificationRecordIdHeader]: verificationRecordId },
+  });
+
+export const getTrustedDevicesResponse = async (api: KyInstance, verificationRecordId: string) =>
+  api.get('api/my-account/trusted-devices', {
+    headers: { [verificationRecordIdHeader]: verificationRecordId },
+  });
+
+export const getTrustedDevices = async (api: KyInstance, verificationRecordId: string) => {
+  const response = await getTrustedDevicesResponse(api, verificationRecordId);
+
+  return response.json<AccountTrustedDeviceResponse[]>();
+};
+
+export const deleteTrustedDevice = async (
+  api: KyInstance,
+  trustedDeviceId: string,
+  verificationRecordId: string
+) =>
+  api.delete(`api/my-account/trusted-devices/${trustedDeviceId}`, {
     headers: { [verificationRecordIdHeader]: verificationRecordId },
   });

@@ -1,7 +1,37 @@
-import { home, mfaForkKeys } from './account-center-fork-keys.js';
-
+/* eslint-disable max-lines -- Locale catalog mirrors the complete Account Center phrase schema. */
 const account_center = {
-  home,
+  home: {
+    title: 'My Account',
+    description: 'Manage your profile and account security.',
+    personal_info_section: 'Personal information',
+    security_section: 'Security',
+    not_set: 'Not set',
+    action_edit: 'Edit',
+    action_add: 'Add',
+    action_view: 'View',
+    manage: 'Manage',
+    field_name: 'Display name',
+    field_avatar: 'Avatar',
+    field_username: 'Username',
+    field_email: 'Email address',
+    field_phone: 'Phone number',
+    field_given_name: 'Given name',
+    field_family_name: 'Family name',
+    field_password: 'Password',
+    field_2fa: 'Two-factor authentication',
+    field_authenticator_app: 'Authenticator app',
+    field_passkeys: 'Passkeys',
+    field_backup_codes: 'Backup codes',
+    password_set: 'Set',
+    password_not_set: 'Not set',
+    totp_active: 'Active',
+    passkeys_count: '{{count}} passkey registered',
+    passkeys_count_plural: '{{count}} passkeys registered',
+    no_fields_available:
+      'No user attributes are available for editing, please contact your administrator.',
+    return_to_account: 'Back to account',
+    sign_out: 'Sign out',
+  },
   page: {
     title: 'Account',
     security_title: 'Security',
@@ -12,6 +42,8 @@ const account_center = {
     sidebar_security: 'Security',
     sidebar_sessions: 'Sessions',
     support: 'Support',
+    user_menu: 'User menu',
+    sign_out: 'Sign out',
   },
   verification: {
     title: 'Security verification',
@@ -119,6 +151,21 @@ const account_center = {
     email_removed: 'Email address removed successfully.',
     phone_removed: 'Phone number removed successfully.',
     username_removed: 'Username removed successfully.',
+    trusted_devices: {
+      title: 'MFA trusted devices',
+      current_device: 'Current device',
+      expires_on: 'Expire on {{date}}',
+      unknown_location: 'Unknown location',
+      remove: 'Remove',
+      removed: 'Trusted device removed successfully.',
+      loading: 'Loading...',
+      empty: 'No trusted devices.',
+      load_failed: 'Failed to load trusted devices. Please try again.',
+      retry: 'Try again',
+      remove_confirmation_title: 'Remove trusted device?',
+      remove_confirmation_description:
+        "You'll need to complete MFA again on this device the next time you sign in. Your current session will stay active.",
+    },
   },
   social: {
     linked: '{{connector}} linked successfully.',
@@ -185,7 +232,13 @@ const account_center = {
       'Passkey is not enabled. Please contact your administrator for assistance.',
     passkey_already_registered:
       'This passkey is already registered to your account. Please use a different authenticator.',
-    ...mfaForkKeys,
+    totp_manage_title: 'Manage authenticator app',
+    totp_manage_description:
+      'Your authenticator app is currently active. Remove it to disable OTP two-factor authentication.',
+    totp_remove: 'Remove authenticator app',
+    totp_removed: 'Authenticator app removed.',
+    totp_remove_confirm_description:
+      'Are you sure you want to remove your authenticator app? You will no longer be able to use it for two-factor authentication.',
   },
   update_success: {
     default: {
@@ -275,12 +328,15 @@ const account_center = {
     no_third_party_apps: 'No authorized third-party applications.',
     third_party_apps_load_failed: 'Failed to load third-party apps. Please try again.',
     granted_at: 'Authorized {{date}}',
+    dynamic_app: 'Dynamic app',
+    client_id: 'Client ID: {{clientId}}',
     revoke_grant: 'Remove',
     revoke_grant_title: 'Remove third-party app access',
     revoke_grant_description:
-      'This will revoke all access granted to this application. Are you sure you want to continue?',
+      'This will revoke the access granted to this application. Previously issued access tokens may remain valid until they expire. Are you sure you want to continue?',
     revoke_grant_failed: 'Failed to revoke some grants. Please try again.',
   },
 };
 
 export default Object.freeze(account_center);
+/* eslint-enable max-lines */

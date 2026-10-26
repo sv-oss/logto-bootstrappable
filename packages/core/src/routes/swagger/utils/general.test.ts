@@ -1,9 +1,16 @@
+import fs from 'node:fs/promises';
+
 import { type OpenAPIV3 } from 'openapi-types';
 
 import { EnvSet } from '#src/env-set/index.js';
 import { type DeepPartial } from '#src/test-utils/tenant.js';
 
-import { devFeatureSchemaExtension, removeUnnecessaryOperations } from './general.js';
+import {
+  devFeatureSchemaExtension,
+  removeDevFeatureParameters,
+  removeDevFeatureSchemaProperties,
+  removeUnnecessaryOperations,
+} from './general.js';
 
 const originalIsCloud = EnvSet.values.isCloud;
 const originalIsDevFeaturesEnabled = EnvSet.values.isDevFeaturesEnabled;
@@ -19,6 +26,12 @@ const createDevFeatureBooleanSchema = () =>
     [devFeatureSchemaExtension]: true,
   }) satisfies OpenAPIV3.SchemaObject & Record<typeof devFeatureSchemaExtension, true>;
 
+const createDevFeatureStringSchema = () =>
+  ({
+    type: 'string',
+    [devFeatureSchemaExtension]: true,
+  }) satisfies OpenAPIV3.SchemaObject & Record<typeof devFeatureSchemaExtension, true>;
+
 const createDocument = (): DeepPartial<OpenAPIV3.Document> => ({
   openapi: '3.0.1',
   info: {
@@ -28,6 +41,18 @@ const createDocument = (): DeepPartial<OpenAPIV3.Document> => ({
   paths: {
     '/api/mock': {
       patch: {
+        parameters: [
+          {
+            name: 'stable',
+            in: 'query',
+            schema: { type: 'string' },
+          },
+          {
+            name: 'betaParameter',
+            in: 'query',
+            schema: createDevFeatureStringSchema(),
+          },
+        ],
         requestBody: {
           content: {
             'application/json': {
@@ -69,21 +94,35 @@ const createDevFeatureOperationDocument = (): DeepPartial<OpenAPIV3.Document> =>
   },
 });
 
+const loadSearchDocument = async (): Promise<DeepPartial<OpenAPIV3.Document>> =>
+  JSON.parse(
+    await fs.readFile(new URL('../../admin-user/search.openapi.json', import.meta.url), 'utf8')
+  ) as DeepPartial<OpenAPIV3.Document>;
+
 describe('swagger general utils', () => {
   afterEach(() => {
     Reflect.set(EnvSet.values, 'isCloud', originalIsCloud);
     setDevFeaturesEnabled(originalIsDevFeaturesEnabled);
   });
 
-  it('should remove dev feature schema properties when dev features are disabled', () => {
+  it('should remove dev feature schema properties and parameters when dev features are disabled', () => {
     setDevFeaturesEnabled(false);
 
-    const document = removeUnnecessaryOperations(createDocument());
+    const document = createDocument();
+    removeDevFeatureParameters(document);
+    removeDevFeatureSchemaProperties(document);
 
     expect(document).toMatchObject({
       paths: {
         '/api/mock': {
           patch: {
+            parameters: [
+              {
+                name: 'stable',
+                in: 'query',
+                schema: { type: 'string' },
+              },
+            ],
             requestBody: {
               content: {
                 'application/json': {
@@ -103,18 +142,33 @@ describe('swagger general utils', () => {
       },
     });
     expect(JSON.stringify(document)).not.toContain('beta');
+    expect(JSON.stringify(document)).not.toContain('betaParameter');
     expect(JSON.stringify(document)).not.toContain(devFeatureSchemaExtension);
   });
 
-  it('should keep dev feature schema properties without exposing the internal marker when dev features are enabled', () => {
+  it('should keep dev feature schema properties and parameters without exposing the internal marker when dev features are enabled', () => {
     setDevFeaturesEnabled(true);
 
-    const document = removeUnnecessaryOperations(createDocument());
+    const document = createDocument();
+    removeDevFeatureParameters(document);
+    removeDevFeatureSchemaProperties(document);
 
     expect(document).toMatchObject({
       paths: {
         '/api/mock': {
           patch: {
+            parameters: [
+              {
+                name: 'stable',
+                in: 'query',
+                schema: { type: 'string' },
+              },
+              {
+                name: 'betaParameter',
+                in: 'query',
+                schema: { type: 'string' },
+              },
+            ],
             requestBody: {
               content: {
                 'application/json': {
@@ -150,5 +204,20 @@ describe('swagger general utils', () => {
       },
     });
     expect(document.paths).not.toHaveProperty('/api/dev');
+  });
+
+  it('should always expose external identity lookup parameters', async () => {
+    const document = await loadSearchDocument();
+    removeUnnecessaryOperations(document);
+    removeDevFeatureParameters(document);
+    removeDevFeatureSchemaProperties(document);
+    expect(document.paths?.['/api/users']?.get?.parameters).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: 'identityType' }),
+        expect.objectContaining({ name: 'identityProvider' }),
+        expect.objectContaining({ name: 'identityId' }),
+      ])
+    );
+    expect(JSON.stringify(document)).not.toContain(devFeatureSchemaExtension);
   });
 });

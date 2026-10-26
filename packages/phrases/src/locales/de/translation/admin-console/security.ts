@@ -36,6 +36,11 @@ const security = {
       description:
         'Cloudflares intelligente CAPTCHA-Alternative, die einen nicht aufdringlichen Bot-Schutz bietet und gleichzeitig eine nahtlose Benutzererfahrung ohne visuelle Rätsel gewährleistet.',
     },
+    cap: {
+      name: 'Cap',
+      description:
+        'Open-Source-CAPTCHA mit Proof-of-Work zum Selbsthosten, ohne visuelle Rätsel oder Drittanbieterdienste – ideal für Regionen, in denen andere CAPTCHA-Dienste nicht erreichbar sind.',
+    },
   },
   captcha_details: {
     back_to_security: 'Zurück zur Sicherheit',
@@ -51,6 +56,10 @@ const security = {
     domain_placeholder: 'www.google.com (Standard) oder recaptcha.net',
     recaptcha_key_id: 'reCAPTCHA-Schlüssel-ID',
     recaptcha_api_key: 'API-Schlüssel des Projekts',
+    cap_endpoint: 'Cap-Endpunkt',
+    cap_endpoint_placeholder: 'https://cap.example.com',
+    cap_endpoint_http_notice:
+      'Dieser Endpunkt verwendet HTTP und eignet sich nur für die lokale Entwicklung. Browser blockieren HTTP-Anfragen von einer HTTPS-Anmeldeseite, und der geheime Schlüssel würde unverschlüsselt übertragen. Verwende in der Produktion HTTPS.',
     deletion_description: 'Sind Sie sicher, dass Sie diesen CAPTCHA-Anbieter löschen möchten?',
     captcha_deleted: 'CAPTCHA-Anbieter erfolgreich gelöscht',
     setup_captcha: 'CAPTCHA einrichten',
@@ -59,6 +68,10 @@ const security = {
     mode_checkbox: 'Kontrollkästchen',
     mode_notice:
       'Der Überprüfungsmodus wird in Ihren reCAPTCHA-Schlüsseleinstellungen in der Google Cloud Console definiert. Zum Ändern des Modus hier ist ein passender Schlüsseltyp erforderlich.',
+    score_threshold: 'Punkteschwelle',
+    score_threshold_description:
+      'Bewertungen unterhalb des Schwellenwerts werden abgelehnt. 0.0 erlaubt alle, 1.0 nur perfekte Bewertungen. Standard ist 0.5.',
+    score_threshold_error: 'Die Punkteschwelle muss zwischen 0 und 1 liegen.',
   },
   password_policy: {
     password_requirements: 'Passwortanforderungen',
@@ -171,9 +184,8 @@ const security = {
     custom_email_allowlist: {
       title: 'Benutzerdefinierte E-Mail-Adressen zulassen',
       description:
-        'Erlaube nur passende E-Mail-Adressen, Domains oder Wildcard-E-Mail-Muster für neue Registrierungen und neu verknüpfte E-Mails.',
-      placeholder:
-        'Gib die erlaubte E-Mail-Adresse, Domain oder das Wildcard-E-Mail-Muster ein (z. B. bar@example.com, @example.com, foo*@example.com, *@example.com)',
+        'Fügen Sie Regeln hinzu, um nur bestimmte E-Mail-Domains, E-Mail-Adressen oder Wildcard-Muster für neue Registrierungen und neu verknüpfte E-Mails zuzulassen. Beispiele: bar@example.com, @example.com, foo*@example.com, *@example.com. Die Domains gmail.com und googlemail.com werden als gleichwertig behandelt und Punkte im lokalen Teil werden ignoriert, daher entspricht foo.bar@gmail.com der Adresse foobar@googlemail.com.',
+      placeholder: 'E-Mail-Adresse, Domain oder Wildcard-Muster eingeben',
       duplicate_error:
         'E-Mail-Adresse, Domain oder Wildcard-E-Mail-Muster wurde bereits hinzugefügt',
       invalid_format_error:
@@ -202,9 +214,8 @@ const security = {
     custom_email_address: {
       title: 'Benutzerdefinierte E-Mail-Adressen blockieren',
       description:
-        'Fügen Sie Regeln hinzu, um spezifische E-Mail-Domains, E-Mail-Adressen oder E-Mail-Adressmuster mit Platzhaltern an der Registrierung oder Verknüpfung über die Benutzeroberfläche zu hindern.',
-      placeholder:
-        'Geben Sie die blockierte E-Mail-Adresse, Domain oder das E-Mail-Adressmuster mit Platzhalter ein (zum Beispiel, bar@example.com, @example.com, foo*@example.com, *@example.com)',
+        'Fügen Sie Regeln hinzu, um bestimmte E-Mail-Domains, E-Mail-Adressen oder Wildcard-Muster an der Registrierung oder Verknüpfung über die Benutzeroberfläche zu hindern. Beispiele: bar@example.com, @example.com, foo*@example.com, *@example.com. Die Domains gmail.com und googlemail.com werden als gleichwertig behandelt und Punkte im lokalen Teil werden ignoriert, daher entspricht foo.bar@gmail.com der Adresse foobar@googlemail.com.',
+      placeholder: 'E-Mail-Adresse, Domain oder Wildcard-Muster eingeben',
       duplicate_error:
         'E-Mail-Adresse, Domain oder E-Mail-Adressmuster mit Platzhalter bereits hinzugefügt',
       invalid_format_error:

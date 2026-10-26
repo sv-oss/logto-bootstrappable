@@ -1,8 +1,10 @@
+/* eslint-disable max-lines -- the CIMD grant scenarios push the suite over the limit */
 import { UserScope } from '@logto/core-kit';
 import { type KoaContextWithOIDC, errors, type Adapter } from 'oidc-provider';
 import Sinon from 'sinon';
 
 import { mockApplication } from '#src/__mocks__/index.js';
+import { type EnvSet } from '#src/env-set/index.js';
 import RequestError from '#src/errors/RequestError/index.js';
 import { getProviderConfiguration } from '#src/oidc/oidc-provider-internals.js';
 import { createOidcContext } from '#src/test-utils/oidc-provider.js';
@@ -140,6 +142,18 @@ const stubAccount = (ctx: KoaContextWithOIDC, overrideAccountId = accountId) => 
   });
 };
 
+/** The real `IdToken` constructor rejects the mocked plain-object client. */
+class StubIdToken {
+  scope?: string;
+  mask?: unknown;
+  rejected?: unknown;
+  set = jest.fn();
+  issue = jest.fn().mockResolvedValue('stub_id_token');
+}
+
+const stubIdToken = (ctx: KoaContextWithOIDC) =>
+  Sinon.stub(ctx.oidc.provider, 'IdToken').value(StubIdToken);
+
 const createAccessDeniedError = (message: string, statusCode: number) => {
   const error = new errors.AccessDenied(message);
   // eslint-disable-next-line @silverhand/fp/no-mutation
@@ -270,6 +284,23 @@ describe('refresh token grant', () => {
     );
   });
 
+  it('should throw before consuming the refresh token when the user is suspended', async () => {
+    const ctx = createOidcContext(validOidcContext);
+    const consume = jest.fn();
+    stubRefreshToken(ctx, { consume });
+    stubGrant(ctx);
+    // The suspension check lives in `findAccount` (see `oidc/init.ts`); the grant surfaces its
+    // rejection at the account validation step.
+    Sinon.stub(getProviderConfiguration(ctx.oidc.provider), 'findAccount').rejects(
+      new errors.InvalidGrant('user is suspended')
+    );
+
+    await expect(mockHandler()(ctx)).rejects.toMatchError(
+      new errors.InvalidGrant('user is suspended')
+    );
+    expect(consume).not.toHaveBeenCalled();
+  });
+
   it('should throw when refresh token has been consumed', async () => {
     const ctx = createOidcContext(validOidcContext);
     stubRefreshToken(ctx, {
@@ -377,15 +408,7 @@ describe('refresh token grant', () => {
     });
     stubGrant(ctx, { getRejectedOIDCClaims: jest.fn().mockReturnValue([]) });
     stubAccount(ctx);
-    /** The real `IdToken` constructor rejects the mocked plain-object client. */
-    class StubIdToken {
-      scope?: string;
-      mask?: unknown;
-      rejected?: unknown;
-      set = jest.fn();
-      issue = jest.fn().mockResolvedValue('stub_id_token');
-    }
-    Sinon.stub(ctx.oidc.provider, 'IdToken').value(StubIdToken);
+    stubIdToken(ctx);
     const tenant = new MockTenant();
 
     await expect(mockHandler(tenant)(ctx)).resolves.toBeUndefined();
@@ -393,6 +416,164 @@ describe('refresh token grant', () => {
     expect(claims).toHaveBeenCalledTimes(1);
     expect(claims.mock.calls[0][0]).toBe('id_token');
     expect(claims.mock.calls[0][1]).toBe(requestScope);
+  });
+
+  it('should stop issuing a user scope the client is no longer configured for', async () => {
+    const grantedScopes = ['openid', 'profile', 'email'];
+    const claims = jest.fn().mockResolvedValue({ sub: accountId });
+    const ctx = createOidcContext({
+      ...validOidcContext,
+      requestParamScopes: new Set(grantedScopes),
+      // No `organization_id`: this exercises the plain refresh path with an ID token.
+      params: { refresh_token: 'some_refresh_token', scope: grantedScopes.join(' ') },
+      /** A third-party client whose consent configuration no longer carries `email`. */
+      client: { ...validClient, scope: 'openid offline_access profile' } as unknown as Client,
+      account: { accountId, claims },
+    });
+    stubRefreshToken(ctx, {
+      scope: grantedScopes.join(' '),
+      scopes: new Set(grantedScopes),
+    });
+    stubGrant(ctx, {
+      getOIDCScopeFiltered: jest.fn((filter: Set<string>) =>
+        grantedScopes.filter((scope) => filter.has(scope)).join(' ')
+      ),
+      getRejectedOIDCClaims: jest.fn().mockReturnValue([]),
+    });
+    stubAccount(ctx);
+    stubIdToken(ctx);
+
+    const entityStub = Sinon.stub(ctx.oidc, 'entity');
+    await expect(mockHandler()(ctx)).resolves.toBeUndefined();
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- `entity()` args are typed `unknown`; the assertions below narrow them
+    const [key, value] = entityStub.lastCall.args;
+    expect(key).toBe('AccessToken');
+    expect(value).toMatchObject({ scope: 'openid profile' });
+    // The dropped scope must not reach the ID token claims either.
+    expect(claims.mock.calls[0][1]).toBe('openid profile');
+  });
+
+  it('should issue every granted scope the client still allows', async () => {
+    const grantedScopes = ['openid', 'profile'];
+    const ctx = createOidcContext({
+      ...validOidcContext,
+      requestParamScopes: new Set(grantedScopes),
+      params: { refresh_token: 'some_refresh_token', scope: grantedScopes.join(' ') },
+      client: { ...validClient, scope: 'openid offline_access profile' } as unknown as Client,
+      account: { accountId, claims: jest.fn().mockResolvedValue({ sub: accountId }) },
+    });
+    stubRefreshToken(ctx, {
+      scope: grantedScopes.join(' '),
+      scopes: new Set(grantedScopes),
+    });
+    stubGrant(ctx, {
+      getOIDCScopeFiltered: jest.fn((filter: Set<string>) =>
+        grantedScopes.filter((scope) => filter.has(scope)).join(' ')
+      ),
+      getRejectedOIDCClaims: jest.fn().mockReturnValue([]),
+    });
+    stubAccount(ctx);
+    stubIdToken(ctx);
+
+    const entityStub = Sinon.stub(ctx.oidc, 'entity');
+    await expect(mockHandler()(ctx)).resolves.toBeUndefined();
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- `entity()` args are typed `unknown`; the assertions below narrow them
+    const [key, value] = entityStub.lastCall.args;
+    expect(key).toBe('AccessToken');
+    expect(value).toMatchObject({ scope: 'openid profile' });
+  });
+
+  it('should keep an organization scope sharing its name with a no-longer-allowed user scope', async () => {
+    const requested = [UserScope.Organizations, UserScope.Email];
+    const ctx = createOidcContext({
+      ...validOidcContext,
+      requestParamScopes: new Set(requested),
+      params: {
+        refresh_token: 'some_refresh_token',
+        organization_id: 'some_org_id',
+        scope: requested.join(' '),
+      },
+      /** `email` is no longer in the consent configuration, but is also an organization role scope. */
+      client: {
+        ...validClient,
+        scope: ['openid', 'offline_access', UserScope.Organizations].join(' '),
+      } as unknown as Client,
+    });
+    stubRefreshToken(ctx, {
+      scope: requested.join(' '),
+      scopes: new Set(requested),
+    });
+    stubGrant(ctx, {
+      getOIDCScopeFiltered: jest.fn((filter: Set<string>) =>
+        requested.filter((scope) => filter.has(scope)).join(' ')
+      ),
+    });
+    stubAccount(ctx);
+    const tenant = new MockTenant();
+
+    Sinon.stub(tenant.queries.organizations.relations.users, 'exists').resolves(true);
+    Sinon.stub(tenant.queries.applications, 'findApplicationById').resolves(mockApplication);
+    Sinon.stub(tenant.queries.organizations.relations.usersRoles, 'getUserScopes').resolves([
+      { tenantId: 'default', id: 'email', name: UserScope.Email, description: null },
+    ]);
+    Sinon.stub(tenant.queries.organizations, 'getMfaStatus').resolves({
+      isMfaRequired: false,
+      hasMfaConfigured: false,
+    });
+
+    const entityStub = Sinon.stub(ctx.oidc, 'entity');
+    await expect(mockHandler(tenant)(ctx)).resolves.toBeUndefined();
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- `entity()` args are typed `unknown`; the assertions below narrow them
+    const [key, value] = entityStub.lastCall.args;
+    expect(key).toBe('AccessToken');
+    expect(value).toMatchObject({
+      scope: UserScope.Email,
+      aud: 'urn:logto:organization:some_org_id',
+    });
+  });
+
+  it('should reject an organization token when the client no longer allows the organizations scope', async () => {
+    const requested = [UserScope.Organizations, UserScope.Email];
+    const ctx = createOidcContext({
+      ...validOidcContext,
+      requestParamScopes: new Set(requested),
+      params: {
+        refresh_token: 'some_refresh_token',
+        organization_id: 'some_org_id',
+        scope: requested.join(' '),
+      },
+      client: {
+        ...validClient,
+        scope: ['openid', 'offline_access', UserScope.Email].join(' '),
+      } as unknown as Client,
+    });
+    stubRefreshToken(ctx, {
+      scope: requested.join(' '),
+      scopes: new Set(requested),
+    });
+    stubGrant(ctx, {
+      getOIDCScopeFiltered: jest.fn((filter: Set<string>) =>
+        requested.filter((scope) => filter.has(scope)).join(' ')
+      ),
+    });
+    stubAccount(ctx);
+    const tenant = new MockTenant();
+    Sinon.stub(tenant.queries.organizations.relations.users, 'exists').resolves(true);
+    Sinon.stub(tenant.queries.applications, 'findApplicationById').resolves(mockApplication);
+    Sinon.stub(tenant.queries.organizations, 'getMfaStatus').resolves({
+      isMfaRequired: false,
+      hasMfaConfigured: false,
+    });
+
+    await expect(mockHandler(tenant)(ctx)).rejects.toMatchError(
+      new errors.InsufficientScope(
+        'requested scope is no longer allowed for the client',
+        UserScope.Organizations
+      )
+    );
   });
 
   it('should not explode when everything looks fine', async () => {
@@ -426,3 +607,135 @@ describe('refresh token grant', () => {
     });
   });
 });
+
+describe('refresh token grant for CIMD clients', () => {
+  const cimdClientId = 'https://client.example.com/metadata.json';
+
+  /**
+   * The gate reads only `oidc.cimdEnabled` from the tenant env set; the jest environment keeps
+   * the dev-features and SSRF-protection static flags on already.
+   */
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- minimal env-set stub scoped to the field the gate reads
+  const cimdEnvSet = { oidc: { cimdEnabled: true } } as EnvSet;
+
+  const cimdClient: Client = {
+    clientId: cimdClientId,
+    grantTypeAllowed: jest.fn().mockResolvedValue(true),
+    clientAuthMethod: 'none',
+    metadata: jest.fn(() => ({ client_id: cimdClientId })),
+  } as unknown as Client;
+
+  const buildCimdHandler = (tenant: MockTenant, envSet: EnvSet = cimdEnvSet) =>
+    buildHandler(envSet, tenant.queries, { assertUserHasApplicationAccess });
+
+  const createCimdPreparedContext = (
+    params = validOidcContext.params,
+    grantOverrides?: Partial<Grant> & Record<string, unknown>
+  ) => {
+    const ctx = createOidcContext({
+      ...validOidcContext,
+      params,
+      entities: { ...validOidcContext.entities, Client: cimdClient },
+      client: cimdClient,
+    });
+    stubRefreshToken(ctx, { clientId: cimdClientId });
+    stubGrant(ctx, { clientId: cimdClientId, ...grantOverrides });
+    stubAccount(ctx);
+    return ctx;
+  };
+
+  afterEach(() => {
+    assertUserHasApplicationAccess.mockClear();
+  });
+
+  it('should skip the application access check without an organization_id', async () => {
+    const ctx = createCimdPreparedContext({
+      ...validOidcContext.params,
+      organization_id: undefined,
+    });
+    const tenant = new MockTenant();
+
+    const findApplicationById = Sinon.stub(tenant.queries.applications, 'findApplicationById');
+
+    await expect(buildCimdHandler(tenant)(ctx)).resolves.toBeUndefined();
+
+    expect(assertUserHasApplicationAccess).not.toHaveBeenCalled();
+    expect(findApplicationById.called).toBe(false);
+  });
+
+  it('should throw if the organization is not authorized on the grant', async () => {
+    const ctx = createCimdPreparedContext();
+    const tenant = new MockTenant();
+
+    Sinon.stub(tenant.queries.organizations.relations.users, 'exists').resolves(true);
+    const grantOrganizationExists = Sinon.stub(
+      tenant.queries.cimd.grantOrganizations,
+      'exists'
+    ).resolves(false);
+    const findApplicationById = Sinon.stub(tenant.queries.applications, 'findApplicationById');
+    const userConsentOrganizationExists = Sinon.stub(
+      tenant.queries.applications.userConsentOrganizations,
+      'exists'
+    );
+
+    await expect(buildCimdHandler(tenant)(ctx)).rejects.toMatchError(
+      createAccessDeniedError('organization access is not granted to the application', 403)
+    );
+
+    // The check keys on the grant behind the refresh token, off the application relations.
+    expect(grantOrganizationExists.calledOnceWith(grantId, 'some_org_id')).toBe(true);
+    expect(findApplicationById.called).toBe(false);
+    expect(userConsentOrganizationExists.called).toBe(false);
+  });
+
+  it('should bound the organization token scopes by the grant record and the tenant ceiling', async () => {
+    // The Grant recorded only `foo` under the organization resource.
+    const ctx = createCimdPreparedContext(validOidcContext.params, {
+      getResourceScope: jest.fn().mockReturnValue('foo'),
+    });
+    const tenant = new MockTenant();
+
+    Sinon.stub(tenant.queries.organizations.relations.users, 'exists').resolves(true);
+    Sinon.stub(tenant.queries.cimd.grantOrganizations, 'exists').resolves(true);
+    Sinon.stub(tenant.queries.organizations.relations.usersRoles, 'getUserScopes').resolves([
+      { tenantId: 'default', id: 'foo', name: 'foo', description: 'foo' },
+      { tenantId: 'default', id: 'bar', name: 'bar', description: 'bar' },
+      { tenantId: 'default', id: 'baz', name: 'baz', description: 'baz' },
+    ]);
+    // `foo` and `bar` sit inside the tenant-wide organization-scope ceiling.
+    Sinon.stub(tenant.queries.cimd.organizationScopes, 'findAll').resolves([
+      { tenantId: 'default', id: 'foo', name: 'foo', description: 'foo' },
+      { tenantId: 'default', id: 'bar', name: 'bar', description: 'bar' },
+    ]);
+    Sinon.stub(tenant.queries.organizations, 'getMfaStatus').resolves({
+      isMfaRequired: false,
+      hasMfaConfigured: false,
+    });
+
+    const entityStub = Sinon.stub(ctx.oidc, 'entity');
+    await expect(buildCimdHandler(tenant)(ctx)).resolves.toBeUndefined();
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- `entity()` args are typed `unknown`; the assertions below narrow them
+    const [key, value] = entityStub.lastCall.args;
+    expect(key).toBe('AccessToken');
+    expect(value).toMatchObject({
+      accountId,
+      clientId: cimdClientId,
+      grantId,
+      // Requested `foo bar` ∩ role scopes ∩ ceiling (`foo bar`) ∩ grant record (`foo`):
+      // `bar` survives the ceiling but was never granted under the organization resource.
+      scope: 'foo',
+      aud: 'urn:logto:organization:some_org_id',
+    });
+  });
+
+  it('should keep the application access check for a url client id when CIMD is not effectively enabled', async () => {
+    const ctx = createCimdPreparedContext();
+    const tenant = new MockTenant();
+    assertUserHasApplicationAccess.mockRejectedValueOnce(new RequestError('oidc.access_denied'));
+
+    await expect(buildCimdHandler(tenant, tenant.envSet)(ctx)).rejects.toThrow(errors.AccessDenied);
+    expect(assertUserHasApplicationAccess).toHaveBeenCalled();
+  });
+});
+/* eslint-enable max-lines */

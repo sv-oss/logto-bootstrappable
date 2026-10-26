@@ -35,6 +35,11 @@ const security = {
       description:
         'بديل CAPTCHA الذكي من Cloudflare الذي يوفر حماية ضد الروبوتات دون إزعاج، مما يضمن تجربة مستخدم سلسة دون ألغاز بصرية.',
     },
+    cap: {
+      name: 'Cap',
+      description:
+        'CAPTCHA مفتوح المصدر ومستضاف ذاتيًا يعتمد على إثبات العمل دون ألغاز بصرية أو خدمات خارجية، مثالي للمناطق التي يتعذر فيها الوصول إلى خدمات CAPTCHA الأخرى.',
+    },
   },
   captcha_details: {
     back_to_security: 'العودة إلى الأمان',
@@ -50,6 +55,10 @@ const security = {
     domain_placeholder: 'www.google.com (افتراضي) أو recaptcha.net',
     recaptcha_key_id: 'معرّف مفتاح reCAPTCHA',
     recaptcha_api_key: 'مفتاح API للمشروع',
+    cap_endpoint: 'نقطة نهاية Cap',
+    cap_endpoint_placeholder: 'https://cap.example.com',
+    cap_endpoint_http_notice:
+      'تستخدم نقطة النهاية هذه HTTP، وهو مناسب للتطوير المحلي فقط. تحظر المتصفحات طلبات HTTP من صفحة تسجيل دخول تعمل عبر HTTPS، وسيتم إرسال المفتاح السري دون تشفير. استخدم HTTPS في بيئة الإنتاج.',
     deletion_description: 'هل أنت متأكد أنك تريد حذف مزود CAPTCHA هذا؟',
     captcha_deleted: 'تم حذف موفر CAPTCHA بنجاح',
     setup_captcha: 'إعداد CAPTCHA',
@@ -58,6 +67,10 @@ const security = {
     mode_checkbox: 'مربع اختيار',
     mode_notice:
       'يتم تحديد وضع التحقق في إعدادات مفتاح reCAPTCHA في Google Cloud Console. يتطلب تغيير الوضع هنا نوع مفتاح مطابق.',
+    score_threshold: 'حد النتيجة',
+    score_threshold_description:
+      'يتم رفض النتائج الأقل من الحد الأدنى. 0.0 يسمح بجميع النتائج، 1.0 يسمح فقط بالنتائج المثالية. القيمة الافتراضية هي 0.5.',
+    score_threshold_error: 'يجب أن يكون حد النتيجة بين 0 و 1.',
   },
   password_policy: {
     password_requirements: 'متطلبات كلمة المرور',
@@ -163,9 +176,8 @@ const security = {
     custom_email_allowlist: {
       title: 'السماح بعناوين بريد إلكتروني مخصصة',
       description:
-        'اسمح فقط بعناوين البريد الإلكتروني أو النطاقات أو أنماط عناوين البريد الإلكتروني ذات أحرف البدل المطابقة للتسجيلات الجديدة ورسائل البريد الإلكتروني المرتبطة حديثًا.',
-      placeholder:
-        'أدخل عنوان البريد الإلكتروني أو النطاق أو نمط عنوان البريد الإلكتروني المسموح به (مثل bar@example.com، @example.com، foo*@example.com، *@example.com)',
+        'أضف قواعد للسماح فقط بنطاقات بريد إلكتروني أو عناوين بريد إلكتروني أو أنماط أحرف بدل محددة للتسجيلات الجديدة وعناوين البريد الإلكتروني المرتبطة حديثًا. أمثلة: bar@example.com، @example.com، foo*@example.com، *@example.com. يتم التعامل مع النطاقين gmail.com و googlemail.com على أنهما متكافئان، ويتم تجاهل النقاط في الجزء المحلي، لذا يتطابق foo.bar@gmail.com مع foobar@googlemail.com.',
+      placeholder: 'أدخل عنوان بريد إلكتروني أو نطاقًا أو نمط أحرف بدل',
       duplicate_error:
         'تمت إضافة عنوان البريد الإلكتروني أو النطاق أو نمط عنوان البريد الإلكتروني مسبقًا',
       invalid_format_error:
@@ -194,9 +206,8 @@ const security = {
     custom_email_address: {
       title: 'حظر عناوين البريد الإلكتروني المخصصة',
       description:
-        'أضف قواعد لحظر نطاقات بريد إلكتروني محددة أو عناوين بريد إلكتروني أو أنماط عناوين بريد إلكتروني بأحرف بدل من التسجيل أو الارتباط عبر واجهة المستخدم.',
-      placeholder:
-        'أدخل عنوان البريد الإلكتروني أو النطاق أو نمط عنوان البريد الإلكتروني بأحرف بدل المحظور (مثل، bar@example.com، @example.com، foo*@example.com، *@example.com)',
+        'أضف قواعد لمنع نطاقات بريد إلكتروني أو عناوين بريد إلكتروني أو أنماط أحرف بدل محددة من التسجيل أو الارتباط عبر واجهة المستخدم. أمثلة: bar@example.com، @example.com، foo*@example.com، *@example.com. يتم التعامل مع النطاقين gmail.com و googlemail.com على أنهما متكافئان، ويتم تجاهل النقاط في الجزء المحلي، لذا يتطابق foo.bar@gmail.com مع foobar@googlemail.com.',
+      placeholder: 'أدخل عنوان بريد إلكتروني أو نطاقًا أو نمط أحرف بدل',
       duplicate_error:
         'تمت إضافة عنوان البريد الإلكتروني أو النطاق أو نمط عنوان البريد الإلكتروني بأحرف بدل بالفعل',
       invalid_format_error:

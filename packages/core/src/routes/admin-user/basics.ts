@@ -10,8 +10,10 @@ import {
   userProfileGuard,
 } from '@logto/schemas';
 import { conditional, yes } from '@silverhand/essentials';
+import { StatementTimeoutError } from '@silverhand/slonik';
 import { boolean, literal, nativeEnum, object, string } from 'zod';
 
+import { EnvSet } from '#src/env-set/index.js';
 import RequestError from '#src/errors/RequestError/index.js';
 import { buildManagementApiContext } from '#src/libraries/hook/utils.js';
 import {
@@ -26,6 +28,7 @@ import {
 } from '#src/libraries/user.utils.js';
 import koaGuard from '#src/middleware/koa-guard.js';
 import assertThat from '#src/utils/assert-that.js';
+import { getConsoleLogFromContext } from '#src/utils/console.js';
 
 import { parseLegacyPassword } from '../../utils/password.js';
 import { captureDeveloperEvent } from '../../utils/posthog.js';
@@ -34,6 +37,14 @@ import {
   transpileAdminUserProfileResponse,
 } from '../../utils/user.js';
 import type { ManagementApiRouter, RouterInitArgs } from '../types.js';
+
+/**
+ * Accepts the ID shapes commonly exported by other identity providers (e.g. `auth0|abc123`,
+ * `user@example.com`, UUIDs, `user_01H...`, `org:user`) while rejecting characters that break URL
+ * paths such as whitespace, `/`, `?`, `#`, `%`, and `\`. The length bound matches the `users.id`
+ * column width. The dot segments `.` and `..` are excluded to prevent URL path normalization.
+ */
+const customUserIdRegEx = /^(?!\.{1,2}$)[\w+.:=@|-]{1,128}$/;
 
 export default function adminUserBasicsRoutes<T extends ManagementApiRouter>(
   ...args: RouterInitArgs<T>
@@ -44,6 +55,7 @@ export default function adminUserBasicsRoutes<T extends ManagementApiRouter>(
       deleteUserById,
       findUserById,
       hasUser,
+      hasUserWithId,
       updateUserById,
       hasUserWithEmail,
       hasUserWithNormalizedPhone,
@@ -219,6 +231,7 @@ export default function adminUserBasicsRoutes<T extends ManagementApiRouter>(
     '/users',
     koaGuard({
       body: object({
+        id: string().regex(customUserIdRegEx),
         primaryPhone: string().regex(phoneRegEx),
         primaryEmail: string().regex(emailRegEx),
         username: string().regex(usernameRegEx),
@@ -231,11 +244,12 @@ export default function adminUserBasicsRoutes<T extends ManagementApiRouter>(
         profile: userProfileGuard,
       }).partial(),
       response: adminUserProfileResponseGuard,
-      status: [200, 400, 404, 422],
+      status: [200, 400, 404, 422, 501],
     }),
     // eslint-disable-next-line complexity
     async (ctx, next) => {
       const {
+        id: customId,
         primaryEmail,
         primaryPhone,
         username,
@@ -247,6 +261,20 @@ export default function adminUserBasicsRoutes<T extends ManagementApiRouter>(
         customData,
         profile,
       } = ctx.guard.body;
+
+      // User IDs are shared across tenants in the cloud, so accepting caller-chosen IDs there
+      // would let one tenant squat on IDs that other tenants may need.
+      assertThat(
+        !customId || !EnvSet.values.isCloud,
+        new RequestError({
+          code: 'request.feature_not_supported',
+          status: 501,
+        })
+      );
+      assertThat(
+        !customId || !(await hasUserWithId(customId)),
+        new RequestError({ code: 'user.id_already_in_use', status: 422 })
+      );
 
       assertThat(!(password && passwordDigest), new RequestError('user.password_and_digest'));
       assertThat(!passwordDigest || passwordAlgorithm, 'user.password_algorithm_required');
@@ -275,7 +303,7 @@ export default function adminUserBasicsRoutes<T extends ManagementApiRouter>(
         parseLegacyPassword(passwordDigest);
       }
 
-      const id = await generateUserId();
+      const id = customId ?? (await generateUserId());
       const passwordPayload = password
         ? buildUserPasswordPayload(await encryptUserPassword(password))
         : passwordDigest && passwordAlgorithm
@@ -484,7 +512,22 @@ export default function adminUserBasicsRoutes<T extends ManagementApiRouter>(
 
       const user = await findUserById(userId);
 
-      await signOutUser(userId);
+      // Revocation is best-effort on deletion: once the user row is gone, the remaining
+      // OIDC instances can no longer be exchanged or introspected since the account fails
+      // to resolve, and they are pruned after expiry. A revocation statement timeout on a
+      // pathological instance count must not leave the user permanently undeletable.
+      try {
+        await signOutUser(userId);
+      } catch (error: unknown) {
+        if (!(error instanceof StatementTimeoutError)) {
+          throw error;
+        }
+        getConsoleLogFromContext(ctx).error(
+          `Failed to revoke sessions and tokens for user ${userId} before deletion. Proceeding with the deletion; remaining instances are left to expire.`,
+          error
+        );
+      }
+
       await deleteUserById(userId);
 
       if (tenantId === adminTenantId) {

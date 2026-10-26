@@ -12,6 +12,7 @@ const tenant_members = {
   invite_modal: {
     title: 'Logto Cloud로 사람 초대',
     subtitle: '조직에 멤버를 초대하려면 초대를 수락해야 합니다.',
+    subtitle_oss: '초대된 멤버는 이 Logto 인스턴스에 대한 전체 관리자 권한을 받습니다.',
     to: '받는 사람',
     added_as: '역할로 추가됨',
     email_input_placeholder: 'johndoe@example.com',

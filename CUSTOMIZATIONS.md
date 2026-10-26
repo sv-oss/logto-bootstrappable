@@ -4,10 +4,21 @@ This document describes all changes made to the upstream [Logto](https://github.
 
 ## Overview
 
-This fork tracks upstream Logto `v1.42.0`. Its primary purpose is environment-driven,
+This fork tracks upstream Logto `v1.45.0`. Its primary purpose is environment-driven,
 transactional bootstrap for ephemeral deployments. The remaining product customizations are a
 BDM-oriented Account Center landing page, structured operational logging, custom identity claims,
 runtime defaults, and SMTP-based connectors.
+
+### v1.45.0 upstream reconciliation
+
+- **Audit logging:** upstream audit entries can now omit request IPs and use idempotency keys. The
+  fork continues to emit each sanitized final audit payload to structured console output.
+- **Account Center:** upstream trusted-device, user-menu, and third-party application updates are
+  retained alongside the fork dashboard, TOTP management, and Account Center phrase additions.
+- **Dependencies:** upstream's `mime` runtime dependency and `nanoid` v3 security override are
+  included. The fork's patched Nano ID and Nodemailer versions remain in effect.
+- **Database upgrades:** deploy alterations for `1.45.0` after the bootstrap seed when upgrading
+  an existing database.
 
 ### v1.42.0 upstream reconciliation
 

@@ -55,6 +55,8 @@ export const customRoutes: Readonly<RouteDictionary> = Object.freeze({
   'patch /configs/admin-console': 'UpdateAdminConsoleConfig',
   // Systems
   'get /systems/application': 'GetSystemApplicationConfig',
+  'get /systems/license': 'GetSystemLicense',
+  'put /systems/license': 'InstallSystemLicense',
   // Applications
   'post /applications/:applicationId/roles': 'AssignApplicationRoles',
   'get /applications/:id/protected-app-metadata/custom-domains':
@@ -113,6 +115,12 @@ export const customRoutes: Readonly<RouteDictionary> = Object.freeze({
   'get /configs/actions/:actionType': 'GetAction',
   'delete /configs/actions/:actionType': 'DeleteAction',
   'post /configs/actions/test': 'TestAction',
+  // CIMD (client ID metadata document)
+  'get /configs/cimd': 'GetCimdConfig',
+  'patch /configs/cimd': 'UpdateCimdConfig',
+  'get /cimd/user-consent-scopes': 'ListCimdUserConsentScopes',
+  'post /cimd/user-consent-scopes': 'AssignCimdUserConsentScopes',
+  'delete /cimd/user-consent-scopes/:scopeType/:scopeId': 'DeleteCimdUserConsentScope',
 } satisfies RouteDictionary); // Key assertion doesn't work without `satisfies`
 
 /**
@@ -125,10 +133,10 @@ export const throwByDifference = (builtCustomRoutes: Set<string>) => {
     return;
   }
 
-  const expectedRoutes = Object.entries(customRoutes);
-
-  if (shouldThrow() && builtCustomRoutes.size !== expectedRoutes.length) {
-    const missingRoutes = expectedRoutes.filter(([path]) => !builtCustomRoutes.has(path));
+  if (shouldThrow() && builtCustomRoutes.size !== Object.keys(customRoutes).length) {
+    const missingRoutes = Object.entries(customRoutes).filter(
+      ([path]) => !builtCustomRoutes.has(path)
+    );
 
     if (missingRoutes.length > 0) {
       throw new Error(
@@ -137,9 +145,7 @@ export const throwByDifference = (builtCustomRoutes: Set<string>) => {
       );
     }
 
-    const extraRoutes = [...builtCustomRoutes].filter(
-      (path) => !expectedRoutes.some(([expectedPath]) => expectedPath === path)
-    );
+    const extraRoutes = [...builtCustomRoutes].filter((path) => !(path in customRoutes));
 
     if (extraRoutes.length > 0) {
       throw new Error(

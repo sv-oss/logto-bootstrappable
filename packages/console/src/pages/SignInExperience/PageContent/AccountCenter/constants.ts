@@ -59,6 +59,10 @@ export const accountCenterSections: AccountCenterFieldSection[] = [
             key: 'session',
             title: 'sign_in_exp.account_center.fields.sessions',
           },
+          {
+            key: 'trustedDevice',
+            title: 'sign_in_exp.account_center.fields.trusted_devices',
+          },
         ],
       },
     ],

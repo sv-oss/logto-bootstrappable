@@ -15,7 +15,14 @@ export const actionMetricNames = Object.freeze({
   executionDuration: 'core/action/execution_duration_ms',
 } as const);
 
-export type ActionRuntimeLocation = 'local' | 'azure';
+/**
+ * Where a script run actually executed.
+ *
+ * `azure` and `cloud` are both Cloud runs, kept apart on purpose: `cloud` is the Cloud script
+ * runner and `azure` the Azure Functions runtime kept as its per-region fallback, so the split
+ * makes a per-region rollback readable in the metric itself.
+ */
+export type ActionRuntimeLocation = 'local' | 'azure' | 'cloud';
 
 type ActionExecutionOutcome = 'success' | 'executionError' | 'invalidResult' | 'noop' | 'fallback';
 type ActionExecutionAction = 'createUser' | 'updateUser' | 'noop';

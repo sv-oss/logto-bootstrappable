@@ -11,10 +11,10 @@ import type Queries from '#src/tenants/Queries.js';
 import { getConsoleLogFromContext } from '#src/utils/console.js';
 import { getInjectedHeaderValues } from '#src/utils/injected-header-mapping.js';
 import {
-  isRecord,
   sanitizeSensitiveDataRecord,
   stripNullCharactersFromString,
 } from '#src/utils/sensitive-data.js';
+import { isRecord } from '#src/utils/type.js';
 
 const removeUndefinedKeys = (object: Record<string, unknown>) =>
   Object.fromEntries(Object.entries(object).filter(([, value]) => value !== undefined));
@@ -38,7 +38,9 @@ export class LogEntry {
 
   constructor(
     public readonly key: LogKey,
-    public readonly independent = false
+    public readonly independent = false,
+    public readonly includeRequestIp = true,
+    public readonly idempotencyKey?: string
   ) {
     this.payload = {
       key,
@@ -68,6 +70,10 @@ export type LogPayload = Partial<LogContextPayload>;
 export type CreateLogOptions = {
   /** Keep this entry's own result when the remainder of the request fails. */
   independent?: boolean;
+  /** Include the request IP in this entry's common audit context. */
+  includeRequestIp?: boolean;
+  /** Reuse a stable log ID so retries insert this audit event at most once. */
+  idempotencyKey?: string;
 };
 
 export type LogContext = {
@@ -150,13 +156,16 @@ export function assertLogContext<ContextT>(ctx: ContextT): asserts ctx is Contex
  * @see {@link LogContextPayload} for the basic type suggestion of log data.
  */
 export default function koaAuditLog<StateT, ContextT extends IRouterParamContext, ResponseBodyT>({
-  logs: { insertLog },
+  logs: { insertLog, insertLogIfNotExists },
 }: Queries): MiddlewareType<StateT, WithLogContext<ContextT>, ResponseBodyT> {
   return async (ctx, next) => {
     const entries: LogEntry[] = [];
 
-    ctx.createLog = (key: LogKey, { independent = false } = {}) => {
-      const entry = new LogEntry(key, independent);
+    ctx.createLog = (
+      key: LogKey,
+      { independent = false, includeRequestIp = true, idempotencyKey } = {}
+    ) => {
+      const entry = new LogEntry(key, independent, includeRequestIp, idempotencyKey);
       // eslint-disable-next-line @silverhand/fp/no-mutating-methods
       entries.push(entry);
 
@@ -207,21 +216,26 @@ export default function koaAuditLog<StateT, ContextT extends IRouterParamContext
         })()
       );
       const basePayload = removeUndefinedKeys({
-        ip,
         userAgent: userAgentValue,
         ...conditional(userAgentParsed && { userAgentParsed }),
         ...conditional(signInContext && { signInContext }),
       });
 
       await Promise.all(
-        entries.map(async ({ payload }) => {
+        entries.map(async ({ payload, includeRequestIp, idempotencyKey }) => {
           // Apply the recursive filter at the final insertion boundary too, so common context
           // added through `prependAllLogEntries()` can never bypass sensitive-key masking.
-          const fullPayload = sanitizeLogContextPayload({ ...basePayload, ...payload });
+          const fullPayload = sanitizeLogContextPayload({
+            ...conditional(includeRequestIp && { ip }),
+            ...basePayload,
+            ...payload,
+          });
           getConsoleLogFromContext(ctx).audit(payload.key, fullPayload);
 
-          return insertLog({
-            id: generateStandardId(),
+          const insert = idempotencyKey ? insertLogIfNotExists : insertLog;
+
+          return insert({
+            id: idempotencyKey ?? generateStandardId(),
             key: payload.key,
             payload: fullPayload,
           });

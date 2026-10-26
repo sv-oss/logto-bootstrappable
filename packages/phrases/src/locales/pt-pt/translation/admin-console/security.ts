@@ -36,6 +36,11 @@ const security = {
       description:
         'Alternativa inteligente ao CAPTCHA da Cloudflare, que oferece proteção não intrusiva contra bots, garantindo uma experiência de utilizador fluida sem quebra-cabeças visuais.',
     },
+    cap: {
+      name: 'Cap',
+      description:
+        'CAPTCHA de código aberto e auto-alojado baseado em prova de trabalho, sem quebra-cabeças visuais nem serviços de terceiros, ideal para regiões onde outros serviços de CAPTCHA não estão acessíveis.',
+    },
   },
   captcha_details: {
     back_to_security: 'Voltar à Segurança',
@@ -51,6 +56,10 @@ const security = {
     domain_placeholder: 'www.google.com (padrão) ou recaptcha.net',
     recaptcha_key_id: 'ID da chave reCAPTCHA',
     recaptcha_api_key: 'Chave de API do projeto',
+    cap_endpoint: 'Endpoint do Cap',
+    cap_endpoint_placeholder: 'https://cap.example.com',
+    cap_endpoint_http_notice:
+      'Este endpoint utiliza HTTP, o que só é adequado para desenvolvimento local. Os navegadores bloqueiam pedidos HTTP a partir de uma página de início de sessão HTTPS, e a chave secreta seria enviada sem encriptação. Utilize HTTPS em produção.',
     deletion_description: 'Tem a certeza de que deseja eliminar este fornecedor de CAPTCHA?',
     captcha_deleted: 'Fornecedor de CAPTCHA eliminado com sucesso',
     setup_captcha: 'Configurar CAPTCHA',
@@ -59,6 +68,10 @@ const security = {
     mode_checkbox: 'Caixa de seleção',
     mode_notice:
       'O modo de verificação é definido nas definições da chave reCAPTCHA na Google Cloud Console. Alterar o modo aqui requer um tipo de chave correspondente.',
+    score_threshold: 'Limiar de pontuação',
+    score_threshold_description:
+      'Pontuações abaixo do limiar são rejeitadas. 0.0 permite todas, 1.0 apenas pontuações perfeitas. O valor predefinido é 0.5.',
+    score_threshold_error: 'O limiar de pontuação deve estar entre 0 e 1.',
   },
   password_policy: {
     password_requirements: 'Requisitos de password',
@@ -172,9 +185,8 @@ const security = {
     custom_email_allowlist: {
       title: 'Permitir endereços de email personalizados',
       description:
-        'Permita apenas endereços de email, domínios ou padrões curinga correspondentes para novos registos e emails recentemente associados.',
-      placeholder:
-        'Introduza o endereço de email, domínio ou padrão curinga permitido (ex.: bar@example.com, @example.com, foo*@example.com, *@example.com)',
+        'Adicione regras para permitir apenas domínios de email, endereços de email ou padrões curinga específicos para novos registos e emails recentemente associados. Exemplos: bar@example.com, @example.com, foo*@example.com, *@example.com. Os domínios gmail.com e googlemail.com são tratados como equivalentes e os pontos na parte local são ignorados, pelo que foo.bar@gmail.com corresponde a foobar@googlemail.com.',
+      placeholder: 'Introduza um endereço de email, domínio ou padrão curinga',
       duplicate_error: 'Endereço de email, domínio ou padrão curinga já adicionado',
       invalid_format_error:
         'Deve ser um endereço de email válido (bar@example.com), domínio (@example.com) ou padrão curinga (foo*@example.com, *@example.com)',
@@ -202,9 +214,8 @@ const security = {
     custom_email_address: {
       title: 'Bloquear endereços de email personalizados',
       description:
-        'Adicionar regras para bloquear domínios de email específicos, endereços de email ou padrões de endereço de email com caracteres universais de se registar ou vincular via a IU.',
-      placeholder:
-        'Insira o endereço de email, domínio ou padrão de endereço de email com caracteres universais bloqueado (por exemplo, bar@example.com, @example.com, foo*@example.com, *@example.com)',
+        'Adicione regras para impedir que domínios de email, endereços de email ou padrões curinga específicos se registem ou sejam associados através da IU. Exemplos: bar@example.com, @example.com, foo*@example.com, *@example.com. Os domínios gmail.com e googlemail.com são tratados como equivalentes e os pontos na parte local são ignorados, pelo que foo.bar@gmail.com corresponde a foobar@googlemail.com.',
+      placeholder: 'Introduza um endereço de email, domínio ou padrão curinga',
       duplicate_error:
         'Endereço de email, domínio ou padrão de endereço de email com caracteres universais já adicionado',
       invalid_format_error:

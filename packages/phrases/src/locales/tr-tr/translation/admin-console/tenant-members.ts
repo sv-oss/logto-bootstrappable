@@ -12,6 +12,7 @@ const tenant_members = {
   invite_modal: {
     title: "Logto Cloud'e Kişileri Davet Et",
     subtitle: 'Bir kuruluşa üye davet etmek için daveti kabul etmeleri gerekmektedir.',
+    subtitle_oss: 'Davet edilen üyeler bu Logto örneğine tam yönetici erişimi elde eder.',
     to: 'Kime',
     added_as: 'Şu rollerle eklendi',
     email_input_placeholder: 'johndoe@example.com',

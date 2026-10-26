@@ -2,7 +2,7 @@ import { SignInIdentifier, type ActionUser, type JwtCustomizerUserContext } from
 
 import { mockUser } from '#src/__mocks__/user.js';
 import RequestError from '#src/errors/RequestError/index.js';
-import { runScriptFunctionInLocalVm } from '#src/utils/local-vm/index.js';
+import { WorkerThreadScriptRunner } from '#src/libraries/script-runner/worker-thread-script-runner.js';
 
 import {
   type ValidatedPostFirstFactorVerificationActionResult,
@@ -36,6 +36,7 @@ const actionUser: JwtCustomizerUserContext = {
   updatedAt: mockUser.updatedAt,
   profile: mockUser.profile,
   applicationId: mockUser.applicationId,
+  cimdClientId: mockUser.cimdClientId,
   isSuspended: mockUser.isSuspended,
   hasPassword: true,
   ssoIdentities: [],
@@ -248,18 +249,32 @@ describe('validatePostSignInActionResult', () => {
     }
   );
 
-  it('accepts an empty plain object returned from a separate VM realm as a no-op', async () => {
-    const result = await runScriptFunctionInLocalVm(
-      'const runAction = () => ({})',
-      'runAction',
-      {}
-    );
+  // End-to-end guard on the shape validation actually receives: a script result is rebuilt by the
+  // structured-clone round trip across the thread boundary, so what reaches the validator is a
+  // plain object it never saw the script construct. An empty one must still read as a no-op.
+  it('accepts an empty plain object returned across the worker thread boundary as a no-op', async () => {
+    const runner = new WorkerThreadScriptRunner();
 
-    expect(result).toEqual({});
-    expect(validatePostSignInActionResult({ userId: actionUser.id, result })).toEqual(
-      continueResult
-    );
-  });
+    try {
+      const result = await runner.run({
+        script: 'const runAction = () => ({})',
+        entry: 'runAction',
+        payload: {},
+        limits: { wallClockMs: 5000, memoryMb: 64 },
+        egress: { mode: 'allowAll' },
+      });
+
+      expect(result).toEqual({ ok: true, value: {} });
+      expect(
+        validatePostSignInActionResult({
+          userId: actionUser.id,
+          result: result.ok ? result.value : undefined,
+        })
+      ).toEqual(continueResult);
+    } finally {
+      await runner.dispose();
+    }
+  }, 10_000);
 
   it('accepts updateUser with a sanitized provisioning profile', () => {
     expect(

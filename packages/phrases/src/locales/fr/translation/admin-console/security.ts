@@ -36,6 +36,11 @@ const security = {
       description:
         "L'alternative CAPTCHA intelligente de Cloudflare qui offre une protection contre les bots non intrusive tout en garantissant une expérience utilisateur fluide sans puzzles visuels.",
     },
+    cap: {
+      name: 'Cap',
+      description:
+        'CAPTCHA open source et auto-hébergé basé sur la preuve de travail, sans puzzles visuels ni services tiers, idéal pour les régions où les autres services CAPTCHA sont inaccessibles.',
+    },
   },
   captcha_details: {
     back_to_security: 'Retour à la sécurité',
@@ -51,6 +56,10 @@ const security = {
     domain_placeholder: 'www.google.com (défaut) ou recaptcha.net',
     recaptcha_key_id: 'ID de clé reCAPTCHA',
     recaptcha_api_key: 'Clé API du projet',
+    cap_endpoint: 'Point de terminaison Cap',
+    cap_endpoint_placeholder: 'https://cap.example.com',
+    cap_endpoint_http_notice:
+      "Ce point de terminaison utilise HTTP, ce qui ne convient qu'au développement local. Les navigateurs bloquent les requêtes HTTP provenant d'une page de connexion HTTPS, et la clé secrète serait envoyée sans chiffrement. Utilisez HTTPS en production.",
     deletion_description: 'Êtes-vous sûr de vouloir supprimer ce fournisseur CAPTCHA ?',
     captcha_deleted: 'Fournisseur CAPTCHA supprimé avec succès',
     setup_captcha: 'Configurer CAPTCHA',
@@ -59,6 +68,10 @@ const security = {
     mode_checkbox: 'Case à cocher',
     mode_notice:
       'Le mode de vérification est défini dans les paramètres de votre clé reCAPTCHA dans Google Cloud Console. Changer le mode ici nécessite un type de clé correspondant.',
+    score_threshold: 'Seuil de score',
+    score_threshold_description:
+      "Les scores inférieurs au seuil sont rejetés. 0.0 accepte tout, 1.0 n'accepte que les scores parfaits. La valeur par défaut est 0.5.",
+    score_threshold_error: 'Le seuil de score doit être compris entre 0 et 1.',
   },
   password_policy: {
     password_requirements: 'Exigences relatives au mot de passe',
@@ -173,9 +186,8 @@ const security = {
     custom_email_allowlist: {
       title: 'Autoriser des adresses e-mail personnalisées',
       description:
-        'Autorisez uniquement les adresses e-mail, domaines ou modèles avec joker correspondants pour les nouvelles inscriptions et les e-mails récemment liés.',
-      placeholder:
-        'Saisissez l’adresse e-mail, le domaine ou le modèle avec joker autorisé (par ex. bar@example.com, @example.com, foo*@example.com, *@example.com)',
+        'Ajoutez des règles pour autoriser uniquement certains domaines, adresses e-mail ou modèles avec joker pour les nouvelles inscriptions et les e-mails récemment liés. Exemples : bar@example.com, @example.com, foo*@example.com, *@example.com. Les domaines gmail.com et googlemail.com sont traités comme équivalents et les points de la partie locale sont ignorés, donc foo.bar@gmail.com correspond à foobar@googlemail.com.',
+      placeholder: 'Saisissez une adresse e-mail, un domaine ou un modèle avec joker',
       duplicate_error: 'L’adresse e-mail, le domaine ou le modèle avec joker a déjà été ajouté',
       invalid_format_error:
         'Doit être une adresse e-mail valide (bar@example.com), un domaine (@example.com) ou un modèle avec joker (foo*@example.com, *@example.com)',
@@ -203,9 +215,8 @@ const security = {
     custom_email_address: {
       title: 'Bloquer les adresses e-mail personnalisées',
       description:
-        "Ajoutez des règles pour bloquer des domaines d'e-mail, des adresses e-mail ou des modèles d'adresse e-mail avec joker spécifiques afin qu'ils ne puissent pas s'inscrire ou se lier via l'interface utilisateur.",
-      placeholder:
-        "Entrez l'adresse e-mail, le domaine ou le modèle d'adresse e-mail avec joker bloqué (ex. : bar@example.com, @example.com, foo*@example.com, *@example.com)",
+        "Ajoutez des règles pour empêcher certains domaines, adresses e-mail ou modèles avec joker de s'inscrire ou de se lier via l'interface utilisateur. Exemples : bar@example.com, @example.com, foo*@example.com, *@example.com. Les domaines gmail.com et googlemail.com sont traités comme équivalents et les points de la partie locale sont ignorés, donc foo.bar@gmail.com correspond à foobar@googlemail.com.",
+      placeholder: 'Saisissez une adresse e-mail, un domaine ou un modèle avec joker',
       duplicate_error:
         "L'adresse e-mail, le domaine ou le modèle d'adresse e-mail avec joker a déjà été ajouté",
       invalid_format_error:

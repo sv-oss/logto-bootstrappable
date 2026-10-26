@@ -12,6 +12,7 @@ const tenant_members = {
   invite_modal: {
     title: 'دعوة الأشخاص إلى Logto Cloud',
     subtitle: 'لدعوة الأعضاء إلى منظمة ما، يجب أن يقبلوا الدعوة.',
+    subtitle_oss: 'يحصل الأعضاء المدعوون على صلاحيات المسؤول الكاملة في نسخة Logto هذه.',
     to: 'إلى',
     added_as: 'تمت إضافتهم بصفة',
     email_input_placeholder: 'johndoe@example.com',

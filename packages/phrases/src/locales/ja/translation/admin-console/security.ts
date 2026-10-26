@@ -36,6 +36,11 @@ const security = {
       description:
         'Cloudflare のスマート CAPTCHA 代替案。視覚的パズルを用いず、シームレスなユーザー体験を提供しながらボット保護を実現します。',
     },
+    cap: {
+      name: 'Cap',
+      description:
+        '視覚的パズルやサードパーティサービスを使わない、オープンソースでセルフホスト型のプルーフ・オブ・ワーク CAPTCHA。他の CAPTCHA サービスにアクセスできない地域に最適です。',
+    },
   },
   captcha_details: {
     back_to_security: 'セキュリティへ戻る',
@@ -51,6 +56,10 @@ const security = {
     domain_placeholder: 'www.google.com（デフォルト）または recaptcha.net',
     recaptcha_key_id: 'reCAPTCHA キー ID',
     recaptcha_api_key: 'プロジェクトの API キー',
+    cap_endpoint: 'Cap エンドポイント',
+    cap_endpoint_placeholder: 'https://cap.example.com',
+    cap_endpoint_http_notice:
+      'このエンドポイントは HTTP を使用しており、ローカル開発にのみ適しています。ブラウザーは HTTPS のサインインページからの HTTP リクエストをブロックし、シークレットキーは暗号化されずに送信されます。本番環境では HTTPS を使用してください。',
     deletion_description: 'この CAPTCHA プロバイダーを削除してもよろしいですか？',
     captcha_deleted: 'CAPTCHA プロバイダーが正常に削除されました',
     setup_captcha: 'CAPTCHA をセットアップ',
@@ -59,6 +68,10 @@ const security = {
     mode_checkbox: 'チェックボックス',
     mode_notice:
       '認証モードは Google Cloud Console の reCAPTCHA キー設定で定義されています。ここでモードを変更するには、一致するキータイプが必要です。',
+    score_threshold: 'スコアしきい値',
+    score_threshold_description:
+      'しきい値を下回るスコアは拒否されます。0.0 はすべてを許可し、1.0 は完全なスコアのみを許可します。デフォルトは 0.5 です。',
+    score_threshold_error: 'スコアしきい値は 0 から 1 の間である必要があります。',
   },
   password_policy: {
     password_requirements: 'パスワードの要件',
@@ -163,9 +176,8 @@ const security = {
     custom_email_allowlist: {
       title: 'カスタムメールアドレスを許可',
       description:
-        '新規登録および新しくリンクされるメールには、一致するメールアドレス、ドメイン、またはワイルドカード付きメールアドレスパターンのみを許可します。',
-      placeholder:
-        '許可するメールアドレス、ドメイン、またはワイルドカード付きメールアドレスパターンを入力してください（例：bar@example.com、@example.com、foo*@example.com、*@example.com）',
+        '新規登録および新しくリンクされるメールに対して、特定のメールドメイン、メールアドレス、またはワイルドカードパターンのみを許可するルールを追加します。例：bar@example.com、@example.com、foo*@example.com、*@example.com。gmail.com と googlemail.com のドメインは同等として扱われ、ローカル部分のドットは無視されるため、foo.bar@gmail.com は foobar@googlemail.com と一致します。',
+      placeholder: 'メールアドレス、ドメイン、またはワイルドカードパターンを入力',
       duplicate_error:
         'メールアドレス、ドメイン、またはワイルドカード付きメールアドレスパターンは既に追加されています',
       invalid_format_error:
@@ -194,9 +206,8 @@ const security = {
     custom_email_address: {
       title: 'カスタムメールアドレスをブロック',
       description:
-        '特定のメールドメイン、メールアドレス、またはワイルドカード付きメールアドレスパターンが UI を介して登録またはリンクできないようにブロックするルールを追加します。',
-      placeholder:
-        'ブロックするメールアドレス、ドメイン、またはワイルドカード付きメールアドレスパターンを入力してください（例：bar@example.com、@example.com、foo*@example.com、*@example.com）',
+        '特定のメールドメイン、メールアドレス、またはワイルドカードパターンが UI を介して登録またはリンクできないようにするルールを追加します。例：bar@example.com、@example.com、foo*@example.com、*@example.com。gmail.com と googlemail.com のドメインは同等として扱われ、ローカル部分のドットは無視されるため、foo.bar@gmail.com は foobar@googlemail.com と一致します。',
+      placeholder: 'メールアドレス、ドメイン、またはワイルドカードパターンを入力',
       duplicate_error:
         'メールアドレス、ドメイン、またはワイルドカード付きメールアドレスパターンは既に追加されています',
       invalid_format_error:
