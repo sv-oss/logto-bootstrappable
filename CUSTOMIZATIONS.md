@@ -13,12 +13,17 @@ runtime defaults, and SMTP-based connectors.
 
 - **Runtime security:** containers, CI, and package engine metadata require Node.js `^22.23.4`,
   the patched Node 22 LTS release for Broccoli2Shell.
+- **Runtime container dependencies:** the production image explicitly installs only production
+  dependencies after building. This prevents integration-test-only packages such as Puppeteer and
+  its transitive dependencies from being shipped in the runtime image.
 - **Audit logging:** upstream audit entries can now omit request IPs and use idempotency keys. The
   fork continues to emit each sanitized final audit payload to structured console output.
 - **Account Center:** upstream trusted-device, user-menu, and third-party application updates are
   retained alongside the fork dashboard, TOTP management, and Account Center phrase additions.
 - **Dependencies:** upstream's `mime` runtime dependency and `nanoid` v3 security override are
-  included. The fork's patched Nano ID and Nodemailer versions remain in effect.
+  included. The fork pins Nodemailer to `^10.3.1`, which fixes nested-comment recipient
+  redirection, Node Forge to `^1.4.3`, and vulnerable Axios and `decode-uri-component` ranges to
+  their current patched versions.
 - **Database upgrades:** deploy alterations for `1.45.0` after the bootstrap seed when upgrading
   an existing database.
 
