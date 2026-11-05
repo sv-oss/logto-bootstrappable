@@ -330,6 +330,8 @@ No `release` environment gate or release-please dependency — just build and pu
   Puppeteer integration-test failures retry up to the workflow's configured limit.
 - Integration tests wait for document readiness rather than network idleness after navigation, and
   use stable `data-testid` selectors for Console branding and preview controls.
+- The main workflow uses `action-setup-postgres@v9`, which supports current Ubuntu runners, and
+  Elements tests use Playwright `^1.64.1` for Ubuntu 26.04 browser installation support.
 - The main alteration workflow validates both forward and reverse schema changes against the
   `v0.4.0` fork release. It deliberately does not support or test migrations from an official
   Logto database into the fork, because that is not a deployment path for this project.
