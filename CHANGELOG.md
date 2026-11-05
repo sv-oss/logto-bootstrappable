@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.1](https://github.com/sv-oss/logto-bootstrappable/compare/v0.6.0...v0.6.1) (2026-11-05)
+
+
+### Bug Fixes
+
+* Various security improvements inc not shipping puppeteer ([#52](https://github.com/sv-oss/logto-bootstrappable/issues/52)) ([9b6e77c](https://github.com/sv-oss/logto-bootstrappable/commit/9b6e77c940ab759ee3bffe837399d8f548f88a16))
+
 ## [0.6.0](https://github.com/sv-oss/logto-bootstrappable/compare/v0.5.0...v0.6.0) (2026-10-26)
 
 
